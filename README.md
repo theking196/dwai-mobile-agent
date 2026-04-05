@@ -2,7 +2,7 @@
 
 Cloud‑heavy + phone‑light AI agent system. Free stack:
 
-- **Cloud:** Groq API (LLM), Railway backend, GitHub storage (all free tiers)
+- **Cloud:** Groq API (LLM), Render backend, GitHub storage (all free tiers)
 - **Phone:** Auto.js script (Android) that polls and executes
 
 You send a command via Telegram → AI reasons → produces JSON steps → phone executes them.
@@ -11,7 +11,7 @@ You send a command via Telegram → AI reasons → produces JSON steps → phone
 
 ## 🚀 Quick Start
 
-### 1. Backend (Railway)
+### 1. Backend (Render)
 
 ```bash
 cd backend
@@ -21,11 +21,15 @@ npm install
 npm start
 ```
 
-Deploy to Railway (free) with:
-- Build command: `npm install`
-- Start command: `npm start`
-- Env vars as above
+Deploy to Render (free) via `render.yaml`:
+- Go to https://render.com → New Blueprint Instance → Connect `theking196/dwai-mobile-agent`
+- Render reads `render.yaml` automatically
+- Fill in env vars when prompted: `TELEGRAM_BOT_TOKEN`, `GROQ_API_KEY`, `GITHUB_TOKEN`
+- `GITHUB_REPO` set automatically; `PORT=10000`
 - Healthcheck: `/health`
+- After deploy, note your service URL (e.g. `https://dwai-backend.onrender.com`)
+
+Alternative: create a Web Service manually from GitHub → set build/start commands manually.
 
 ### 2. GitHub repo
 
@@ -34,7 +38,7 @@ Create a **public** GitHub repository `dwai-mobile-agent` with two directories:
 - `backend/` (your deployed code)
 - `phone/agent.js` (the phone script)
 
-Make sure the GitHub token you give Railway has **repo** scope.
+Make sure the GitHub token you give Render has **repo** scope.
 
 ### 3. Phone (Auto.js)
 
@@ -99,7 +103,7 @@ dwai-mobile-agent/
 | Service       | Free tier limits                      | What we use                      |
 |---------------|---------------------------------------|----------------------------------|
 | Groq API      | ~30 RPM, generous tokens/day         | LLM planning                     |
-| Railway       | 512 MB RAM, free 24/7                | Backend API                      |
+| Render        | 750 hrs free/month, spins down after 15 min | Backend API           |
 | GitHub        | 5 000 req/h per token                | Task storage                     |
 | Telegram      | Unlimited (polling)                   | User interface                   |
 
@@ -116,7 +120,7 @@ dwai-mobile-agent/
 ## 🧪 Testing
 
 1. Make sure your Telegram bot token works (BotFather).
-2. In Railway console, check `/health` returns `{"status":"ok"}`.
+2. In Render dashboard, check `/health` returns `{"status":"ok"}`.
 3. Send `/start` to the bot; it should respond.
 4. Send `/cmd Open Calculator` (simple test). Phone should open the calculator app.
 
