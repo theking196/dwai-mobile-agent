@@ -49,37 +49,53 @@ function createTask(taskId, data) {
   return ghPut(url, { message: `Create task ${taskId}`, content: contentBase64 });
 }
 
+// NEW IMPROVED PROMPT WITH TRAINING
 async function generatePlan(userText) {
-  const prompt = `You are a mobile automation planner that outputs JSON only.
+  const prompt = `You are DWAI Mobile Agent - an intelligent automation planner for Android devices.
 
-Valid actions:
-- {"action":"launch_app","value":"<package>"}
-- {"action":"click","x":<number>,"y":<number>}
-- {"action":"type","text":"<string>"}
-- {"action":"press","key":"home|back|enter"}
-- {"action":"wait","ms":<number>}
+CORE RULES:
+1. ALWAYS plan first, then execute
+2. Prefer selectors (text, contains, desc) over coordinates
+3. Every step must be verifiable
+4. ALWAYS include wait times for UI to load
+5. Add fallback strategies for each critical step
+6. Think step-by-step before acting
 
-Return a JSON array of steps to accomplish: "${userText}"
+ACTION SCHEMA:
+{"action": "launch_app | click | type | press | wait | swipe | toast", "value": "package_name", "text": "string", "key": "home|back|enter", "x": number, "y": number, "ms": milliseconds, "contains": "partial text", "desc": "content description"}
 
-Example:
-[
-  {"action":"launch_app","value":"com.android.chrome"},
-  {"action":"wait","ms":3000},
-  {"action":"click","x":500,"y":1200},
-  {"action":"type","text":"OpenAI"},
-  {"action":"press","key":"enter"}
-]
+DEVICE CONTEXT:
+- screen_width: 720, screen_height: 1544
+- prefer text/contains selectors over coordinates
+- use coordinates only as fallback
 
-Respond only with the JSON array, no commentary.`;
+PLANNING RULES:
+- Each step needs: action + verification
+- Use waits after every UI-changing action (1000-5000ms)
+- For click: prefer "contains" or "desc" over x/y
+- For launch_app: use package name (e.g., "com.google.android.youtube")
+
+COMMON APPS:
+- YouTube: com.google.android.youtube
+- Chrome: com.android.chrome
+- WhatsApp: com.whatsapp
+- Calculator: com.android.calculator2
+
+User task: "${userText}"
+
+Generate ONLY a JSON array of steps. No explanation. Example:
+[{"action":"launch_app","value":"com.google.android.youtube"},{"action":"wait","ms":4000},{"action":"click","contains":"Search"},{"action":"wait","ms":2000},{"action":"type","text":"AI news"},{"action":"press","key":"enter"},{"action":"wait","ms":5000}]`;
+
   const res = await groq.chat.completions.create({
     model: 'llama-3.3-70b-versatile',
     messages: [
-      { role: 'system', content: 'You are a helpful mobile automation agent that outputs pure JSON.' },
+      { role: 'system', content: 'You are DWAI Mobile Agent - output ONLY JSON, no commentary.' },
       { role: 'user', content: prompt }
     ],
-    temperature: 0.3,
-    max_tokens: 800
+    temperature: 0.2,
+    max_tokens: 1000
   });
+
   const raw = res.choices[0].message.content.trim();
   const jsonStart = raw.search('[');
   const jsonEnd = raw.lastIndexOf(']') + 1;
@@ -102,7 +118,7 @@ bot.command('cmd', async (ctx) => {
   const task = { task_id: taskId, status: 'pending', created_at: new Date().toISOString(), steps };
   try {
     await createTask(taskId, task);
-    await ctx.reply(`Task queued!\nID: ${taskId}\nSteps: ${steps.length}`);
+    await ctx.reply(`Task queued!\nID: ${taskId}\nSteps: ${steps.length}\n\n${JSON.stringify(steps, null, 2)}`);
   } catch (e) {
     console.error(e);
     await ctx.reply('Failed to save task.');
@@ -127,6 +143,24 @@ bot.command('status', async (ctx) => {
   } catch (e) {
     console.error(e);
     await ctx.reply('Task not found.');
+  }
+});
+
+bot.command('tasks', async (ctx) => {
+  try {
+    const url = `${GITHUB_API}/data/tasks`;
+    const res = await new Promise((resolve, reject) => {
+      https.get(url, { headers: ghHeaders() }, (r) => {
+        let d = '';
+        r.on('data', (c) => d += c);
+        r.on('end', () => resolve(JSON.parse(d)));
+      }).on('error', reject);
+    });
+    const files = res.filter(f => f.name !== '.gitkeep');
+    if (!files.length) return ctx.reply('No pending tasks.');
+    await ctx.reply(`Pending tasks:\n${files.map(f => f.name.replace('.json', '')).join('\n')}`);
+  } catch (e) {
+    await ctx.reply('Could not fetch tasks.');
   }
 });
 
