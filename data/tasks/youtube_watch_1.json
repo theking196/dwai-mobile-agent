@@ -1,1 +1,57 @@
-{"task_id": "youtube_watch_1", "status": "pending", "created_at": "2026-04-06T23:35:00Z", "steps": [{"action": "launch_app", "value": "com.google.android.youtube"}, {"action": "wait", "ms": 5000}, {"action": "click", "desc": "Search"}, {"action": "wait", "ms": 2000}, {"action": "click", "desc": "Search YouTube"}, {"action": "wait", "ms": 1000}, {"action": "type", "text": "latest tech news 2026"}, {"action": "wait", "ms": 1000}, {"action": "press", "key": "enter"}, {"action": "wait", "ms": 5000}, {"action": "click", "x": 360, "y": 500}, {"action": "toast", "text": "Watching video 🎬"}]}
+{
+  "task_id": "youtube_watch_1",
+  "status": "executing",
+  "created_at": "2026-04-06T23:35:00Z",
+  "steps": [
+    {
+      "action": "launch_app",
+      "value": "com.google.android.youtube"
+    },
+    {
+      "action": "wait",
+      "ms": 5000
+    },
+    {
+      "action": "click",
+      "desc": "Search"
+    },
+    {
+      "action": "wait",
+      "ms": 2000
+    },
+    {
+      "action": "click",
+      "desc": "Search YouTube"
+    },
+    {
+      "action": "wait",
+      "ms": 1000
+    },
+    {
+      "action": "type",
+      "text": "latest tech news 2026"
+    },
+    {
+      "action": "wait",
+      "ms": 1000
+    },
+    {
+      "action": "press",
+      "key": "enter"
+    },
+    {
+      "action": "wait",
+      "ms": 5000
+    },
+    {
+      "action": "click",
+      "x": 360,
+      "y": 500
+    },
+    {
+      "action": "toast",
+      "text": "Watching video 🎬"
+    }
+  ],
+  "started_at": "2026-04-06T23:35:30.262Z"
+}
