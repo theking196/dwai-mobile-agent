@@ -11,65 +11,110 @@ var POLL_INTERVAL = 5000;
 
 var TASKS_URL = "https://api.github.com/repos/" + REPO_OWNER + "/" + REPO_NAME + "/contents/" + REPO_PATH;
 
+// Enable Java access
+if (typeof Java !== "undefined") {
+  Java.asJSModule;
+}
+
+// Helper function to get current thread
+function runInThread(func) {
+  return function() {
+    var Nashorn = Java.type("javax.script.ScriptEngineManager").getEngineByName("Nashorn");
+    var scriptEngine = context.getGlobal().get("engine");
+  };
+}
+
 function sleep(ms) {
-  java.lang.Thread.sleep(ms);
+  if (typeof $ !== "undefined") {
+    $.sleep(ms);
+  } else if (typeof java !== "undefined") {
+    java.lang.Thread.sleep(ms);
+  } else {
+    var start = java.lang.System.currentTimeMillis();
+    while (java.lang.System.currentTimeMillis() - start < ms) {}
+  }
 }
 
 function toBase64(str) {
-  var StringClass = Java.type("java.lang.String");
-  var Base64 = Java.type("android.util.Base64");
-  var bytes = new StringClass(str).getBytes("UTF-8");
-  return Base64.encodeToString(bytes, Base64.NO_WRAP);
+  try {
+    var Base64 = android.util.Base64;
+    var bytes = new java.lang.String(str).getBytes("UTF-8");
+    return Base64.encodeToString(bytes, Base64.NO_WRAP);
+  } catch (e) {
+    // Fallback
+    var base64chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
+    var result = "";
+    var i;
+    for (i = 0; i < str.length % 3; i++) {
+      result += "=";
+    }
+    return result;
+  }
 }
 
-// Auto.js HTTP using URLConnection
+// Use Auto.js built-in HTTP with OkHttp
 function httpGet(url, headers) {
   try {
-    var URL = Java.type("java.net.URL");
-    var BufferedReader = Java.type("java.io.BufferedReader");
-    var InputStreamReader = Java.type("java.io.InputStreamReader");
-    var HttpURLConnection = Java.type("java.net.HttpURLConnection");
-    
-    var u = new URL(url);
-    var conn = u.openConnection();
-    conn.setRequestMethod("GET");
+    var request = new okio.OkHttpClient();
+    var builder = new okhttp3.Request.Builder().url(url);
     
     if (headers) {
       for (var key in headers) {
-        conn.setRequestProperty(key, headers[key]);
+        builder.addHeader(key, headers[key]);
       }
     }
     
-    conn.setConnectTimeout(10000);
-    conn.setReadTimeout(10000);
+    var response = request.newCall(builder.build()).execute();
+    var body = response.body();
+    var bodyStr = body ? body.string() : "";
     
-    var responseCode = conn.getResponseCode();
-    var reader = new BufferedReader(new InputStreamReader(conn.getInputStream()));
-    var line = "";
-    var responseBody = "";
-    while ((line = reader.readLine()) != null) {
-      responseBody = responseBody + line;
-    }
-    reader.close();
-    conn.disconnect();
-    
-    return { statusCode: responseCode, body: responseBody };
+    return {
+      statusCode: response.code(),
+      body: bodyStr
+    };
   } catch (e) {
-    return { statusCode: -1, body: e.toString() };
+    // Try using net/http
+    try {
+      var URL = java.net.URL;
+      var u = new URL(url);
+      var conn = u.openConnection();
+      conn.setRequestMethod("GET");
+      conn.setConnectTimeout(10000);
+      conn.setReadTimeout(10000);
+      
+      if (headers) {
+        for (var k in headers) {
+          conn.setRequestProperty(k, headers[k]);
+        }
+      }
+      
+      var code = conn.getResponseCode();
+      var reader = new java.io.BufferedReader(new java.io.InputStreamReader(conn.getInputStream()));
+      var line = "";
+      var responseBody = "";
+      while ((line = reader.readLine()) != null) {
+        responseBody += line;
+      }
+      reader.close();
+      conn.disconnect();
+      
+      return { statusCode: code, body: responseBody };
+    } catch (err) {
+      return { statusCode: -1, body: err.toString() };
+    }
   }
 }
 
 function httpPut(url, data, headers) {
   try {
-    var URL = Java.type("java.net.URL");
-    var OutputStreamWriter = Java.type("java.io.OutputStreamWriter");
-    var HttpURLConnection = Java.type("java.net.HttpURLConnection");
-    
+    var URL = java.net.URL;
     var u = new URL(url);
     var conn = u.openConnection();
     conn.setRequestMethod("PUT");
     conn.setDoOutput(true);
     conn.setDoInput(true);
+    conn.setConnectTimeout(10000);
+    conn.setReadTimeout(10000);
     
     if (headers) {
       for (var key in headers) {
@@ -77,31 +122,25 @@ function httpPut(url, data, headers) {
       }
     }
     
-    conn.setConnectTimeout(10000);
-    conn.setReadTimeout(10000);
-    
-    var writer = new OutputStreamWriter(conn.getOutputStream());
+    var writer = new java.io.OutputStreamWriter(conn.getOutputStream());
     writer.write(data);
     writer.flush();
     writer.close();
     
-    var responseCode = conn.getResponseCode();
+    var code = conn.getResponseCode();
     var responseBody = "";
     
-    if (responseCode >= 200 && responseCode < 300) {
-      var BufferedReader = Java.type("java.io.BufferedReader");
-      var InputStreamReader = Java.type("java.io.InputStreamReader");
-      var reader = new BufferedReader(new InputStreamReader(conn.getInputStream()));
+    if (code >= 200 && code < 300) {
+      var reader = new java.io.BufferedReader(new java.io.InputStreamReader(conn.getInputStream()));
       var line = "";
       while ((line = reader.readLine()) != null) {
-        responseBody = responseBody + line;
+        responseBody += line;
       }
       reader.close();
     }
     
     conn.disconnect();
-    
-    return { statusCode: responseCode, body: responseBody };
+    return { statusCode: code, body: responseBody };
   } catch (e) {
     return { statusCode: -1, body: e.toString() };
   }
@@ -120,15 +159,10 @@ function execStep(step) {
     paste();
     toast("Typed: " + step.text);
   } else if (step.action === "press") {
-    if (step.key === "enter") {
-      press("enter");
-    } else if (step.key === "home") {
-      home();
-    } else if (step.key === "back") {
-      back();
-    } else {
-      toast("Unknown key: " + step.key);
-    }
+    if (step.key === "enter") press("enter");
+    else if (step.key === "home") home();
+    else if (step.key === "back") back();
+    else toast("Unknown key: " + step.key);
   } else if (step.action === "wait") {
     sleep(step.ms);
   } else {
@@ -144,6 +178,7 @@ function pollAndRun() {
 
   try {
     var res = httpGet(TASKS_URL, headers);
+    console.log("Response: " + res.statusCode);
     
     if (res.statusCode !== 200) {
       console.error("List tasks failed: " + res.statusCode + " - " + res.body);
@@ -152,56 +187,42 @@ function pollAndRun() {
     
     var files = JSON.parse(res.body);
     if (!Array.isArray(files)) {
-      console.log("Not an array, skipping");
+      console.log("Not array, skipping");
       return;
     }
     
-    console.log("Found files: " + files.length);
+    console.log("Files: " + files.length);
     
     for (var i = 0; i < files.length; i++) {
       var file = files[i];
-      if (!file.sha || !file.name || file.name === ".gitkeep") {
-        continue;
-      }
+      if (!file.sha || !file.name || file.name === ".gitkeep") continue;
       
       console.log("Checking: " + file.name);
       
       var contentRes = httpGet(file.download_url, {});
-      if (contentRes.statusCode !== 200) {
-        console.log("Failed to get content: " + contentRes.statusCode);
-        continue;
-      }
+      if (contentRes.statusCode !== 200) continue;
       
-      var task;
-      try {
-        task = JSON.parse(contentRes.body);
-      } catch (e) {
-        console.log("JSON parse error: " + e);
-        continue;
-      }
-      
+      var task = JSON.parse(contentRes.body);
       if (task.status !== "pending") {
-        console.log("Task status: " + task.status);
+        console.log("Status: " + task.status);
         continue;
       }
       
       console.log("Found task: " + task.task_id);
       
-      // Mark as executing
+      // Mark executing
       task.status = "executing";
       task.started_at = new Date().toISOString();
       
       var updateData = JSON.stringify({
         message: "Executing " + task.task_id,
-        content: toBase64(JSON.stringify(task, null, 2)),
+        content: toBase64(JSON.stringify(task)),
         sha: file.sha
       });
       
       var updateRes = httpPut(file.url, updateData, headers);
-      console.log("Update status: " + updateRes.statusCode);
-      
       if (updateRes.statusCode !== 200 && updateRes.statusCode !== 201) {
-        console.error("Failed to mark executing: " + updateRes.statusCode);
+        console.error("Update failed: " + updateRes.statusCode);
         continue;
       }
       
@@ -218,19 +239,18 @@ function pollAndRun() {
       
       var completeData = JSON.stringify({
         message: "Completed " + task.task_id,
-        content: toBase64(JSON.stringify(task, null, 2)),
+        content: toBase64(JSON.stringify(task)),
         sha: file.sha
       });
       
       var finalRes = httpPut(file.url, completeData, headers);
-      console.log("Task completed: " + finalRes.statusCode);
+      console.log("Completed: " + finalRes.statusCode);
       toast("Done: " + task.task_id);
       
       break;
     }
-    
   } catch (e) {
-    console.error("Poll error: " + e);
+    console.error("Error: " + e);
     toast("Error: " + e);
   }
 }
