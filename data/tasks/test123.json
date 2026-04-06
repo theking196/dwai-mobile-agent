@@ -1,0 +1,1 @@
+{"task_id": "test123", "status": "pending", "created_at": "2026-04-06T22:45:00Z", "steps": [{"action": "launch_app", "value": "com.android.chrome"}, {"action": "wait", "ms": 2000}]}
