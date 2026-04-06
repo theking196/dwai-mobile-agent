@@ -1,0 +1,1 @@
+{"task_id": "chrome_test", "status": "pending", "created_at": "2026-04-06T22:50:00Z", "steps": [{"action": "launch_app", "value": "Chrome"}, {"action": "wait", "ms": 3000}, {"action": "toast", "text": "Opened Chrome!"}]}
