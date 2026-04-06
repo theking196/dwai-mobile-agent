@@ -1,0 +1,27 @@
+name: Deploy to Cyclic
+
+on:
+  push:
+    branches: [main]
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+
+      - name: Install dependencies
+        working-directory: backend
+        run: npm install
+
+      - name: Deploy to Cyclic
+        uses: cyclicapp/cyclic-action@v1
+        with:
+          token: ${{ secrets.CYCLIC_TOKEN }}
+          project: dwai-backend
+          directory: backend
