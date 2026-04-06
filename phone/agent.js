@@ -11,27 +11,16 @@ var POLL_INTERVAL = 5000;
 
 var TASKS_URL = "https://api.github.com/repos/" + REPO_OWNER + "/" + REPO_NAME + "/contents/" + REPO_PATH;
 
-// Enable Java access
-if (typeof Java !== "undefined") {
-  Java.asJSModule;
-}
-
-// Helper function to get current thread
-function runInThread(func) {
-  return function() {
-    var Nashorn = Java.type("javax.script.ScriptEngineManager").getEngineByName("Nashorn");
-    var scriptEngine = context.getGlobal().get("engine");
-  };
-}
+// Ensure java is available
+var java = this.java || null;
 
 function sleep(ms) {
-  if (typeof $ !== "undefined") {
-    $.sleep(ms);
-  } else if (typeof java !== "undefined") {
+  if (java) {
     java.lang.Thread.sleep(ms);
   } else {
-    var start = java.lang.System.currentTimeMillis();
-    while (java.lang.System.currentTimeMillis() - start < ms) {}
+    try {
+      $.sleep(ms);
+    } catch(e) {}
   }
 }
 
@@ -41,78 +30,47 @@ function toBase64(str) {
     var bytes = new java.lang.String(str).getBytes("UTF-8");
     return Base64.encodeToString(bytes, Base64.NO_WRAP);
   } catch (e) {
-    // Fallback
-    var base64chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
-    var result = "";
-    var i;
-    for (i = 0; i < str.length % 3; i++) {
-      result += "=";
-    }
-    return result;
+    return "";
   }
 }
 
-// Use Auto.js built-in HTTP with OkHttp
+// HTTP functions using java.net
 function httpGet(url, headers) {
   try {
-    var request = new okio.OkHttpClient();
-    var builder = new okhttp3.Request.Builder().url(url);
+    var u = new java.net.URL(url);
+    var conn = u.openConnection();
+    conn.setRequestMethod("GET");
+    conn.setConnectTimeout(10000);
+    conn.setReadTimeout(10000);
     
     if (headers) {
       for (var key in headers) {
-        builder.addHeader(key, headers[key]);
+        conn.setRequestProperty(key, headers[key]);
       }
     }
     
-    var response = request.newCall(builder.build()).execute();
-    var body = response.body();
-    var bodyStr = body ? body.string() : "";
+    var code = conn.getResponseCode();
+    var reader = new java.io.BufferedReader(new java.io.InputStreamReader(conn.getInputStream()));
+    var line = "";
+    var body = "";
+    while ((line = reader.readLine()) != null) {
+      body += line;
+    }
+    reader.close();
+    conn.disconnect();
     
-    return {
-      statusCode: response.code(),
-      body: bodyStr
-    };
+    return { statusCode: code, body: body };
   } catch (e) {
-    // Try using net/http
-    try {
-      var URL = java.net.URL;
-      var u = new URL(url);
-      var conn = u.openConnection();
-      conn.setRequestMethod("GET");
-      conn.setConnectTimeout(10000);
-      conn.setReadTimeout(10000);
-      
-      if (headers) {
-        for (var k in headers) {
-          conn.setRequestProperty(k, headers[k]);
-        }
-      }
-      
-      var code = conn.getResponseCode();
-      var reader = new java.io.BufferedReader(new java.io.InputStreamReader(conn.getInputStream()));
-      var line = "";
-      var responseBody = "";
-      while ((line = reader.readLine()) != null) {
-        responseBody += line;
-      }
-      reader.close();
-      conn.disconnect();
-      
-      return { statusCode: code, body: responseBody };
-    } catch (err) {
-      return { statusCode: -1, body: err.toString() };
-    }
+    return { statusCode: -1, body: e.toString() };
   }
 }
 
 function httpPut(url, data, headers) {
   try {
-    var URL = java.net.URL;
-    var u = new URL(url);
+    var u = new java.net.URL(url);
     var conn = u.openConnection();
     conn.setRequestMethod("PUT");
     conn.setDoOutput(true);
-    conn.setDoInput(true);
     conn.setConnectTimeout(10000);
     conn.setReadTimeout(10000);
     
@@ -128,44 +86,69 @@ function httpPut(url, data, headers) {
     writer.close();
     
     var code = conn.getResponseCode();
-    var responseBody = "";
-    
+    var body = "";
     if (code >= 200 && code < 300) {
       var reader = new java.io.BufferedReader(new java.io.InputStreamReader(conn.getInputStream()));
       var line = "";
-      while ((line = reader.readLine()) != null) {
-        responseBody += line;
-      }
+      while ((line = reader.readLine()) != null) { body += line; }
       reader.close();
     }
-    
     conn.disconnect();
-    return { statusCode: code, body: responseBody };
+    
+    return { statusCode: code, body: body };
   } catch (e) {
     return { statusCode: -1, body: e.toString() };
   }
 }
 
+// Execute step with CORRECT Auto.js methods
 function execStep(step) {
-  console.log("Executing: " + JSON.stringify(step));
+  console.log("Executing: " + step.action + " = " + JSON.stringify(step));
+  
   if (step.action === "launch_app") {
-    launchApp(step.value);
-    toast("Launched: " + step.value);
-  } else if (step.action === "click") {
+    // Try both methods - by name or package
+    var appName = step.value;
+    
+    // Method 1: Launch by app name (like "Chrome")
+    try {
+      launch(appName);
+      toast("Launched: " + appName);
+    } catch(e) {
+      // Method 2: Try with package
+      try {
+        launchApp(appName);
+        toast("Launched: " + appName);
+      } catch(e2) {
+        toast("Failed to launch: " + appName);
+        console.log("Launch error: " + e2);
+      }
+    }
+  }
+  else if (step.action === "click") {
     click(step.x, step.y);
-    toast("Click: " + step.x + "," + step.y);
-  } else if (step.action === "type") {
+    toast("Clicked: " + step.x + "," + step.y);
+  }
+  else if (step.action === "type") {
     setClip(step.text);
+    sleep(500);
     paste();
     toast("Typed: " + step.text);
-  } else if (step.action === "press") {
+  }
+  else if (step.action === "press") {
     if (step.key === "enter") press("enter");
     else if (step.key === "home") home();
     else if (step.key === "back") back();
-    else toast("Unknown key: " + step.key);
-  } else if (step.action === "wait") {
+    else if (step.key === "search") press("search");
+    toast("Pressed: " + step.key);
+  }
+  else if (step.action === "wait") {
+    toast("Waiting " + step.ms + "ms...");
     sleep(step.ms);
-  } else {
+  }
+  else if (step.action === "toast") {
+    toast(step.text || "Done");
+  }
+  else {
     toast("Unknown: " + step.action);
   }
 }
@@ -178,18 +161,14 @@ function pollAndRun() {
 
   try {
     var res = httpGet(TASKS_URL, headers);
-    console.log("Response: " + res.statusCode);
     
     if (res.statusCode !== 200) {
-      console.error("List tasks failed: " + res.statusCode + " - " + res.body);
+      console.log("Failed: " + res.statusCode);
       return;
     }
     
     var files = JSON.parse(res.body);
-    if (!Array.isArray(files)) {
-      console.log("Not array, skipping");
-      return;
-    }
+    if (!Array.isArray(files)) return;
     
     console.log("Files: " + files.length);
     
@@ -197,20 +176,16 @@ function pollAndRun() {
       var file = files[i];
       if (!file.sha || !file.name || file.name === ".gitkeep") continue;
       
-      console.log("Checking: " + file.name);
-      
       var contentRes = httpGet(file.download_url, {});
       if (contentRes.statusCode !== 200) continue;
       
       var task = JSON.parse(contentRes.body);
-      if (task.status !== "pending") {
-        console.log("Status: " + task.status);
-        continue;
-      }
+      if (task.status !== "pending") continue;
       
       console.log("Found task: " + task.task_id);
+      toast("Running: " + task.task_id);
       
-      // Mark executing
+      // Mark as executing
       task.status = "executing";
       task.started_at = new Date().toISOString();
       
@@ -220,14 +195,9 @@ function pollAndRun() {
         sha: file.sha
       });
       
-      var updateRes = httpPut(file.url, updateData, headers);
-      if (updateRes.statusCode !== 200 && updateRes.statusCode !== 201) {
-        console.error("Update failed: " + updateRes.statusCode);
-        continue;
-      }
+      httpPut(file.url, updateData, headers);
       
-      // Execute steps
-      toast("Running: " + task.task_id);
+      // Execute each step
       for (var j = 0; j < task.steps.length; j++) {
         execStep(task.steps[j]);
         sleep(500);
@@ -243,15 +213,14 @@ function pollAndRun() {
         sha: file.sha
       });
       
-      var finalRes = httpPut(file.url, completeData, headers);
-      console.log("Completed: " + finalRes.statusCode);
+      httpPut(file.url, completeData, headers);
       toast("Done: " + task.task_id);
+      console.log("Task completed!");
       
       break;
     }
   } catch (e) {
-    console.error("Error: " + e);
-    toast("Error: " + e);
+    console.log("Error: " + e);
   }
 }
 
