@@ -12,7 +12,6 @@ const PORT = process.env.PORT || 3000;
 
 app.use(express.json());
 
-// ── GitHub helpers ──
 const GITHUB_TOKEN = process.env.GITHUB_TOKEN;
 const GITHUB_REPO = process.env.GITHUB_REPO;
 if (!GITHUB_TOKEN || !GITHUB_REPO) throw new Error('GITHUB_TOKEN and GITHUB_REPO required');
@@ -23,16 +22,6 @@ function ghHeaders() {
     'Content-Type': 'application/json',
     'User-Agent': 'DWAI/1.0',
   };
-}
-
-function ghGet(url) {
-  return new Promise((resolve, reject) => {
-    https.get(url, { headers: ghHeaders() }, (res) => {
-      let d = '';
-      res.on('data', (c) => d += c);
-      res.on('end', () => resolve(JSON.parse(d)));
-    }).on('error', reject);
-  });
 }
 
 function ghPut(url, body) {
@@ -51,7 +40,6 @@ function ghPut(url, body) {
   });
 }
 
-// Functions for task storage
 const GITHUB_API = `https://api.github.com/repos/${GITHUB_REPO}/contents`;
 
 function createTask(taskId, data) {
@@ -61,36 +49,6 @@ function createTask(taskId, data) {
   return ghPut(url, { message: `Create task ${taskId}`, content: contentBase64 });
 }
 
-function getTask(taskId) {
-  return new Promise((resolve, reject) => {
-    const path = `data/tasks/${taskId}.json`;
-    const url = `${GITHUB_API}/${path}`;
-    https.get(url, { headers: ghHeaders() }, (res) => {
-      let d = '';
-      res.on('data', (c) => d += c);
-      res.on('end', () => {
-        if (res.statusCode === 200) {
-          const meta = JSON.parse(d);
-          const content = Buffer.from(meta.content, 'base64').toString();
-          resolve({ ...JSON.parse(content), sha: meta.sha, url: meta.download_url });
-        } else {
-          reject(new Error(`Failed to get task: ${res.statusCode}`));
-        }
-      });
-    }).on('error', reject);
-  });
-}
-
-function listTaskFiles() {
-  // Use GitHub API listing: we will list directory
-  // Since we can't list directories natively, we rely on file names known? Alternative: maintain index file.
-  // For simplicity, phone will list all files in data/tasks via GitHub tree API (requires branch parameter)
-  // But easier: we can directly try to fetch one task by ID; phone polls by known IDs.
-  // We'll improve later with an index file.
-  return []; // stub
-}
-
-// ── LLM planning ──
 async function generatePlan(userText) {
   const prompt = `You are a mobile automation planner that outputs JSON only.
 
@@ -113,7 +71,6 @@ Example:
 ]
 
 Respond only with the JSON array, no commentary.`;
-
   const res = await groq.chat.completions.create({
     model: 'llama3-70b-8192',
     messages: [
@@ -123,50 +80,32 @@ Respond only with the JSON array, no commentary.`;
     temperature: 0.3,
     max_tokens: 800
   });
-
   const raw = res.choices[0].message.content.trim();
   const jsonStart = raw.search('[');
   const jsonEnd = raw.lastIndexOf(']') + 1;
   if (jsonStart === -1) return [];
   const jsonStr = raw.slice(jsonStart, jsonEnd);
-  try { return JSON.parse(jsonStr); } catch (e) { console.error('Parse failed:', e); return []; }
+  try { return JSON.parse(jsonStr); } catch { return []; }
 }
 
-// ── Telegram commands ──
 bot.command('start', async (ctx) => {
-  await ctx.reply(`📱 *DWAI Mobile Agent* — your phone, controlled by AI.
-
-Commands:
-/cmd <text> — plan & queue a task
-/status <task_id> — check a task
-/tasks — list all pending tasks
-
-Example:
-/cmd Open Chrome and search "OpenAI"`, { parse_mode: 'Markdown' });
+  await ctx.reply('DWAI Mobile Agent – your phone, controlled by AI.\n\nCommands:\n/cmd <text> – plan & queue a task\n/status <task_id> – check a task\n/tasks – list pending tasks\n\nExample:\n/cmd Open Chrome and search OpenAI');
 });
 
 bot.command('cmd', async (ctx) => {
   const text = ctx.message.text.split(' ').slice(1).join(' ');
   if (!text) return ctx.reply('Usage: /cmd <description>');
-  await ctx.reply('⏳ Thinking...');
-
+  await ctx.reply('Thinking…');
   const steps = await generatePlan(text);
-  if (!steps.length) return ctx.reply('❌ Could not generate a plan. Try simpler wording.');
-
+  if (!steps.length) return ctx.reply('Could not generate a plan.');
   const taskId = nanoid(8);
-  const task = {
-    task_id: taskId,
-    status: 'pending',
-    created_at: new Date().toISOString(),
-    steps
-  };
-
+  const task = { task_id: taskId, status: 'pending', created_at: new Date().toISOString(), steps };
   try {
     await createTask(taskId, task);
-    await ctx.reply(`✅ Task queued!\n\nID: \`${taskId}\`\nSteps: ${steps.length}`);
+    await ctx.reply(`Task queued!\nID: ${taskId}\nSteps: ${steps.length}`);
   } catch (e) {
-    console.error('GitHub write failed:', e);
-    await ctx.reply('❌ Failed to save task (GitHub error).');
+    console.error(e);
+    await ctx.reply('Failed to save task.');
   }
 });
 
@@ -174,23 +113,29 @@ bot.command('status', async (ctx) => {
   const taskId = ctx.message.text.split(' ')[1];
   if (!taskId) return ctx.reply('Usage: /status <task_id>');
   try {
-    const result = await getTask(taskId);
-    await ctx.reply(`📋 Task *${taskId}*\nStatus: \`${result.status}\`\nCreated: ${result.created_at}\nSteps: ${result.steps.length}`, { parse_mode: 'Markdown' });
+    const url = `${GITHUB_API}/data/tasks/${taskId}.json`;
+    const res = await new Promise((resolve, reject) => {
+      https.get(url, { headers: ghHeaders() }, (r) => {
+        let d = '';
+        r.on('data', (c) => d += c);
+        r.on('end', () => resolve(JSON.parse(d)));
+      }).on('error', reject);
+    });
+    const content = Buffer.from(res.content, 'base64').toString();
+    const task = JSON.parse(content);
+    await ctx.reply(`Task ${taskId}\nStatus: ${task.status}\nCreated: ${task.created_at}\nSteps: ${task.steps.length}`);
   } catch (e) {
     console.error(e);
-    await ctx.reply('❌ Task not found or error.');
+    await ctx.reply('Task not found.');
   }
 });
 
-// ── Health endpoint ──
 app.get('/health', (_, res) => res.json({ status: 'ok' }));
 
-// ── Start ──
 app.listen(PORT, () => {
-  console.log(`🩺 Server on ${PORT}/health`);
+  console.log(`Server listening on ${PORT}`);
   bot.launch();
-  console.log('🤖 Telegram bot launched');
 });
 
-process.on('SIGINT', () => { bot.stop(); app.close(); process.exit(0); });
-process.on('SIGTERM', () => { bot.stop(); app.close(); process.exit(0); });
+process.on('SIGINT', () => { bot.stop(); process.exit(0); });
+process.on('SIGTERM', () => { bot.stop(); process.exit(0); });
