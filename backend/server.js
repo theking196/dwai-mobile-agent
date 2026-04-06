@@ -72,7 +72,7 @@ Example:
 
 Respond only with the JSON array, no commentary.`;
   const res = await groq.chat.completions.create({
-    model: 'llama3-70b-8192',
+    model: 'llama-3.3-70b-versatile',
     messages: [
       { role: 'system', content: 'You are a helpful mobile automation agent that outputs pure JSON.' },
       { role: 'user', content: prompt }
