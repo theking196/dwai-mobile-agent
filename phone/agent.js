@@ -22,50 +22,89 @@ function toBase64(str) {
   return Base64.encodeToString(bytes, Base64.NO_WRAP);
 }
 
+// Auto.js HTTP using URLConnection
 function httpGet(url, headers) {
-  return new Promise(function(resolve, reject) {
-    var request = http.get(url, {
-      headers: headers
-    }, function(response) {
-      var data = "";
-      response.on("data", function(chunk) {
-        data = data + chunk;
-      });
-      response.on("end", function() {
-        resolve({
-          statusCode: response.statusCode,
-          body: data
-        });
-      });
-    });
-    request.on("error", function(error) {
-      reject(error);
-    });
-  });
+  try {
+    var URL = Java.type("java.net.URL");
+    var BufferedReader = Java.type("java.io.BufferedReader");
+    var InputStreamReader = Java.type("java.io.InputStreamReader");
+    var HttpURLConnection = Java.type("java.net.HttpURLConnection");
+    
+    var u = new URL(url);
+    var conn = u.openConnection();
+    conn.setRequestMethod("GET");
+    
+    if (headers) {
+      for (var key in headers) {
+        conn.setRequestProperty(key, headers[key]);
+      }
+    }
+    
+    conn.setConnectTimeout(10000);
+    conn.setReadTimeout(10000);
+    
+    var responseCode = conn.getResponseCode();
+    var reader = new BufferedReader(new InputStreamReader(conn.getInputStream()));
+    var line = "";
+    var responseBody = "";
+    while ((line = reader.readLine()) != null) {
+      responseBody = responseBody + line;
+    }
+    reader.close();
+    conn.disconnect();
+    
+    return { statusCode: responseCode, body: responseBody };
+  } catch (e) {
+    return { statusCode: -1, body: e.toString() };
+  }
 }
 
 function httpPut(url, data, headers) {
-  return new Promise(function(resolve, reject) {
-    var request = http.put(url, {
-      headers: headers
-    }, function(response) {
-      var data = "";
-      response.on("data", function(chunk) {
-        data = data + chunk;
-      });
-      response.on("end", function() {
-        resolve({
-          statusCode: response.statusCode,
-          body: data
-        });
-      });
-    });
-    request.on("error", function(error) {
-      reject(error);
-    });
-    request.write(data);
-    request.end();
-  });
+  try {
+    var URL = Java.type("java.net.URL");
+    var OutputStreamWriter = Java.type("java.io.OutputStreamWriter");
+    var HttpURLConnection = Java.type("java.net.HttpURLConnection");
+    
+    var u = new URL(url);
+    var conn = u.openConnection();
+    conn.setRequestMethod("PUT");
+    conn.setDoOutput(true);
+    conn.setDoInput(true);
+    
+    if (headers) {
+      for (var key in headers) {
+        conn.setRequestProperty(key, headers[key]);
+      }
+    }
+    
+    conn.setConnectTimeout(10000);
+    conn.setReadTimeout(10000);
+    
+    var writer = new OutputStreamWriter(conn.getOutputStream());
+    writer.write(data);
+    writer.flush();
+    writer.close();
+    
+    var responseCode = conn.getResponseCode();
+    var responseBody = "";
+    
+    if (responseCode >= 200 && responseCode < 300) {
+      var BufferedReader = Java.type("java.io.BufferedReader");
+      var InputStreamReader = Java.type("java.io.InputStreamReader");
+      var reader = new BufferedReader(new InputStreamReader(conn.getInputStream()));
+      var line = "";
+      while ((line = reader.readLine()) != null) {
+        responseBody = responseBody + line;
+      }
+      reader.close();
+    }
+    
+    conn.disconnect();
+    
+    return { statusCode: responseCode, body: responseBody };
+  } catch (e) {
+    return { statusCode: -1, body: e.toString() };
+  }
 }
 
 function execStep(step) {
@@ -103,16 +142,21 @@ function pollAndRun() {
     "User-Agent": "DWAI-Agent"
   };
 
-  httpGet(TASKS_URL, headers).then(function(res) {
+  try {
+    var res = httpGet(TASKS_URL, headers);
+    
     if (res.statusCode !== 200) {
-      console.error("List tasks failed: " + res.statusCode);
+      console.error("List tasks failed: " + res.statusCode + " - " + res.body);
       return;
     }
     
     var files = JSON.parse(res.body);
     if (!Array.isArray(files)) {
+      console.log("Not an array, skipping");
       return;
     }
+    
+    console.log("Found files: " + files.length);
     
     for (var i = 0; i < files.length; i++) {
       var file = files[i];
@@ -120,67 +164,75 @@ function pollAndRun() {
         continue;
       }
       
-      httpGet(file.download_url, {}).then(function(contentRes) {
-        if (contentRes.statusCode !== 200) {
-          return;
-        }
-        
-        var task = JSON.parse(contentRes.body);
-        if (task.status !== "pending") {
-          return;
-        }
-        
-        console.log("Found task: " + task.task_id);
-        
-        // Mark as executing
-        task.status = "executing";
-        task.started_at = new Date().toISOString();
-        
-        var updateData = JSON.stringify({
-          message: "Executing " + task.task_id,
-          content: toBase64(JSON.stringify(task, null, 2)),
-          sha: file.sha
-        });
-        
-        httpPut(file.url, updateData, headers).then(function(updateRes) {
-          // Execute steps
-          toast("Running: " + task.task_id);
-          for (var j = 0; j < task.steps.length; j++) {
-            execStep(task.steps[j]);
-            sleep(500);
-          }
-          
-          // Mark completed
-          task.status = "completed";
-          task.completed_at = new Date().toISOString();
-          
-          var completeData = JSON.stringify({
-            message: "Completed " + task.task_id,
-            content: toBase64(JSON.stringify(task, null, 2)),
-            sha: file.sha
-          });
-          
-          httpPut(file.url, completeData, headers).then(function(finalRes) {
-            console.log("Task completed: " + finalRes.statusCode);
-            toast("Done: " + task.task_id);
-          }).catch(function(e) {
-            console.error("Complete error: " + e);
-          });
-          
-        }).catch(function(e) {
-          console.error("Update error: " + e);
-        });
-        
-      }).catch(function(e) {
-        console.error("Content error: " + e);
+      console.log("Checking: " + file.name);
+      
+      var contentRes = httpGet(file.download_url, {});
+      if (contentRes.statusCode !== 200) {
+        console.log("Failed to get content: " + contentRes.statusCode);
+        continue;
+      }
+      
+      var task;
+      try {
+        task = JSON.parse(contentRes.body);
+      } catch (e) {
+        console.log("JSON parse error: " + e);
+        continue;
+      }
+      
+      if (task.status !== "pending") {
+        console.log("Task status: " + task.status);
+        continue;
+      }
+      
+      console.log("Found task: " + task.task_id);
+      
+      // Mark as executing
+      task.status = "executing";
+      task.started_at = new Date().toISOString();
+      
+      var updateData = JSON.stringify({
+        message: "Executing " + task.task_id,
+        content: toBase64(JSON.stringify(task, null, 2)),
+        sha: file.sha
       });
       
-      break; // only one task per poll
+      var updateRes = httpPut(file.url, updateData, headers);
+      console.log("Update status: " + updateRes.statusCode);
+      
+      if (updateRes.statusCode !== 200 && updateRes.statusCode !== 201) {
+        console.error("Failed to mark executing: " + updateRes.statusCode);
+        continue;
+      }
+      
+      // Execute steps
+      toast("Running: " + task.task_id);
+      for (var j = 0; j < task.steps.length; j++) {
+        execStep(task.steps[j]);
+        sleep(500);
+      }
+      
+      // Mark completed
+      task.status = "completed";
+      task.completed_at = new Date().toISOString();
+      
+      var completeData = JSON.stringify({
+        message: "Completed " + task.task_id,
+        content: toBase64(JSON.stringify(task, null, 2)),
+        sha: file.sha
+      });
+      
+      var finalRes = httpPut(file.url, completeData, headers);
+      console.log("Task completed: " + finalRes.statusCode);
+      toast("Done: " + task.task_id);
+      
+      break;
     }
     
-  }).catch(function(e) {
+  } catch (e) {
     console.error("Poll error: " + e);
-  });
+    toast("Error: " + e);
+  }
 }
 
 toast("DWAI Agent started");
