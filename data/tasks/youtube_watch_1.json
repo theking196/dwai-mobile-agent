@@ -1,6 +1,6 @@
 {
   "task_id": "youtube_watch_1",
-  "status": "executing",
+  "status": "failed",
   "created_at": "2026-04-06T23:36:00Z",
   "steps": [
     {
@@ -55,5 +55,7 @@
       "text": "Watching video!"
     }
   ],
-  "started_at": "2026-04-06T23:37:22.056Z"
+  "started_at": "2026-04-06T23:37:22.056Z",
+  "error": "Step failed at index 2",
+  "failed_at": "2026-04-06T23:37:34.973Z"
 }
