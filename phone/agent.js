@@ -2,7 +2,7 @@
 // Polls GitHub for mobile automation tasks and executes them
 
 // CONFIGURATION
-const GITHUB_TOKEN = "YOUR_GITHUB_PERSONAL_ACCESS_TOKEN";
+const GITHUB_TOKEN = "YOUR_GITHUB_TOKEN";
 const REPO_OWNER = "theking196";
 const REPO_NAME = "dwai-mobile-agent";
 const REPO_PATH = "data/tasks";
@@ -23,32 +23,44 @@ function toBase64(str) {
   return Base64.encodeToString(bytes, Base64.NO_WRAP);
 }
 
-// HTTP helpers (Auto.js)
+// HTTP helpers (Auto.js) - fixed async
 function httpGet(url, headers) {
-  return new Promise((resolve, reject) => {
-    var req = http.get(url, {
-      headers: headers
-    }, (res) => {
-      var data = "";
-      res.on('data', (c) => data += c);
-      res.on('end', () => resolve({ statusCode: res.statusCode, body: data }));
-    });
-    req.on('error', reject);
+  return new Promise(function(resolve, reject) {
+    try {
+      var req = http.get(url, {
+        headers: headers
+      }, function(res) {
+        var data = "";
+        res.on('data', function(c) { data += c; });
+        res.on('end', function() {
+          resolve({ statusCode: res.statusCode, body: data });
+        });
+      });
+      req.on('error', function(e) { reject(e); });
+    } catch(e) {
+      reject(e);
+    }
   });
 }
 
 function httpPut(url, body, headers) {
-  return new Promise((resolve, reject) => {
-    var req = http.put(url, {
-      headers: headers
-    }, (res) => {
-      var data = "";
-      res.on('data', (c) => data += c);
-      res.on('end', () => resolve({ statusCode: res.statusCode, body: data }));
-    });
-    req.on('error', reject);
-    req.write(body);
-    req.end();
+  return new Promise(function(resolve, reject) {
+    try {
+      var req = http.put(url, {
+        headers: headers
+      }, function(res) {
+        var data = "";
+        res.on('data', function(c) { data += c; });
+        res.on('end', function() {
+          resolve({ statusCode: res.statusCode, body: data });
+        });
+      });
+      req.on('error', function(e) { reject(e); });
+      req.write(body);
+      req.end();
+    } catch(e) {
+      reject(e);
+    }
   });
 }
 
@@ -65,7 +77,6 @@ function execStep(step) {
       toast("Click " + step.x + "," + step.y);
       break;
     case "type":
-      // Use setClip + paste
       setClip(step.text);
       paste();
       toast("Typed: " + step.text);
@@ -84,30 +95,57 @@ function execStep(step) {
   }
 }
 
-// Fetch task list, execute one pending, update status
-function pollAndRun() {
+// Fetch task list, execute one pending, update status - FIXED ASYNC
+async function pollAndRun() {
   try {
     var headers = {
       "Authorization": "token " + GITHUB_TOKEN,
       "User-Agent": "DWAI-Agent"
     };
-    var res = httpGet(TASKS_URL, headers);
+    
+    console.log("Polling tasks from:", TASKS_URL);
+    
+    var res = await httpGet(TASKS_URL, headers);
+    console.log("Response status:", res.statusCode);
+    
     if (res.statusCode != 200) {
-      console.error("List tasks failed:", res.statusCode);
+      console.error("List tasks failed:", res.statusCode, res.body);
       return;
     }
+    
     var files = JSON.parse(res.body);
-    if (!Array.isArray(files)) return;
+    if (!Array.isArray(files)) {
+      console.log("Not an array, skipping");
+      return;
+    }
+    
+    console.log("Found files:", files.length);
 
     for (var i = 0; i < files.length; i++) {
       var file = files[i];
-      if (!file.sha || !file.name) continue;
+      if (!file.sha || !file.name || file.name == '.gitkeep') continue;
+      
+      console.log("Checking file:", file.name);
+      
       // Download content (decoded)
-      var contentRes = httpGet(file.download_url, {});
-      if (contentRes.statusCode != 200) continue;
+      var contentRes = await httpGet(file.download_url, {});
+      if (contentRes.statusCode != 200) {
+        console.log("Failed to get content:", contentRes.statusCode);
+        continue;
+      }
+      
       var task;
-      try { task = JSON.parse(contentRes.body); } catch (e) { continue; }
-      if (task.status !== "pending") continue;
+      try { task = JSON.parse(contentRes.body); } catch (e) { 
+        console.log("JSON parse error:", e);
+        continue; 
+      }
+      
+      if (task.status !== "pending") {
+        console.log("Task not pending:", task.status);
+        continue;
+      }
+
+      console.log("Found pending task:", task.task_id);
 
       // Mark as executing
       task.status = "executing";
@@ -117,7 +155,8 @@ function pollAndRun() {
         content: toBase64(JSON.stringify(task, null, 2)),
         sha: file.sha
       };
-      var updateRes = httpPut(file.url, JSON.stringify(updateBody), headers);
+      
+      var updateRes = await httpPut(file.url, JSON.stringify(updateBody), headers);
       if (updateRes.statusCode != 200 && updateRes.statusCode != 201) {
         console.error("Failed to mark executing:", updateRes.statusCode);
         continue;
@@ -128,31 +167,32 @@ function pollAndRun() {
       for (var j = 0; j < task.steps.length; j++) {
         task.current_step = j;
         execStep(task.steps[j]);
-        sleep(500); // pause between steps
+        sleep(500);
       }
 
       // Mark completed
       task.status = "completed";
       task.completed_at = new Date().toISOString();
       delete task.current_step;
-      var completeBody = {
-        message: "Completed " + task.task_id,
-        content: toBase64(JSON.stringify(task, null, 2)),
-        sha: file.sha // need fresh SHA? Actually after our update, SHA changed; but we didn't capture new SHA; better to re-fetch file to get new SHA before final update.
-      };
-      // To be safe: after marking executing, we could re-fetch to get new SHA; but for simplicity we re-get file now:
-      var refetch = httpGet(file.url, headers);
-      var newSha = null;
+      
+      // Get fresh SHA
+      var refetch = await httpGet(file.url, headers);
+      var newSha = file.sha;
       if (refetch.statusCode == 200) {
         var meta = JSON.parse(refetch.body);
         newSha = meta.sha;
       }
-      if (newSha) completeBody.sha = newSha;
+      
+      var completeBody = {
+        message: "Completed " + task.task_id,
+        content: toBase64(JSON.stringify(task, null, 2)),
+        sha: newSha
+      };
 
-      var finalRes = httpPut(file.url, JSON.stringify(completeBody), headers);
+      var finalRes = await httpPut(file.url, JSON.stringify(completeBody), headers);
       console.log("Task completed, update status:", finalRes.statusCode);
       toast("✅ Done: " + task.task_id);
-      break; // only one task per poll
+      break;
     }
   } catch (e) {
     console.error("Poll error:", e);
@@ -160,10 +200,13 @@ function pollAndRun() {
   }
 }
 
-// Main loop
+// Main loop - FIXED
 toast("🤖 DWAI Mobile Agent started");
 console.log("DWAI Agent running...");
+
 while (true) {
-  pollAndRun();
+  pollAndRun().catch(function(e) {
+    console.error("Loop error:", e);
+  });
   sleep(POLL_INTERVAL);
 }
