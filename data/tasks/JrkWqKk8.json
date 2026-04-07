@@ -1,6 +1,6 @@
 {
   "task_id": "JrkWqKk8",
-  "status": "executing",
+  "status": "failed",
   "intent": "Open calculator app",
   "type": "automation",
   "created_at": "2026-04-07T07:57:54.763Z",
@@ -17,5 +17,7 @@
   "source": "telegram",
   "planner_version": "v9",
   "started_at": "2026-04-07T07:59:04.731Z",
-  "worker_id": "phone-vivo 1906-720x1544"
+  "worker_id": "phone-vivo 1906-720x1544",
+  "finished_at": "2026-04-07T08:00:54.103Z",
+  "error": "Step 1 failed"
 }
