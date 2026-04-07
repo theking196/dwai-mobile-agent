@@ -1,0 +1,37 @@
+{
+  "task_id": "Ws4S9ny7",
+  "status": "pending",
+  "intent": "Go to personal hotspot then click Wi-Fi hotspot",
+  "type": "automation",
+  "created_at": "2026-04-07T00:55:05.188Z",
+  "steps": [
+    {
+      "action": "launch_app",
+      "value": "com.android.settings"
+    },
+    {
+      "action": "wait",
+      "ms": 2000
+    },
+    {
+      "action": "click",
+      "contains": "Connections"
+    },
+    {
+      "action": "wait",
+      "ms": 1000
+    },
+    {
+      "action": "click",
+      "contains": "Mobile hotspot and tethering"
+    },
+    {
+      "action": "wait",
+      "ms": 1000
+    },
+    {
+      "action": "click",
+      "contains": "Wi-Fi hotspot"
+    }
+  ]
+}
