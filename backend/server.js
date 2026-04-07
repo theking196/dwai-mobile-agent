@@ -563,11 +563,19 @@ async function writeCurrentTask(pointer) {
   const url = `${GITHUB_API}/${CURRENT_TASK_PATH}`;
   const contentBase64 = Buffer.from(JSON.stringify(pointer, null, 2)).toString('base64');
 
-  const result = await ghPutJson(url, {
+  const existing = await ghGetJson(url);
+
+  const payload = {
     message: `current task ${pointer.task_id}`,
     content: contentBase64,
     branch: GITHUB_BRANCH,
-  });
+  };
+
+  if (existing.ok && existing.json && existing.json.sha) {
+    payload.sha = existing.json.sha;
+  }
+
+  const result = await ghPutJson(url, payload);
 
   if (!result.ok) {
     throw new Error(`GitHub current_task write failed: ${result.statusCode} ${result.body}`);
@@ -700,14 +708,14 @@ async function handleSlashCommand(ctx) {
   if (cmd === 'start') {
     const apps = Object.keys(APP_REGISTRY).slice(0, 8).join(', ');
     await ctx.reply(
-      `DWAI Mobile Agent\n\nI can queue phone tasks from natural language.\n\nExamples:\nOpen YouTube\nSearch for AI news\nOpen Chrome and search for a new bicycle\n\nUse /teach <goal> to record a route.\nUse /stopteach <goal> to stop recording.\n\nAvailable apps: ${apps}...`
+      `DWAI Mobile Agent\n\nI can queue phone tasks from natural language.\n\nExamples:\nOpen YouTube\nSearch for AI news\nOpen Chrome and search for a new bicycle\n\nUse /teach <goal> to record a route.\nUse /stopteach <goal> to stop recording.\nUse /offteach as an alias for /stopteach.\n\nAvailable apps: ${apps}...`
     );
     return;
   }
 
   if (cmd === 'help') {
     await ctx.reply(
-      `Commands:\n/start\n/help\n/cmd <task>\n/teach <goal>\n/stopteach <goal>\n/status <task_id>\n/tasks\n\nYou can also just type naturally and I will decide whether it is a task or normal chat.`
+      `Commands:\n/start\n/help\n/cmd <task>\n/teach <goal>\n/stopteach <goal>\n/offteach <goal>\n/status <task_id>\n/tasks\n\nYou can also just type naturally and I will decide whether it is a task or normal chat.`
     );
     return;
   }
@@ -727,7 +735,7 @@ async function handleSlashCommand(ctx) {
     return;
   }
 
-  if (cmd === 'stopteach') {
+  if (cmd === 'stopteach' || cmd === 'offteach') {
     if (!argText) {
       await ctx.reply('Usage: /stopteach youtube search');
       return;
@@ -903,7 +911,7 @@ async function handleNaturalMessage(ctx) {
   }
 }
 
-bot.hears(/^\/(start|help|cmd|status|tasks|teach|stopteach)\b/i, handleSlashCommand);
+bot.hears(/^\/(start|help|cmd|status|tasks|teach|stopteach|offteach)\b/i, handleSlashCommand);
 bot.on('text', handleNaturalMessage);
 
 bot.catch((err) => {
