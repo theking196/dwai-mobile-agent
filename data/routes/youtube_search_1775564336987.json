@@ -1,0 +1,23 @@
+{
+  "route_id": "teach_EfwuqsLS",
+  "goal": "youtube search",
+  "app": "youtube",
+  "started_at": "2026-04-07T12:18:49.142Z",
+  "finished_at": "2026-04-07T12:18:56.987Z",
+  "snapshots": [
+    {
+      "package": "com.vivo.upslide",
+      "activity": "com.vivo.upslide.recents.RecentsActivity",
+      "texts": [
+        "GitHub",
+        "YouTube",
+        "Telegram",
+        "Chrome",
+        "ChatGPT"
+      ],
+      "ts": "2026-04-07T12:18:54.289Z"
+    }
+  ],
+  "touches": [],
+  "notes": "Route memory captured from teach mode."
+}
