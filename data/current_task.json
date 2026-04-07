@@ -1,11 +1,11 @@
 {
-  "task_id": null,
-  "type": "none",
-  "status": "idle",
-  "intent": "",
-  "goal": "",
+  "task_id": "teach_wNTg_yTl",
+  "type": "teach_start",
+  "status": "pending",
+  "intent": "how to send a message to someone with any content",
   "app": null,
-  "file_url": null,
-  "created_at": "2026-04-07T16:36:31.185Z",
-  "source": "agent"
+  "goal": "how to send a message to someone with any content",
+  "file_url": "https://api.github.com/repos/theking196/dwai-mobile-agent/contents/data/tasks/teach_wNTg_yTl.json",
+  "created_at": "2026-04-07T16:40:43.921Z",
+  "source": "telegram"
 }
