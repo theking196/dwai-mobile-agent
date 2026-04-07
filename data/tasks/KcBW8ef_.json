@@ -1,6 +1,6 @@
 {
   "task_id": "KcBW8ef_",
-  "status": "pending",
+  "status": "executing",
   "intent": "Open Com.whatsapp.w4b use the package name",
   "type": "automation",
   "created_at": "2026-04-07T18:09:54.931Z",
@@ -20,5 +20,7 @@
   ],
   "source": "telegram",
   "planner_version": "v11",
-  "file_url": "https://api.github.com/repos/theking196/dwai-mobile-agent/contents/data/tasks/KcBW8ef_.json"
+  "file_url": "https://api.github.com/repos/theking196/dwai-mobile-agent/contents/data/tasks/KcBW8ef_.json",
+  "started_at": "2026-04-07T18:10:36.950Z",
+  "worker_id": "phone-vivo 1906-720x1544"
 }
