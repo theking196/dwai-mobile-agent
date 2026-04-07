@@ -1,0 +1,103 @@
+{
+  "route_id": "teach_R4Gqvx7R",
+  "goal": "how to search for a word in chrome",
+  "app": null,
+  "started_at": "2026-04-07T16:32:01.124Z",
+  "finished_at": "2026-04-07T16:32:47.385Z",
+  "snapshots": [
+    {
+      "package": "com.android.chrome",
+      "activity": "org.chromium.chrome.browser.ChromeTabbedActivity",
+      "texts": [
+        "flow",
+        "google drive",
+        "groq",
+        "kilo",
+        "react native app builder free",
+        "autojs",
+        "google ai studio",
+        "infinityfree",
+        "eleven labs",
+        "telegram web"
+      ],
+      "ts": "2026-04-07T16:32:06.812Z"
+    },
+    {
+      "package": "com.google.android.inputmethod.latin",
+      "activity": "android.inputmethodservice.SoftInputWindow",
+      "texts": [
+        "hell"
+      ],
+      "ts": "2026-04-07T16:32:09.790Z"
+    },
+    {
+      "package": "com.google.android.inputmethod.latin",
+      "activity": "android.inputmethodservice.SoftInputWindow",
+      "texts": [
+        "hello this is",
+        "hello world",
+        "Hello Kitty",
+        "Fictional character",
+        "hello indian movie",
+        "Hello — 2017 film",
+        "hello predict",
+        "HelloTalk",
+        "Company",
+        "hello in korean"
+      ],
+      "ts": "2026-04-07T16:32:12.463Z"
+    },
+    {
+      "package": "com.google.android.inputmethod.latin",
+      "activity": "android.inputmethodservice.SoftInputWindow",
+      "texts": [
+        "hello this is my wor",
+        "hello this is my world grow a garden",
+        "hello this is my world message grow a garden",
+        "hello this is my world gag",
+        "hello this is my world grow a garden roblox",
+        "hello this is the world",
+        "hi this is my world",
+        "hello is this the world champion hotline"
+      ],
+      "ts": "2026-04-07T16:32:14.936Z"
+    },
+    {
+      "package": "com.google.android.inputmethod.latin",
+      "activity": "android.inputmethodservice.SoftInputWindow",
+      "texts": [
+        "GitHub",
+        "Kilo - Kilo: The Open Source AI Coding Agent for VS Code, JetBrains, and your CLI",
+        "GroqCloud",
+        "\u200eGoogle Gemini",
+        "Railway",
+        "404 Not Found",
+        "AI Music Generator Online (Free, No Sign-Up, Royalty-free)",
+        "Railway",
+        "Google AI Studio",
+        "Container hosting at VPS prices | JustRunMy.App"
+      ],
+      "ts": "2026-04-07T16:32:17.840Z"
+    },
+    {
+      "package": "com.google.android.inputmethod.latin",
+      "activity": "",
+      "texts": [],
+      "ts": "2026-04-07T16:32:20.182Z"
+    },
+    {
+      "package": "com.google.android.inputmethod.latin",
+      "activity": "",
+      "texts": [
+        "AI Mode",
+        "All",
+        "Videos",
+        "Images",
+        "Short videos"
+      ],
+      "ts": "2026-04-07T16:32:23.578Z"
+    }
+  ],
+  "touches": [],
+  "notes": "Route memory captured from teach mode."
+}
