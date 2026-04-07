@@ -1,6 +1,6 @@
 {
   "task_id": "1Zbg_DXM",
-  "status": "executing",
+  "status": "failed",
   "intent": "Open settings and go to connections",
   "type": "automation",
   "created_at": "2026-04-07T00:52:41.990Z",
