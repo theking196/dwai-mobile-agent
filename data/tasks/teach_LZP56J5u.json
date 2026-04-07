@@ -1,7 +1,7 @@
 {
   "task_id": "teach_LZP56J5u",
   "type": "teach_start",
-  "status": "executing",
+  "status": "completed",
   "intent": "how to send a message to someone using a content",
   "app": null,
   "goal": "how to send a message to someone using a content",
@@ -11,5 +11,6 @@
   "planner_version": "v11",
   "file_url": "https://api.github.com/repos/theking196/dwai-mobile-agent/contents/data/tasks/teach_LZP56J5u.json",
   "started_at": "2026-04-07T16:35:43.221Z",
-  "worker_id": "phone-vivo 1906-720x1544"
+  "worker_id": "phone-vivo 1906-720x1544",
+  "finished_at": "2026-04-07T16:35:43.953Z"
 }
