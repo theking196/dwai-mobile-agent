@@ -1,0 +1,24 @@
+{
+  "task_id": "T-Rt7-eH",
+  "status": "pending",
+  "intent": "open chrome",
+  "type": "automation",
+  "created_at": "2026-04-07T14:53:53.964Z",
+  "steps": [
+    {
+      "action": "launch_app",
+      "value": "chrome"
+    },
+    {
+      "action": "wait",
+      "ms": 4000
+    },
+    {
+      "action": "verify",
+      "package": "chrome"
+    }
+  ],
+  "source": "telegram",
+  "planner_version": "v11",
+  "file_url": "https://api.github.com/repos/theking196/dwai-mobile-agent/contents/data/tasks/T-Rt7-eH.json"
+}
