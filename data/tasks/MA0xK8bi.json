@@ -1,0 +1,37 @@
+{
+  "task_id": "MA0xK8bi",
+  "status": "pending",
+  "intent": "launch chrome browser and search for a new bicycle",
+  "type": "automation",
+  "created_at": "2026-04-07T00:34:55.610Z",
+  "steps": [
+    {
+      "action": "launch_app",
+      "value": "com.android.chrome"
+    },
+    {
+      "action": "wait",
+      "ms": 2000
+    },
+    {
+      "action": "click",
+      "contains": "Search or type URL"
+    },
+    {
+      "action": "wait",
+      "ms": 1000
+    },
+    {
+      "action": "type",
+      "text": "new bicycle"
+    },
+    {
+      "action": "press",
+      "key": "enter"
+    },
+    {
+      "action": "wait",
+      "ms": 3000
+    }
+  ]
+}
