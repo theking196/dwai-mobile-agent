@@ -1,1 +1,21 @@
-{"task_id": "chrome_new", "status": "pending", "intent": "open chrome", "type": "automation", "created_at": "2026-04-07T00:17:00Z", "steps": [{"action": "launch_app", "value": "com.android.chrome"}, {"action": "wait", "ms": 3000}, {"action": "toast", "text": "Chrome opened!"}]}
+{
+  "task_id": "chrome_new",
+  "status": "executing",
+  "intent": "open chrome",
+  "type": "automation",
+  "created_at": "2026-04-07T00:17:00Z",
+  "steps": [
+    {
+      "action": "launch_app",
+      "value": "com.android.chrome"
+    },
+    {
+      "action": "wait",
+      "ms": 3000
+    },
+    {
+      "action": "toast",
+      "text": "Chrome opened!"
+    }
+  ]
+}
