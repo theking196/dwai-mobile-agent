@@ -1,0 +1,164 @@
+{
+  "route_id": "teach_LZP56J5u",
+  "goal": "how to send a message to someone using a content",
+  "app": null,
+  "started_at": "2026-04-07T16:35:43.952Z",
+  "finished_at": "2026-04-07T16:36:30.332Z",
+  "snapshots": [
+    {
+      "package": "com.whatsapp.w4b",
+      "activity": "com.whatsapp.Main",
+      "texts": [
+        "Search…",
+        "Young Man",
+        "Dad",
+        "4/2/26",
+        "Young Man",
+        "TEENS KINGDOM MANDATE",
+        "Yesterday",
+        "Thank you sir God bless you sir",
+        "Papa T",
+        "3/31/26"
+      ],
+      "ts": "2026-04-07T16:35:50.965Z"
+    },
+    {
+      "package": "com.whatsapp.w4b",
+      "activity": "com.whatsapp.home.ui.HomeActivity",
+      "texts": [
+        "Dad",
+        "4/2/26",
+        "Young Man",
+        "TEENS KINGDOM MANDATE",
+        "Yesterday",
+        "+234 916 519 6790:",
+        "Thank you sir God bless you sir",
+        "Papa T",
+        "3/31/26",
+        "Draft:"
+      ],
+      "ts": "2026-04-07T16:35:54.246Z"
+    },
+    {
+      "package": "com.whatsapp.w4b",
+      "activity": "com.whatsapp.home.ui.HomeActivity",
+      "texts": [
+        "FREE JAMB 6HRS BRAINSTORMING CLASS",
+        "4:46\u202fPM",
+        "+234 916 623 5319:",
+        "🔥O…",
+        "andaemmanuel887",
+        "1:25\u202fPM",
+        "Hi bro",
+        "TKM LEADERS",
+        "Announcements",
+        "@\u2068all\u2069"
+      ],
+      "ts": "2026-04-07T16:35:56.726Z"
+    },
+    {
+      "package": "com.whatsapp.w4b",
+      "activity": "com.whatsapp.home.ui.HomeActivity",
+      "texts": [
+        "WE LOVE PAPA T🤭❤️",
+        "11:05\u202fAM",
+        "+234 913 037 7117:",
+        "Sticker",
+        "RCCG PRAISE  MEGA MINISTERS AND WORKERS",
+        "10:36\u202fAM",
+        "Jossylarge:",
+        "To which account??? pls send me your receipt thank you",
+        "PRAISE MEGA SOCIAL GROUP",
+        "10:34\u202fAM"
+      ],
+      "ts": "2026-04-07T16:35:59.239Z"
+    },
+    {
+      "package": "com.whatsapp.w4b",
+      "activity": "com.whatsapp.home.ui.HomeActivity",
+      "texts": [
+        "Institution Update And Jamb Info",
+        "Jamb  UPDATE  2026📢📢📢📢🔔🔔🔔",
+        "REMINDER ON JAMB EXAMINATION REPRINTING SLIP  The Joint Admissions and Matriculation Board (JAMB) has officially announced tha",
+        "2603 CHRISTIAN LIBRARY",
+        "8:39\u202fAM",
+        "+234 803 415 7983:",
+        "Tuesday boo…",
+        "+234 915 857 6936",
+        "8:09\u202fAM",
+        "Okay"
+      ],
+      "ts": "2026-04-07T16:36:01.783Z"
+    },
+    {
+      "package": "com.whatsapp.w4b",
+      "activity": "com.whatsapp.home.ui.HomeActivity",
+      "texts": [
+        "WhatsApp Business",
+        "7:44\u202fAM",
+        "Get the verified badge and the ben…",
+        "ADEGBENGA Online",
+        "5:49\u202fAM",
+        "Dad:",
+        "Good morning",
+        "TKM WORKFORCE",
+        "TKM VIDEO CONTENT CREATORS",
+        "Voice message (0:40)"
+      ],
+      "ts": "2026-04-07T16:36:05.556Z"
+    },
+    {
+      "package": "com.google.android.inputmethod.latin",
+      "activity": "android.inputmethodservice.SoftInputWindow",
+      "texts": [
+        "+234 907 972 3488",
+        "Business Account",
+        "Friday",
+        "Mobolaji Oba Abge onfme",
+        "WhatsApp group invite",
+        "Invite expired",
+        "Invitation to join my WhatsApp group",
+        "9:44\u202fAM",
+        "Mobolaji Oba Abge onfme",
+        "WhatsApp group invite"
+      ],
+      "ts": "2026-04-07T16:36:07.991Z"
+    },
+    {
+      "package": "com.google.android.inputmethod.latin",
+      "activity": "android.inputmethodservice.SoftInputWindow",
+      "texts": [
+        "+234 907 972 3488",
+        "online",
+        "Friday",
+        "Mobolaji Oba Abge onfme",
+        "WhatsApp group invite",
+        "Invite expired",
+        "Invitation to join my WhatsApp group",
+        "9:44\u202fAM",
+        "Mobolaji Oba Abge onfme",
+        "WhatsApp group invite"
+      ],
+      "ts": "2026-04-07T16:36:12.789Z"
+    },
+    {
+      "package": "com.google.android.inputmethod.latin",
+      "activity": "",
+      "texts": [
+        "+234 907 972 3488",
+        "online",
+        "Missed group call",
+        "4 invited",
+        "8:01\u202fAM",
+        "March 31, 2026",
+        "Hi",
+        "5:32\u202fPM",
+        "Friday",
+        "Mobolaji Oba Abge onfme"
+      ],
+      "ts": "2026-04-07T16:36:15.185Z"
+    }
+  ],
+  "touches": [],
+  "notes": "Route memory captured from teach mode."
+}
