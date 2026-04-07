@@ -1,9 +1,13 @@
 {
-  "task_id": "LTEUqsr1",
+  "task_id": "ibp6e7hH",
   "type": "automation",
-  "status": "pending",
-  "intent": "Go to www.facebook.com",
-  "file_url": "https://api.github.com/repos/theking196/dwai-mobile-agent/contents/data/tasks/LTEUqsr1.json",
-  "created_at": "2026-04-07T18:06:15.801Z",
-  "source": "telegram"
+  "status": "failed",
+  "intent": "Open WhatsApp",
+  "file_url": "https://api.github.com/repos/theking196/dwai-mobile-agent/contents/data/tasks/ibp6e7hH.json",
+  "created_at": "2026-04-07T18:04:20.282Z",
+  "source": "telegram",
+  "started_at": "2026-04-07T18:04:22.428Z",
+  "worker_id": "phone-vivo 1906-720x1544",
+  "finished_at": "2026-04-07T18:06:25.600Z",
+  "error": "Step 1 failed"
 }
