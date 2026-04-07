@@ -1,0 +1,24 @@
+{
+  "task_id": "LTEUqsr1",
+  "status": "pending",
+  "intent": "Go to www.facebook.com",
+  "type": "automation",
+  "created_at": "2026-04-07T18:06:15.801Z",
+  "steps": [
+    {
+      "action": "launch_app",
+      "value": "facebook"
+    },
+    {
+      "action": "wait",
+      "ms": 4000
+    },
+    {
+      "action": "verify",
+      "package": "facebook"
+    }
+  ],
+  "source": "telegram",
+  "planner_version": "v11",
+  "file_url": "https://api.github.com/repos/theking196/dwai-mobile-agent/contents/data/tasks/LTEUqsr1.json"
+}
