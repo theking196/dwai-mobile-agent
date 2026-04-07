@@ -1,7 +1,7 @@
 {
   "task_id": "teach_R4Gqvx7R",
   "type": "teach_start",
-  "status": "executing",
+  "status": "completed",
   "intent": "how to search for a word in chrome",
   "app": null,
   "goal": "how to search for a word in chrome",
@@ -9,5 +9,7 @@
   "created_at": "2026-04-07T16:31:55.100Z",
   "source": "telegram",
   "started_at": "2026-04-07T16:31:59.883Z",
-  "worker_id": "phone-vivo 1906-720x1544"
+  "worker_id": "phone-vivo 1906-720x1544",
+  "finished_at": "2026-04-07T16:32:01.867Z",
+  "error": null
 }
