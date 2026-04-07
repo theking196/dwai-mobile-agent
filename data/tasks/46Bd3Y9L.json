@@ -1,6 +1,6 @@
 {
   "task_id": "46Bd3Y9L",
-  "status": "pending",
+  "status": "executing",
   "intent": "com.facebook.lite then create a post",
   "type": "automation",
   "created_at": "2026-04-07T01:03:18.207Z",
