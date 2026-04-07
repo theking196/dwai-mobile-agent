@@ -1,9 +1,11 @@
 {
   "task_id": "rKbHGo_e",
   "type": "automation",
-  "status": "pending",
+  "status": "executing",
   "intent": "Open chrome and search for baptism",
   "file_url": "https://api.github.com/repos/theking196/dwai-mobile-agent/contents/data/tasks/rKbHGo_e.json",
   "created_at": "2026-04-07T17:34:03.659Z",
-  "source": "telegram"
+  "source": "telegram",
+  "started_at": "2026-04-07T17:34:07.139Z",
+  "worker_id": "phone-vivo 1906-720x1544"
 }
