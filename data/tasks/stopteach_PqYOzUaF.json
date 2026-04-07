@@ -1,7 +1,7 @@
 {
   "task_id": "stopteach_PqYOzUaF",
   "type": "teach_stop",
-  "status": "executing",
+  "status": "failed",
   "intent": "youtube search",
   "goal": "youtube search",
   "created_at": "2026-04-07T12:03:50.331Z",
@@ -10,5 +10,7 @@
   "planner_version": "v10",
   "file_url": "https://api.github.com/repos/theking196/dwai-mobile-agent/contents/data/tasks/stopteach_PqYOzUaF.json",
   "started_at": "2026-04-07T12:18:16.258Z",
-  "worker_id": "phone-vivo 1906-720x1544"
+  "worker_id": "phone-vivo 1906-720x1544",
+  "finished_at": "2026-04-07T12:18:17.308Z",
+  "error": "Error: Task has no steps"
 }
