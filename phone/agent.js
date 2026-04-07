@@ -1,26 +1,35 @@
-// DWAI Mobile Agent v7.4 (Corrected)
-// - Full logging
+// DWAI Mobile Agent v10
+// - Reads current_task first for speed
+// - Falls back to tasks folder
+// - No delete after completion
+// - Stop on failure
+// - Teach mode recording
+// - Route memory saving
 // - App discovery + app resolution
-// - Verified app launch
-// - Selector-first clicking
-// - Safer GitHub task updates
-// - Retry on steps
-// - No silent failures
+// - Selector-first execution
+// - Verified launch
+// - No overlapping polling
 
-var GITHUB_TOKEN = "githubkey";
+var GITHUB_TOKEN = "PUT_A_NEW_TOKEN_HERE";
 var REPO_OWNER = "theking196";
 var REPO_NAME = "dwai-mobile-agent";
 var TASKS_PATH = "data/tasks";
 var LOGS_PATH = "data/logs";
-var POLL_INTERVAL = 10000;
+var ROUTES_PATH = "data/routes";
+var CURRENT_TASK_PATH = "data/current_task.json";
+var POLL_INTERVAL = 2000;
 var BRANCH = "main";
+var WORKER_ID = "phone-" + (device.model || "android") + "-" + device.width + "x" + device.height;
 
 var BASE_URL = "https://api.github.com/repos/" + REPO_OWNER + "/" + REPO_NAME + "/contents/";
 
-toast("DWAI v7.4 starting...");
-console.log("=== DWAI v7.4 START ===");
+console.log("=== DWAI AGENT START ===");
+toast("DWAI agent starting...");
 
-// ---------- App Discovery ----------
+// =====================================================
+// APP DISCOVERY
+// =====================================================
+
 var INSTALLED_APPS = {};
 var APP_CACHE_BUILT = false;
 
@@ -60,12 +69,13 @@ function buildInstalledAppsMap() {
 
         for (var i = 0; i < apps.size(); i++) {
             var app = apps.get(i);
+            var pkg = app.packageName;
             var label = "";
+
             try {
                 label = pm.getApplicationLabel(app).toString().toLowerCase();
             } catch (e) {}
 
-            var pkg = app.packageName;
             if (label) {
                 INSTALLED_APPS[label] = pkg;
             }
@@ -73,9 +83,9 @@ function buildInstalledAppsMap() {
         }
 
         APP_CACHE_BUILT = true;
-        log("App cache built: " + Object.keys(INSTALLED_APPS).length);
+        console.log("App cache built: " + Object.keys(INSTALLED_APPS).length);
     } catch (e) {
-        log("App discovery failed: " + e);
+        console.log("App discovery failed: " + e);
         APP_CACHE_BUILT = true;
     }
 }
@@ -84,14 +94,10 @@ function resolveApp(appName) {
     if (!appName) return null;
 
     var name = String(appName).toLowerCase().trim();
+    if (!name) return null;
 
-    if (KNOWN_APPS[name]) {
-        return KNOWN_APPS[name];
-    }
-
-    if (INSTALLED_APPS[name]) {
-        return INSTALLED_APPS[name];
-    }
+    if (KNOWN_APPS[name]) return KNOWN_APPS[name];
+    if (INSTALLED_APPS[name]) return INSTALLED_APPS[name];
 
     for (var key in KNOWN_APPS) {
         if (name.indexOf(key) !== -1) {
@@ -108,7 +114,22 @@ function resolveApp(appName) {
     return null;
 }
 
-// ---------- Utils ----------
+function normalizeLaunchTarget(value) {
+    if (!value) return null;
+    var v = String(value).trim();
+    if (!v) return null;
+
+    var resolved = resolveApp(v);
+    if (resolved) return resolved;
+
+    if (v.indexOf(".") !== -1) return v;
+    return null;
+}
+
+// =====================================================
+// UTILS
+// =====================================================
+
 function waitMs(ms) {
     java.lang.Thread.sleep(ms);
 }
@@ -117,10 +138,14 @@ function log(msg) {
     console.log(new Date().toISOString() + " | " + msg);
 }
 
+function notify(msg) {
+    toast(msg);
+}
+
 function b64Encode(text) {
     try {
         return android.util.Base64.encodeToString(
-            new java.lang.String(text).getBytes("UTF-8"),
+            new java.lang.String(String(text)).getBytes("UTF-8"),
             android.util.Base64.NO_WRAP
         );
     } catch (e) {
@@ -131,7 +156,7 @@ function b64Encode(text) {
 
 function b64Decode(text) {
     try {
-        var clean = (text || "").replace(/\n/g, "").replace(/\r/g, "");
+        var clean = String(text || "").replace(/\n/g, "").replace(/\r/g, "");
         return new java.lang.String(
             android.util.Base64.decode(clean, android.util.Base64.DEFAULT),
             "UTF-8"
@@ -142,12 +167,16 @@ function b64Decode(text) {
     }
 }
 
-// ---------- HTTP ----------
+// =====================================================
+// HTTP
+// =====================================================
+
 function readStream(stream) {
     if (!stream) return "";
     try {
         var reader = new java.io.BufferedReader(new java.io.InputStreamReader(stream));
-        var line, out = "";
+        var line;
+        var out = "";
         while ((line = reader.readLine()) !== null) {
             out += line;
         }
@@ -159,7 +188,15 @@ function readStream(stream) {
     }
 }
 
-function httpRequest(method, url, body, headers) {
+function headers() {
+    return {
+        "Authorization": "token " + GITHUB_TOKEN,
+        "User-Agent": "DWAI-Agent",
+        "Accept": "application/vnd.github+json"
+    };
+}
+
+function httpRequest(method, url, body, extraHeaders) {
     try {
         log("HTTP " + method + " -> " + url);
         var conn = new java.net.URL(url).openConnection();
@@ -167,10 +204,15 @@ function httpRequest(method, url, body, headers) {
         conn.setConnectTimeout(15000);
         conn.setReadTimeout(15000);
 
-        if (headers) {
-            for (var k in headers) {
-                conn.setRequestProperty(k, String(headers[k]));
+        var h = headers();
+        if (extraHeaders) {
+            for (var k in extraHeaders) {
+                h[k] = extraHeaders[k];
             }
+        }
+
+        for (var key in h) {
+            conn.setRequestProperty(key, String(h[key]));
         }
 
         if (body !== null && body !== undefined) {
@@ -186,7 +228,7 @@ function httpRequest(method, url, body, headers) {
         var res = readStream(stream);
         conn.disconnect();
 
-        log("HTTP response: " + code + " | " + (res.length > 120 ? res.substr(0, 120) + "..." : res));
+        log("HTTP response: " + code);
         return { statusCode: code, body: res };
     } catch (e) {
         log("httpRequest exception: " + e);
@@ -194,106 +236,159 @@ function httpRequest(method, url, body, headers) {
     }
 }
 
-function headers() {
+function ghGetJson(url) {
+    var res = httpRequest("GET", url, null, null);
+    var parsed = null;
+
+    try {
+        parsed = res.body ? JSON.parse(res.body) : null;
+    } catch (e) {
+        parsed = null;
+    }
+
     return {
-        "Authorization": "token " + GITHUB_TOKEN,
-        "User-Agent": "DWAI",
-        "Accept": "application/vnd.github+json"
+        ok: res.statusCode >= 200 && res.statusCode < 300,
+        statusCode: res.statusCode,
+        body: res.body,
+        json: parsed
     };
 }
 
-// ---------- GitHub ----------
+function ghPutJson(url, bodyObj) {
+    var res = httpRequest("PUT", url, JSON.stringify(bodyObj), null);
+    return {
+        ok: res.statusCode === 200 || res.statusCode === 201,
+        statusCode: res.statusCode,
+        body: res.body
+    };
+}
+
+// =====================================================
+// GITHUB TASKS
+// =====================================================
+
 function getTaskList() {
-    log("Fetching task list...");
-    var res = httpRequest("GET", BASE_URL + TASKS_PATH, null, headers());
-    if (res.statusCode !== 200) {
+    var url = BASE_URL + TASKS_PATH;
+    var res = ghGetJson(url);
+
+    if (!res.ok || !Array.isArray(res.json)) {
         log("Failed to fetch task list: " + res.statusCode);
         return [];
     }
 
+    return res.json;
+}
+
+function getCurrentPointer() {
+    var url = BASE_URL + CURRENT_TASK_PATH;
+    var res = ghGetJson(url);
+
+    if (!res.ok || !res.json || !res.json.content) return null;
+
     try {
-        var tasks = JSON.parse(res.body);
-        return tasks || [];
+        return JSON.parse(b64Decode(res.json.content));
     } catch (e) {
-        log("getTaskList JSON parse error: " + e);
-        return [];
+        log("current_task parse error: " + e);
+        return null;
     }
 }
 
 function getTask(fileUrl) {
-    log("Fetching task: " + fileUrl);
-    var res = httpRequest("GET", fileUrl, null, headers());
-    if (res.statusCode !== 200) {
-        log("Failed to get task: " + res.statusCode);
+    var res = ghGetJson(fileUrl);
+
+    if (!res.ok || !res.json || !res.json.content) {
+        log("Failed to fetch task file: " + res.statusCode);
         return null;
     }
 
     try {
-        var file = JSON.parse(res.body);
-        if (!file || !file.content) {
-            return null;
-        }
-
+        var file = res.json;
         var task = JSON.parse(b64Decode(file.content));
-        log("Task loaded: " + (task.task_id || "unknown"));
         return { file: file, task: task };
     } catch (e) {
-        log("getTask parse error: " + e);
+        log("Task parse error: " + e);
         return null;
     }
 }
 
-function saveTask(fileUrl, sha, task, msg) {
-    log("Saving task " + task.task_id + " | Status: " + task.status);
-    var res = httpRequest("PUT", fileUrl, JSON.stringify({
-        message: msg,
+function saveTask(fileUrl, sha, task, message) {
+    var payload = {
+        message: message,
         content: b64Encode(JSON.stringify(task, null, 2)),
         sha: sha,
         branch: BRANCH
-    }), headers());
+    };
 
-    if (res.statusCode !== 200 && res.statusCode !== 201) {
-        log("saveTask failed: " + res.statusCode + " | " + res.body);
-        return sha;
+    var res = ghPutJson(fileUrl, payload);
+    if (!res.ok) {
+        throw new Error("GitHub save failed: " + res.statusCode + " | " + res.body);
     }
 
+    var parsed = null;
     try {
-        var parsed = JSON.parse(res.body);
-        if (parsed && parsed.content && parsed.content.sha) {
-            log("Task saved successfully");
-            return parsed.content.sha;
-        }
+        parsed = JSON.parse(res.body);
     } catch (e) {
-        log("saveTask parse error: " + e);
+        parsed = null;
     }
 
-    return sha;
+    if (!parsed || !parsed.content || !parsed.content.sha) {
+        throw new Error("GitHub save succeeded but SHA missing");
+    }
+
+    return parsed.content.sha;
 }
 
-// ---------- Feedback Logging ----------
 function writeLog(taskId, status, error) {
     var logData = {
         task_id: taskId,
         status: status,
-        error: error,
+        error: error || null,
+        worker_id: WORKER_ID,
         timestamp: new Date().toISOString()
     };
 
-    log("Writing log for task " + taskId + " | Status: " + status);
+    var url = BASE_URL + LOGS_PATH + "/" + taskId + "_log.json";
+    var payload = {
+        message: "log " + taskId,
+        content: b64Encode(JSON.stringify(logData, null, 2)),
+        branch: BRANCH
+    };
 
-    httpRequest(
-        "PUT",
-        BASE_URL + LOGS_PATH + "/" + taskId + "_log.json",
-        JSON.stringify({
-            message: "log " + taskId,
-            content: b64Encode(JSON.stringify(logData, null, 2)),
-            branch: BRANCH
-        }),
-        headers()
-    );
+    var res = ghPutJson(url, payload);
+    if (!res.ok) {
+        log("Log write failed: " + res.statusCode + " | " + res.body);
+    }
 }
 
-// ---------- Device ----------
+function saveRoute(goal, routeData) {
+    var safeGoal = String(goal || "route")
+        .toLowerCase()
+        .replace(/[^a-z0-9]+/g, "_")
+        .replace(/^_+|_+$/g, "");
+
+    if (!safeGoal) safeGoal = "route";
+
+    var routeId = safeGoal + "_" + Date.now();
+    var url = BASE_URL + ROUTES_PATH + "/" + routeId + ".json";
+
+    var payload = {
+        message: "route " + routeId,
+        content: b64Encode(JSON.stringify(routeData, null, 2)),
+        branch: BRANCH
+    };
+
+    var res = ghPutJson(url, payload);
+    if (!res.ok) {
+        log("Route save failed: " + res.statusCode + " | " + res.body);
+    } else {
+        log("Route saved: " + routeId);
+    }
+}
+
+// =====================================================
+// DEVICE STATE
+// =====================================================
+
 function isLocked() {
     try {
         var km = context.getSystemService(context.KEYGUARD_SERVICE);
@@ -306,8 +401,8 @@ function isLocked() {
 
 function waitForUnlock() {
     while (isLocked()) {
-        toast("Unlock phone...");
         log("Device locked, waiting...");
+        notify("Unlock phone...");
         waitMs(2000);
     }
 }
@@ -320,86 +415,247 @@ function currentAppIs(pkg) {
     }
 }
 
-function launchAppSafe(nameOrPackage) {
-    var resolved = resolveApp(nameOrPackage) || nameOrPackage;
+function waitForPackage(pkg, timeoutMs) {
+    var start = new Date().getTime();
+    while (new Date().getTime() - start < timeoutMs) {
+        if (currentAppIs(pkg)) return true;
+        waitMs(300);
+    }
+    return false;
+}
 
-    log("Launching app request: " + nameOrPackage + " -> " + resolved);
+function currentScreenFingerprint() {
+    var pkg = "";
+    var act = "";
+    try { pkg = currentPackage(); } catch (e) {}
+    try { act = currentActivity(); } catch (e2) {}
 
+    var texts = [];
     try {
-        app.launchPackage(resolved);
-        waitMs(4000);
-        if (currentAppIs(resolved)) {
-            log("Launched by package: " + resolved);
-            return resolved;
+        var nodes = className("android.widget.TextView").find();
+        var max = Math.min(nodes.length, 12);
+        for (var i = 0; i < max; i++) {
+            var t = nodes[i].text();
+            if (t && String(t).trim()) texts.push(String(t).trim());
         }
-    } catch (e1) {
-        log("launchPackage failed: " + e1);
+    } catch (e3) {}
+
+    return {
+        package: pkg,
+        activity: act,
+        texts: texts.slice(0, 10),
+        ts: new Date().toISOString()
+    };
+}
+
+// =====================================================
+// TEACH MODE
+// =====================================================
+
+var TEACH_MODE = false;
+var TEACH_SESSION = null;
+var TEACH_LAST_FP = "";
+var TEACH_SNAPS = [];
+var TEACH_TOUCHES = [];
+
+function startTeachSession(task) {
+    TEACH_MODE = true;
+    TEACH_SESSION = {
+        task_id: task.task_id,
+        goal: task.goal || task.intent || "teach route",
+        app: task.app || null,
+        started_at: new Date().toISOString(),
+        snapshots: [],
+        touches: []
+    };
+
+    TEACH_LAST_FP = "";
+    TEACH_SNAPS = [];
+    TEACH_TOUCHES = [];
+
+    if (task.app) {
+        var pkg = normalizeLaunchTarget(task.app);
+        if (pkg) {
+            launchAppSafe(pkg);
+        }
     }
 
+    log("Teach session started: " + TEACH_SESSION.goal);
+}
+
+function recordTeachSnapshot() {
+    if (!TEACH_MODE || !TEACH_SESSION) return;
+
+    var fp = currentScreenFingerprint();
+    var fingerprintKey = fp.package + "|" + fp.activity + "|" + fp.texts.join("|");
+
+    if (fingerprintKey === TEACH_LAST_FP) return;
+
+    TEACH_LAST_FP = fingerprintKey;
+    TEACH_SNAPS.push(fp);
+
+    log("Teach snapshot captured: " + fp.package + " / " + fp.activity);
+}
+
+function recordTeachTouch(x, y, action) {
+    if (!TEACH_MODE || !TEACH_SESSION) return;
+
+    TEACH_TOUCHES.push({
+        x: x,
+        y: y,
+        action: action,
+        package: (function () {
+            try { return currentPackage(); } catch (e) { return ""; }
+        })(),
+        ts: new Date().toISOString()
+    });
+}
+
+function tryStartTouchObserver() {
     try {
-        launchApp(nameOrPackage);
-        waitMs(4000);
-        var maybeResolved = resolveApp(nameOrPackage);
-        if (maybeResolved && currentAppIs(maybeResolved)) {
-            log("Launched by label: " + nameOrPackage);
-            return maybeResolved;
+        if (events && events.observeTouch) {
+            events.observeTouch();
+            if (events.onTouch) {
+                events.onTouch(function (e) {
+                    try {
+                        var x = e && typeof e.x === "number" ? e.x : null;
+                        var y = e && typeof e.y === "number" ? e.y : null;
+                        var action = e && e.action !== undefined ? String(e.action) : "touch";
+                        recordTeachTouch(x, y, action);
+                    } catch (inner) {
+                        log("Touch event record error: " + inner);
+                    }
+                });
+                log("Touch observer started");
+            }
         }
-    } catch (e2) {
-        log("launchApp failed: " + e2);
+    } catch (e) {
+        log("Touch observer unavailable: " + e);
+    }
+}
+
+function finalizeTeachSession(task, fileUrl, sha) {
+    if (!TEACH_SESSION) return;
+
+    var routeData = {
+        route_id: TEACH_SESSION.task_id,
+        goal: TEACH_SESSION.goal,
+        app: TEACH_SESSION.app,
+        started_at: TEACH_SESSION.started_at,
+        finished_at: new Date().toISOString(),
+        snapshots: TEACH_SNAPS,
+        touches: TEACH_TOUCHES,
+        notes: "Route memory captured from teach mode."
+    };
+
+    saveRoute(TEACH_SESSION.goal, routeData);
+
+    TEACH_MODE = false;
+    TEACH_SESSION = null;
+    TEACH_LAST_FP = "";
+    TEACH_SNAPS = [];
+    TEACH_TOUCHES = [];
+    log("Teach session finalized");
+}
+
+// =====================================================
+// APP LAUNCH
+// =====================================================
+
+function launchAppSafe(nameOrPackage) {
+    var target = normalizeLaunchTarget(nameOrPackage);
+    if (!target) return null;
+
+    log("Launching: " + nameOrPackage + " -> " + target);
+
+    for (var attempt = 0; attempt < 3; attempt++) {
+        try {
+            app.launchPackage(target);
+            if (waitForPackage(target, 5000)) {
+                log("Launched package: " + target);
+                return target;
+            }
+        } catch (e1) {
+            log("launchPackage attempt " + (attempt + 1) + " failed: " + e1);
+        }
+
+        try {
+            launchApp(nameOrPackage);
+            if (waitForPackage(target, 5000)) {
+                log("Launched by label: " + nameOrPackage);
+                return target;
+            }
+        } catch (e2) {
+            log("launchApp attempt " + (attempt + 1) + " failed: " + e2);
+        }
+
+        waitMs(1000);
     }
 
     return null;
 }
 
-// ---------- Actions ----------
+// =====================================================
+// STEP EXECUTION
+// =====================================================
+
 function clickSmart(step) {
-    log("Clicking: " + JSON.stringify(step));
+    log("Click step: " + JSON.stringify(step));
 
     try {
         if (step.text) {
-            var el = text(step.text).findOne(3000);
-            if (el) {
-                el.click();
-                log("Clicked by text");
+            var n1 = text(step.text).findOne(3000);
+            if (n1) {
+                n1.click();
                 return true;
             }
         }
 
         if (step.contains) {
-            var el2 = textContains(step.contains).findOne(3000);
-            if (el2) {
-                el2.click();
-                log("Clicked by contains");
+            var n2 = textContains(step.contains).findOne(3000);
+            if (n2) {
+                n2.click();
                 return true;
             }
         }
 
         if (step.desc) {
-            var el3 = descContains(step.desc).findOne(3000);
-            if (el3) {
-                el3.click();
-                log("Clicked by description");
+            var n3 = desc(step.desc).findOne(3000);
+            if (n3) {
+                n3.click();
+                return true;
+            }
+
+            var n4 = descContains(step.desc).findOne(3000);
+            if (n4) {
+                n4.click();
+                return true;
+            }
+        }
+
+        if (step.className) {
+            var n5 = className(step.className).findOne(3000);
+            if (n5) {
+                n5.click();
                 return true;
             }
         }
 
         if (typeof step.x === "number" && typeof step.y === "number") {
             click(step.x, step.y);
-            log("Clicked by coordinates: " + step.x + "," + step.y);
             return true;
         }
     } catch (e) {
         log("clickSmart error: " + e);
     }
 
-    log("Click failed");
     return false;
 }
 
-function typeText(t) {
+function typeText(value) {
     try {
-        t = String(t);
-        log("Typing text: " + t);
+        var t = String(value || "");
+        if (!t) return false;
         setClip(t);
         waitMs(300);
         paste();
@@ -410,24 +666,70 @@ function typeText(t) {
     }
 }
 
+function verifyStep(step) {
+    if (!step.verify) return true;
+
+    try {
+        if (step.verify.package) {
+            var pkg = normalizeLaunchTarget(step.verify.package) || step.verify.package;
+            if (!currentAppIs(pkg)) return false;
+        }
+
+        if (step.verify.text) {
+            if (!textContains(step.verify.text).exists()) return false;
+        }
+
+        if (step.verify.contains) {
+            if (!textContains(step.verify.contains).exists()) return false;
+        }
+
+        if (step.verify.desc) {
+            if (!descContains(step.verify.desc).exists()) return false;
+        }
+    } catch (e) {
+        log("verifyStep error: " + e);
+        return false;
+    }
+
+    return true;
+}
+
 function execStep(step) {
+    if (!step || !step.action) {
+        throw new Error("Invalid step");
+    }
+
     log("Executing step: " + JSON.stringify(step));
 
     if (step.action === "launch_app") {
         var launched = launchAppSafe(step.value);
         if (!launched) {
-            throw "launch failed: " + step.value;
+            throw new Error("Launch failed: " + step.value);
         }
+
+        if (step.verify && !verifyStep(step)) {
+            throw new Error("Launch verification failed: " + step.value);
+        }
+
         return true;
     }
 
     if (step.action === "click") {
-        if (!clickSmart(step)) throw "click failed";
+        if (!clickSmart(step)) {
+            throw new Error("Click failed");
+        }
+
+        if (step.verify && !verifyStep(step)) {
+            throw new Error("Click verification failed");
+        }
+
         return true;
     }
 
     if (step.action === "type") {
-        if (!typeText(step.text || "")) throw "type failed";
+        if (!typeText(step.text || step.value || "")) {
+            throw new Error("Type failed");
+        }
         return true;
     }
 
@@ -443,37 +745,50 @@ function execStep(step) {
         } else if (key === "menu") {
             shell("input keyevent 82", false);
         } else {
-            throw "unknown key: " + key;
+            throw new Error("Unsupported key: " + key);
         }
 
-        log("Key pressed: " + key);
         return true;
     }
 
     if (step.action === "wait") {
-        waitMs(step.ms || 1000);
-        log("Waited " + (step.ms || 1000) + "ms");
+        waitMs(Number(step.ms || 1000));
         return true;
     }
 
     if (step.action === "toast") {
-        toast(step.text || step.value || "Done");
-        log(step.text || step.value || "Done");
+        notify(String(step.text || step.value || "Done"));
         return true;
     }
 
     if (step.action === "swipe") {
-        if (typeof step.x1 === "number" && typeof step.y1 === "number" &&
-            typeof step.x2 === "number" && typeof step.y2 === "number") {
+        if (
+            typeof step.x1 === "number" &&
+            typeof step.y1 === "number" &&
+            typeof step.x2 === "number" &&
+            typeof step.y2 === "number"
+        ) {
             swipe(step.x1, step.y1, step.x2, step.y2, step.duration || 300);
-            log("Swiped");
             return true;
         }
-        throw "swipe needs x1, y1, x2, y2";
+        throw new Error("Swipe requires x1, y1, x2, y2");
     }
 
-    log("Unknown step action: " + step.action);
-    return false;
+    if (step.action === "verify") {
+        return verifyStep({ verify: step });
+    }
+
+    if (step.action === "open_url") {
+        var url = String(step.value || "");
+        if (!url) throw new Error("open_url missing URL");
+        app.startActivity({
+            action: "android.intent.action.VIEW",
+            data: url
+        });
+        return true;
+    }
+
+    throw new Error("Unknown action: " + step.action);
 }
 
 function execWithRetry(step) {
@@ -481,59 +796,139 @@ function execWithRetry(step) {
         try {
             if (execStep(step)) return true;
         } catch (e) {
-            log("Step failed on attempt " + (i + 1) + ": " + e);
+            log("Step attempt " + (i + 1) + " failed: " + e);
         }
-        waitMs(1000);
+        waitMs(800);
     }
 
-    log("Step failed after 3 attempts: " + JSON.stringify(step));
     return false;
 }
 
-// ---------- Main ----------
+// =====================================================
+// TASK LOOP
+// =====================================================
+
 var isProcessing = false;
 var currentTaskId = null;
+var lastTaskId = null;
 
-function process() {
+function processTeachModeIfActive() {
+    if (!TEACH_MODE) return;
+
+    recordTeachSnapshot();
+
+    var current = getCurrentPointer();
+    if (current && current.type === 'teach_stop' && current.status === 'pending') {
+        var stopBundle = current.file_url ? getTask(current.file_url) : null;
+        if (stopBundle) {
+            try {
+                var stopTask = stopBundle.task;
+                var stopSha = stopBundle.file.sha;
+
+                stopTask.status = "executing";
+                stopTask.started_at = new Date().toISOString();
+                saveTask(current.file_url, stopSha, stopTask, "executing");
+
+                finalizeTeachSession(stopTask, current.file_url, stopSha);
+
+                stopTask.status = "completed";
+                stopTask.finished_at = new Date().toISOString();
+                var newSha = saveTask(current.file_url, stopSha, stopTask, "completed");
+                writeLog(stopTask.task_id, "completed", null);
+                log("Teach stop completed");
+            } catch (e) {
+                log("Teach stop error: " + e);
+            }
+        }
+    }
+}
+
+function processOneTask() {
     if (isProcessing) {
-        log("Already processing, skip");
+        log("Already processing");
         return;
     }
 
-    var files = getTaskList();
+    if (TEACH_MODE) {
+        processTeachModeIfActive();
+        return;
+    }
 
+    var pointer = getCurrentPointer();
+    if (pointer && pointer.task_id && pointer.status === 'pending' && pointer.file_url) {
+        var bundle = getTask(pointer.file_url);
+        if (bundle && bundle.task && bundle.task.status === 'pending') {
+            runTaskBundle(bundle);
+            return;
+        }
+    }
+
+    var files = getTaskList();
     for (var i = 0; i < files.length; i++) {
         var f = files[i];
         if (!f || !f.name) continue;
+        if (f.type !== "file") continue;
         if (f.name === ".gitkeep") continue;
         if (f.name.indexOf("_log") !== -1) continue;
 
         var bundle = getTask(f.url);
         if (!bundle) continue;
 
-        var task = bundle.task;
-        if (task.status !== "pending") continue;
+        if (bundle.task.status !== "pending") continue;
+        runTaskBundle(bundle);
+        return;
+    }
+}
 
-        isProcessing = true;
-        currentTaskId = task.task_id || f.name;
+function runTaskBundle(bundle) {
+    var task = bundle.task;
 
-        log("RUNNING task: " + currentTaskId);
+    if (!task || !task.task_id) return;
+    if (task.task_id === lastTaskId && task.status !== 'pending') {
+        log("Skipping already handled task: " + task.task_id);
+        return;
+    }
 
+    isProcessing = true;
+    currentTaskId = task.task_id;
+
+    log("RUNNING task: " + currentTaskId);
+    log("Intent: " + (task.intent || "unknown"));
+
+    var sha = null;
+
+    try {
         task.status = "executing";
         task.started_at = new Date().toISOString();
+        task.worker_id = WORKER_ID;
 
-        var sha = saveTask(f.url, bundle.file.sha, task, "executing");
+        sha = saveTask(bundle.file.url, bundle.file.sha, task, "executing");
 
         waitForUnlock();
 
+        if (task.type === "teach_start") {
+            startTeachSession(task);
+            task.status = "completed";
+            task.finished_at = new Date().toISOString();
+            sha = saveTask(bundle.file.url, sha, task, "completed");
+            writeLog(currentTaskId, "completed", null);
+            lastTaskId = currentTaskId;
+            isProcessing = false;
+            currentTaskId = null;
+            return;
+        }
+
         var success = true;
-        var failedStep = -1;
         var errorMsg = "";
 
-        for (var j = 0; j < (task.steps || []).length; j++) {
-            if (!execWithRetry(task.steps[j])) {
+        if (!task.steps || !task.steps.length) {
+            throw new Error("Task has no steps");
+        }
+
+        for (var j = 0; j < task.steps.length; j++) {
+            var ok = execWithRetry(task.steps[j]);
+            if (!ok) {
                 success = false;
-                failedStep = j;
                 errorMsg = "Step " + (j + 1) + " failed";
                 break;
             }
@@ -542,31 +937,48 @@ function process() {
 
         task.status = success ? "completed" : "failed";
         task.finished_at = new Date().toISOString();
-
         if (!success) {
             task.error = errorMsg;
         }
 
-        log("Task " + currentTaskId + " finished | Status: " + task.status);
-
-        saveTask(f.url, sha, task, task.status);
+        saveTask(bundle.file.url, sha, task, task.status);
         writeLog(currentTaskId, task.status, task.error || null);
 
-        isProcessing = false;
-        currentTaskId = null;
-        return;
+        log("Task " + currentTaskId + " finished: " + task.status);
+        lastTaskId = currentTaskId;
+    } catch (e) {
+        log("Task error: " + e);
+
+        try {
+            if (task) {
+                task.status = "failed";
+                task.finished_at = new Date().toISOString();
+                task.error = String(e);
+
+                if (sha) {
+                    saveTask(bundle.file.url, sha, task, "failed");
+                }
+
+                writeLog(currentTaskId, "failed", task.error);
+            }
+        } catch (inner) {
+            log("Finalization error: " + inner);
+        }
     }
+
+    isProcessing = false;
+    currentTaskId = null;
 }
 
 buildInstalledAppsMap();
+tryStartTouchObserver();
 
-toast("DWAI v7.4 running");
-log("Apps discovered: " + Object.keys(INSTALLED_APPS).length);
-log("Known apps: " + Object.keys(KNOWN_APPS).length);
+log("Installed apps discovered: " + Object.keys(INSTALLED_APPS).length);
+log("Known apps available: " + Object.keys(KNOWN_APPS).length);
 
 while (true) {
     try {
-        process();
+        processOneTask();
     } catch (e) {
         log("PROCESS ERROR: " + e);
         isProcessing = false;
