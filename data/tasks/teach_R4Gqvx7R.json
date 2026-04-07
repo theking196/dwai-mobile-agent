@@ -1,0 +1,13 @@
+{
+  "task_id": "teach_R4Gqvx7R",
+  "type": "teach_start",
+  "status": "pending",
+  "intent": "how to search for a word in chrome",
+  "app": null,
+  "goal": "how to search for a word in chrome",
+  "created_at": "2026-04-07T16:31:55.100Z",
+  "steps": [],
+  "source": "telegram",
+  "planner_version": "v11",
+  "file_url": "https://api.github.com/repos/theking196/dwai-mobile-agent/contents/data/tasks/teach_R4Gqvx7R.json"
+}
