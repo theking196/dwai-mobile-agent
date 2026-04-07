@@ -1,10 +1,9 @@
 {
-  "task_id": "stopteach_mVxLwv5L",
-  "type": "teach_stop",
+  "task_id": "vRYPaO9X",
+  "type": "automation",
   "status": "pending",
-  "intent": "youtube search",
-  "goal": "youtube search",
-  "file_url": "https://api.github.com/repos/theking196/dwai-mobile-agent/contents/data/tasks/stopteach_mVxLwv5L.json",
-  "created_at": "2026-04-07T12:17:48.930Z",
+  "intent": "Search on YouTube",
+  "file_url": "https://api.github.com/repos/theking196/dwai-mobile-agent/contents/data/tasks/vRYPaO9X.json",
+  "created_at": "2026-04-07T12:55:35.291Z",
   "source": "telegram"
 }
