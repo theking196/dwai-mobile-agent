@@ -1,6 +1,6 @@
 {
   "task_id": "YJH4lDZA",
-  "status": "executing",
+  "status": "completed",
   "intent": "open github",
   "type": "automation",
   "created_at": "2026-04-07T07:54:43.015Z",
@@ -38,5 +38,6 @@
   "source": "telegram",
   "planner_version": "v9",
   "started_at": "2026-04-07T07:55:31.217Z",
-  "worker_id": "phone-vivo 1906-720x1544"
+  "worker_id": "phone-vivo 1906-720x1544",
+  "finished_at": "2026-04-07T07:55:56.539Z"
 }
