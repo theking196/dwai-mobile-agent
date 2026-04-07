@@ -1,6 +1,6 @@
 {
   "task_id": "N8lGjxK1",
-  "status": "pending",
+  "status": "executing",
   "intent": "Open chrome",
   "type": "automation",
   "created_at": "2026-04-07T17:33:35.345Z",
@@ -20,5 +20,7 @@
   ],
   "source": "telegram",
   "planner_version": "v11",
-  "file_url": "https://api.github.com/repos/theking196/dwai-mobile-agent/contents/data/tasks/N8lGjxK1.json"
+  "file_url": "https://api.github.com/repos/theking196/dwai-mobile-agent/contents/data/tasks/N8lGjxK1.json",
+  "started_at": "2026-04-07T17:33:35.455Z",
+  "worker_id": "phone-vivo 1906-720x1544"
 }
