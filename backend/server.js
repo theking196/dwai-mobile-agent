@@ -186,6 +186,30 @@ function extractSearchQuery(text) {
   return null;
 }
 
+function extractMessageParts(text) {
+  const input = String(text || '').trim();
+
+  const patterns = [
+    /send (?:a )?message to (.+?) saying (.+)$/i,
+    /send (.+?) a message saying (.+)$/i,
+    /message (.+?) saying (.+)$/i,
+    /text (.+?) saying (.+)$/i,
+    /send (?:a )?message to (.+?) with (.+)$/i,
+  ];
+
+  for (const re of patterns) {
+    const m = input.match(re);
+    if (m && m[1] && m[2]) {
+      return {
+        contact: cleanQuery(m[1]),
+        message: cleanQuery(m[2]),
+      };
+    }
+  }
+
+  return null;
+}
+
 function quickIntent(message) {
   const t = String(message || '').trim().toLowerCase();
   if (!t) return { intent: 'CHAT' };
@@ -194,7 +218,10 @@ function quickIntent(message) {
     return { intent: 'CHAT' };
   }
   if (/\b(help|commands?)\b/.test(t)) return { intent: 'HELP' };
-  if (/\b(status|task status|check task|tasks?|queue)\b/.test(t)) return { intent: 'STATUS' };
+  if (/\b(status|task status|check task|tasks?|queue|routes?)\b/.test(t)) return { intent: 'STATUS' };
+
+  if (/\b(teach|learn mode|record route)\b/.test(t)) return { intent: 'TEACH' };
+  if (/\b(stopteach|offteach|stop teach|stop teaching)\b/.test(t)) return { intent: 'STOPTEACH' };
 
   if (/(open|launch|search|find|look for|go to|start|watch|play|type|click|send|scroll)/.test(t)) {
     return { intent: 'TASK' };
@@ -302,16 +329,44 @@ function buildTemplateSteps(userText) {
 
   const app = findAppCanonical(lower);
   const query = extractSearchQuery(text);
+  const msgParts = extractMessageParts(text);
   const wantsSearch = /\b(search|find|look for|browse)\b/.test(lower);
+  const wantsMessage = /\b(send|message|text)\b/.test(lower) && /\bto\b/.test(lower);
   const wantsFirstResult = /\b(first|first one|watch|video|result|open the first)\b/.test(lower);
   const wantsLaunch = /\b(open|launch|start|go to)\b/.test(lower);
 
-  if (app && wantsLaunch && !wantsSearch) {
+  if (app && wantsLaunch && !wantsSearch && !wantsMessage) {
     return sanitizeSteps([
       { action: 'launch_app', value: app },
       { action: 'wait', ms: 4000 },
       { action: 'verify', package: app },
     ]);
+  }
+
+  if (wantsMessage) {
+    const contact = msgParts ? msgParts.contact : cleanQuery(text.replace(/^.*?to\s+/i, '').replace(/\s+say.*$/i, ''));
+    const message = msgParts ? msgParts.message : cleanQuery(text);
+
+    const steps = [
+      { action: 'launch_app', value: 'whatsapp' },
+      { action: 'wait', ms: 4000 },
+      {
+        action: 'click',
+        text: 'Search',
+        contains: 'Search',
+        desc: 'Search',
+        fallbacks: [{ action: 'click', x: 650, y: 120 }],
+      },
+      { action: 'wait', ms: 1000 },
+      { action: 'type', text: contact || '' },
+      { action: 'press', key: 'enter' },
+      { action: 'wait', ms: 2500 },
+      { action: 'type', text: message || '' },
+      { action: 'press', key: 'enter' },
+      { action: 'wait', ms: 2000 },
+    ];
+
+    return sanitizeSteps(steps);
   }
 
   if (wantsSearch) {
@@ -404,7 +459,7 @@ User: "${userMessage}"
 
 Return ONLY JSON with this shape:
 {
-  "intent": "TASK|CHAT|STATUS|HELP",
+  "intent": "TASK|CHAT|STATUS|HELP|TEACH|STOPTEACH",
   "action": "launch_app|click|type|search|none|respond",
   "target": "app name or search query or none",
   "response": "short response if CHAT or HELP"
@@ -413,8 +468,10 @@ Return ONLY JSON with this shape:
 Rules:
 - If the user wants phone automation, intent must be TASK.
 - If the user is just talking, intent must be CHAT.
-- If they want to check tasks/status, intent must be STATUS.
+- If they want to check tasks/status/routes, intent must be STATUS.
 - If they want help, intent must be HELP.
+- If they are asking to learn a route, intent must be TEACH.
+- If they are asking to stop teaching, intent must be STOPTEACH.
 - No markdown.
 - No extra text.`;
 
@@ -626,6 +683,36 @@ async function listTaskSummaries(limit = 15) {
   return out;
 }
 
+async function listRouteSummaries(limit = 15) {
+  const folder = await ghGetJson(`${GITHUB_API}/${ROUTES_PATH}`);
+  if (!folder.ok || !Array.isArray(folder.json)) return [];
+
+  const files = folder.json
+    .filter((f) => f.type === 'file' && f.name !== '.gitkeep')
+    .slice(0, limit);
+
+  const out = [];
+  for (const file of files) {
+    try {
+      const routeFile = await ghGetJson(file.url);
+      const route = JSON.parse(Buffer.from(routeFile.json.content, 'base64').toString('utf8'));
+      out.push({
+        id: route.route_id || file.name.replace('.json', ''),
+        goal: route.goal || '',
+        app: route.app || '',
+      });
+    } catch {
+      out.push({
+        id: file.name.replace('.json', ''),
+        goal: '',
+        app: '',
+      });
+    }
+  }
+
+  return out;
+}
+
 async function createTeachTask(goalText) {
   const parts = String(goalText || '').trim().split(/\s+/).filter(Boolean);
   const appGuess = parts[0] ? findAppCanonical(parts[0]) : null;
@@ -641,10 +728,11 @@ async function createTeachTask(goalText) {
     created_at: new Date().toISOString(),
     steps: [],
     source: 'telegram',
-    planner_version: 'v10',
+    planner_version: 'v11',
+    file_url: `${GITHUB_API}/${TASKS_PATH}/${taskId}.json`,
   };
 
-  const taskUrl = await createTask(taskId, { ...task, file_url: `${GITHUB_API}/${TASKS_PATH}/${taskId}.json` });
+  const taskUrl = await createTask(taskId, task);
   await writeCurrentTask({
     task_id: taskId,
     type: 'teach_start',
@@ -671,10 +759,11 @@ async function createStopTeachTask(goalText) {
     created_at: new Date().toISOString(),
     steps: [],
     source: 'telegram',
-    planner_version: 'v10',
+    planner_version: 'v11',
+    file_url: `${GITHUB_API}/${TASKS_PATH}/${taskId}.json`,
   };
 
-  const taskUrl = await createTask(taskId, { ...task, file_url: `${GITHUB_API}/${TASKS_PATH}/${taskId}.json` });
+  const taskUrl = await createTask(taskId, task);
   await writeCurrentTask({
     task_id: taskId,
     type: 'teach_stop',
@@ -715,7 +804,7 @@ async function handleSlashCommand(ctx) {
 
   if (cmd === 'help') {
     await ctx.reply(
-      `Commands:\n/start\n/help\n/cmd <task>\n/teach <goal>\n/stopteach <goal>\n/offteach <goal>\n/status <task_id>\n/tasks\n\nYou can also just type naturally and I will decide whether it is a task or normal chat.`
+      `Commands:\n/start\n/help\n/cmd <task>\n/teach <goal>\n/stopteach <goal>\n/offteach <goal>\n/status <task_id>\n/tasks\n/routes\n\nYou can also just type naturally and I will decide whether it is a task or normal chat.`
     );
     return;
   }
@@ -773,11 +862,12 @@ async function handleSlashCommand(ctx) {
       created_at: new Date().toISOString(),
       steps,
       source: 'telegram',
-      planner_version: 'v10',
+      planner_version: 'v11',
+      file_url: `${GITHUB_API}/${TASKS_PATH}/${taskId}.json`,
     };
 
     try {
-      const taskUrl = await createTask(taskId, { ...task, file_url: `${GITHUB_API}/${TASKS_PATH}/${taskId}.json` });
+      const taskUrl = await createTask(taskId, task);
       await writeCurrentTask({
         task_id: taskId,
         type: 'automation',
@@ -835,6 +925,23 @@ async function handleSlashCommand(ctx) {
     return;
   }
 
+  if (cmd === 'routes') {
+    try {
+      const routes = await listRouteSummaries(15);
+      if (!routes.length) {
+        await ctx.reply('No routes found.');
+        return;
+      }
+
+      const lines = routes.map((r) => `• ${r.id}${r.goal ? ` — ${r.goal}` : ''}${r.app ? ` — ${r.app}` : ''}`);
+      await ctx.reply(`Routes:\n${lines.join('\n')}`);
+    } catch {
+      await ctx.reply('Could not fetch routes.');
+    }
+
+    return;
+  }
+
   await ctx.reply('Unknown command. Try /help');
 }
 
@@ -865,6 +972,18 @@ async function handleNaturalMessage(ctx) {
       return;
     }
 
+    if (classification.intent === 'TEACH') {
+      const taskId = await createTeachTask(text);
+      await ctx.reply(`Teach mode queued: ${taskId}\nGoal: ${text}`);
+      return;
+    }
+
+    if (classification.intent === 'STOPTEACH') {
+      const taskId = await createStopTeachTask(text);
+      await ctx.reply(`Stop-teach queued: ${taskId}\nGoal: ${text}`);
+      return;
+    }
+
     if (classification.intent === 'TASK') {
       const steps = await generateTaskSteps(text);
 
@@ -882,10 +1001,11 @@ async function handleNaturalMessage(ctx) {
         created_at: new Date().toISOString(),
         steps,
         source: 'telegram',
-        planner_version: 'v10',
+        planner_version: 'v11',
+        file_url: `${GITHUB_API}/${TASKS_PATH}/${taskId}.json`,
       };
 
-      const taskUrl = await createTask(taskId, { ...task, file_url: `${GITHUB_API}/${TASKS_PATH}/${taskId}.json` });
+      const taskUrl = await createTask(taskId, task);
       await writeCurrentTask({
         task_id: taskId,
         type: 'automation',
@@ -911,7 +1031,7 @@ async function handleNaturalMessage(ctx) {
   }
 }
 
-bot.hears(/^\/(start|help|cmd|status|tasks|teach|stopteach|offteach)\b/i, handleSlashCommand);
+bot.hears(/^\/(start|help|cmd|status|tasks|routes|teach|stopteach|offteach)\b/i, handleSlashCommand);
 bot.on('text', handleNaturalMessage);
 
 bot.catch((err) => {
