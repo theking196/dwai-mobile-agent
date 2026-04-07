@@ -1,7 +1,7 @@
 {
   "task_id": "teach_mbFlRZgT",
   "type": "teach_start",
-  "status": "executing",
+  "status": "completed",
   "intent": "youtube search",
   "app": "youtube",
   "goal": "youtube search",
@@ -11,5 +11,6 @@
   "planner_version": "v10",
   "file_url": "https://api.github.com/repos/theking196/dwai-mobile-agent/contents/data/tasks/teach_mbFlRZgT.json",
   "started_at": "2026-04-07T12:06:33.486Z",
-  "worker_id": "phone-vivo 1906-720x1544"
+  "worker_id": "phone-vivo 1906-720x1544",
+  "finished_at": "2026-04-07T12:07:17.766Z"
 }
