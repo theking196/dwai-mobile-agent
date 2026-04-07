@@ -1,0 +1,41 @@
+{
+  "task_id": "WvcfDgAV",
+  "status": "pending",
+  "intent": "Before you open this app search for the correct name open WhatsApp",
+  "type": "automation",
+  "created_at": "2026-04-07T00:44:46.683Z",
+  "steps": [
+    {
+      "action": "launch_app",
+      "value": "com.android.chrome"
+    },
+    {
+      "action": "wait",
+      "ms": 2000
+    },
+    {
+      "action": "type",
+      "text": "WhatsApp"
+    },
+    {
+      "action": "press",
+      "key": "enter"
+    },
+    {
+      "action": "wait",
+      "ms": 2000
+    },
+    {
+      "action": "click",
+      "contains": "WhatsApp Messenger"
+    },
+    {
+      "action": "wait",
+      "ms": 1000
+    },
+    {
+      "action": "launch_app",
+      "value": "com.whatsapp"
+    }
+  ]
+}
