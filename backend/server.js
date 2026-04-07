@@ -13,6 +13,7 @@ const TELEGRAM_BOT_TOKEN = process.env.TELEGRAM_BOT_TOKEN;
 const GITHUB_TOKEN = process.env.GITHUB_TOKEN;
 const GITHUB_REPO = process.env.GITHUB_REPO;
 const GROQ_MODEL = process.env.GROQ_MODEL || 'qwen/qwen3-32b';
+const GITHUB_BRANCH = process.env.GITHUB_BRANCH || 'main';
 
 if (!GROQ_API_KEY) throw new Error('GROQ_API_KEY required');
 if (!TELEGRAM_BOT_TOKEN) throw new Error('TELEGRAM_BOT_TOKEN required');
@@ -26,7 +27,8 @@ app.use(express.json());
 const GITHUB_API = `https://api.github.com/repos/${GITHUB_REPO}/contents`;
 const TASKS_PATH = 'data/tasks';
 const LOGS_PATH = 'data/logs';
-const BRANCH = process.env.GITHUB_BRANCH || 'main';
+const ROUTES_PATH = 'data/routes';
+const CURRENT_TASK_PATH = 'data/current_task.json';
 
 const APP_REGISTRY = {
   youtube: { aliases: ['yt', 'you tube'], package: 'com.google.android.youtube' },
@@ -59,6 +61,8 @@ const ALLOWED_ACTIONS = new Set([
   'wait',
   'toast',
   'swipe',
+  'verify',
+  'open_url',
 ]);
 
 function ghHeaders() {
@@ -75,10 +79,7 @@ function githubRequest(method, url, body) {
   return new Promise((resolve, reject) => {
     const req = https.request(
       url,
-      {
-        method,
-        headers: ghHeaders(),
-      },
+      { method, headers: ghHeaders() },
       (res) => {
         let d = '';
         res.on('data', (c) => {
@@ -107,13 +108,11 @@ function githubRequest(method, url, body) {
 async function ghGetJson(url) {
   const res = await githubRequest('GET', url);
   let json = null;
-
   try {
     json = res.body ? JSON.parse(res.body) : null;
   } catch {
     json = null;
   }
-
   return { ...res, json };
 }
 
@@ -127,7 +126,6 @@ function escapeRegExp(str) {
 
 function normalizeLaunchValue(value) {
   if (value === undefined || value === null) return null;
-
   const v = String(value).trim().toLowerCase();
   if (!v) return null;
 
@@ -138,19 +136,13 @@ function normalizeLaunchValue(value) {
     if ((info.aliases || []).some((a) => a.toLowerCase() === v)) return canonical;
   }
 
-  if (v.includes('.')) {
-    return null;
-  }
-
-  return v;
+  if (v.includes('.')) return v;
+  return null;
 }
 
 function findAppCanonical(text) {
   const lower = String(text || '').toLowerCase();
-
-  const entries = Object.entries(APP_REGISTRY).sort(
-    (a, b) => b[0].length - a[0].length
-  );
+  const entries = Object.entries(APP_REGISTRY).sort((a, b) => b[0].length - a[0].length);
 
   for (const [canonical, info] of entries) {
     const patterns = [canonical, ...(info.aliases || [])];
@@ -196,13 +188,14 @@ function extractSearchQuery(text) {
 
 function quickIntent(message) {
   const t = String(message || '').trim().toLowerCase();
-
   if (!t) return { intent: 'CHAT' };
+
   if (/^(hi|hello|hey|yo|good morning|good afternoon|good evening)\b/.test(t)) {
     return { intent: 'CHAT' };
   }
   if (/\b(help|commands?)\b/.test(t)) return { intent: 'HELP' };
   if (/\b(status|task status|check task|tasks?|queue)\b/.test(t)) return { intent: 'STATUS' };
+
   if (/(open|launch|search|find|look for|go to|start|watch|play|type|click|send|scroll)/.test(t)) {
     return { intent: 'TASK' };
   }
@@ -212,10 +205,6 @@ function quickIntent(message) {
 
 function buildAppHintsText() {
   return Object.keys(APP_REGISTRY).join(', ');
-}
-
-function isPackageLike(value) {
-  return String(value || '').includes('.');
 }
 
 function isStepValid(step) {
@@ -247,6 +236,10 @@ function isStepValid(step) {
         typeof step.x2 === 'number' &&
         typeof step.y2 === 'number'
       );
+    case 'verify':
+      return true;
+    case 'open_url':
+      return typeof step.value === 'string' && step.value.trim().length > 0;
     default:
       return false;
   }
@@ -259,10 +252,9 @@ function sanitizeSteps(rawSteps) {
   for (let i = 0; i < rawSteps.length; i++) {
     const original = rawSteps[i];
     if (!original || typeof original !== 'object' || !original.action) continue;
+    if (!ALLOWED_ACTIONS.has(original.action)) continue;
 
     const step = JSON.parse(JSON.stringify(original));
-
-    if (!ALLOWED_ACTIONS.has(step.action)) continue;
 
     if (step.action === 'launch_app') {
       const normalized = normalizeLaunchValue(step.value);
@@ -283,6 +275,10 @@ function sanitizeSteps(rawSteps) {
     if (step.action === 'press') {
       step.key = String(step.key || '').toLowerCase();
       if (!['enter', 'back', 'home', 'menu'].includes(step.key)) continue;
+    }
+
+    if (step.action === 'verify') {
+      if (!step.contains && !step.text && !step.desc && !step.package) continue;
     }
 
     if (!isStepValid(step)) continue;
@@ -310,15 +306,14 @@ function buildTemplateSteps(userText) {
   const wantsFirstResult = /\b(first|first one|watch|video|result|open the first)\b/.test(lower);
   const wantsLaunch = /\b(open|launch|start|go to)\b/.test(lower);
 
-  // Open a specific app only
   if (app && wantsLaunch && !wantsSearch) {
     return sanitizeSteps([
       { action: 'launch_app', value: app },
       { action: 'wait', ms: 4000 },
+      { action: 'verify', package: app },
     ]);
   }
 
-  // Search flow on Chrome or YouTube
   if (wantsSearch) {
     const targetApp = app === 'youtube' ? 'youtube' : 'chrome';
     const clickStep =
@@ -328,12 +323,14 @@ function buildTemplateSteps(userText) {
             text: 'Search',
             contains: 'Search',
             desc: 'Search',
+            fallbacks: [{ action: 'click', x: 650, y: 120 }],
           }
         : {
             action: 'click',
             text: 'Search or type URL',
             contains: 'Search',
             desc: 'Search',
+            fallbacks: [{ action: 'click', x: 650, y: 120 }],
           };
 
     const steps = [
@@ -360,11 +357,11 @@ function buildTemplateSteps(userText) {
     return sanitizeSteps(steps);
   }
 
-  // Unknown app with launch intent
   if (app) {
     return sanitizeSteps([
       { action: 'launch_app', value: app },
       { action: 'wait', ms: 4000 },
+      { action: 'verify', package: app },
     ]);
   }
 
@@ -375,12 +372,10 @@ function extractJsonArray(text) {
   const raw = String(text || '').trim();
   const start = raw.indexOf('[');
   const end = raw.lastIndexOf(']');
-
   if (start === -1 || end === -1 || end < start) return null;
 
-  const slice = raw.slice(start, end + 1);
   try {
-    return JSON.parse(slice);
+    return JSON.parse(raw.slice(start, end + 1));
   } catch {
     return null;
   }
@@ -390,12 +385,10 @@ function extractJsonObject(text) {
   const raw = String(text || '').trim();
   const start = raw.indexOf('{');
   const end = raw.lastIndexOf('}');
-
   if (start === -1 || end === -1 || end < start) return null;
 
-  const slice = raw.slice(start, end + 1);
   try {
-    return JSON.parse(slice);
+    return JSON.parse(raw.slice(start, end + 1));
   } catch {
     return null;
   }
@@ -422,8 +415,8 @@ Rules:
 - If the user is just talking, intent must be CHAT.
 - If they want to check tasks/status, intent must be STATUS.
 - If they want help, intent must be HELP.
-- Do not include markdown.
-- Do not include extra commentary.`;
+- No markdown.
+- No extra text.`;
 
   try {
     const res = await groq.chat.completions.create({
@@ -466,6 +459,8 @@ Allowed actions:
 - wait
 - toast
 - swipe
+- verify
+- open_url
 
 Rules:
 - Output ONLY a JSON array.
@@ -501,8 +496,7 @@ Examples:
     const parsed = extractJsonArray(content);
     if (!parsed) return [];
 
-    const sanitized = sanitizeSteps(parsed);
-    return sanitized;
+    return sanitizeSteps(parsed);
   } catch {
     return [];
   }
@@ -517,21 +511,18 @@ function validateSteps(steps) {
     if (s.action === 'launch_app') {
       const normalized = normalizeLaunchValue(s.value);
       if (!normalized) return false;
-      if (isPackageLike(s.value) && !normalized) return false;
     }
   }
 
   return true;
 }
 
-async function generateChatResponse(userMessage, context = '') {
+async function generateChatResponse(userMessage) {
   const prompt = `You are DWAI, a helpful assistant that can chat and help control a phone.
 
 User: "${userMessage}"
 
-${context}
-
-Respond naturally, clearly, and briefly.`;
+Respond naturally and briefly.`;
 
   try {
     const res = await groq.chat.completions.create({
@@ -550,41 +541,43 @@ Respond naturally, clearly, and briefly.`;
   }
 }
 
-async function createTask(taskId, data) {
-  const path = `data/tasks/${taskId}.json`;
-  const contentBase64 = Buffer.from(JSON.stringify(data, null, 2)).toString('base64');
+async function createTask(taskId, taskData) {
+  const taskPath = `${TASKS_PATH}/${taskId}.json`;
+  const taskUrl = `${GITHUB_API}/${taskPath}`;
+  const contentBase64 = Buffer.from(JSON.stringify(taskData, null, 2)).toString('base64');
 
-  const result = await ghPutJson(`${GITHUB_API}/${path}`, {
+  const result = await ghPutJson(taskUrl, {
     message: `Task ${taskId}`,
     content: contentBase64,
-    branch: BRANCH,
+    branch: GITHUB_BRANCH,
   });
 
   if (!result.ok) {
     throw new Error(`GitHub create task failed: ${result.statusCode} ${result.body}`);
   }
 
-  return result;
+  return taskUrl;
 }
 
-async function updateTaskFile(fileUrl, existingSha, task, message) {
-  const contentBase64 = Buffer.from(JSON.stringify(task, null, 2)).toString('base64');
-  const result = await ghPutJson(fileUrl, {
-    message,
+async function writeCurrentTask(pointer) {
+  const url = `${GITHUB_API}/${CURRENT_TASK_PATH}`;
+  const contentBase64 = Buffer.from(JSON.stringify(pointer, null, 2)).toString('base64');
+
+  const result = await ghPutJson(url, {
+    message: `current task ${pointer.task_id}`,
     content: contentBase64,
-    sha: existingSha,
-    branch: BRANCH,
+    branch: GITHUB_BRANCH,
   });
 
   if (!result.ok) {
-    throw new Error(`GitHub update failed: ${result.statusCode} ${result.body}`);
+    throw new Error(`GitHub current_task write failed: ${result.statusCode} ${result.body}`);
   }
 
   return result;
 }
 
 async function getTaskFileById(taskId) {
-  const fileUrl = `${GITHUB_API}/data/tasks/${taskId}.json`;
+  const fileUrl = `${GITHUB_API}/${TASKS_PATH}/${taskId}.json`;
   const res = await ghGetJson(fileUrl);
 
   if (!res.ok || !res.json || !res.json.content) {
@@ -592,11 +585,11 @@ async function getTaskFileById(taskId) {
   }
 
   const task = JSON.parse(Buffer.from(res.json.content, 'base64').toString('utf8'));
-  return { file: res.json, task };
+  return { file: res.json, task, fileUrl };
 }
 
 async function listTaskSummaries(limit = 15) {
-  const folder = await ghGetJson(`${GITHUB_API}/data/tasks`);
+  const folder = await ghGetJson(`${GITHUB_API}/${TASKS_PATH}`);
   if (!folder.ok || !Array.isArray(folder.json)) return [];
 
   const files = folder.json
@@ -625,28 +618,67 @@ async function listTaskSummaries(limit = 15) {
   return out;
 }
 
-async function writeLog(taskId, status, error) {
-  const logData = {
+async function createTeachTask(goalText) {
+  const parts = String(goalText || '').trim().split(/\s+/).filter(Boolean);
+  const appGuess = parts[0] ? findAppCanonical(parts[0]) : null;
+
+  const taskId = `teach_${nanoid(8)}`;
+  const task = {
     task_id: taskId,
-    status,
-    error,
-    timestamp: new Date().toISOString(),
+    type: 'teach_start',
+    status: 'pending',
+    intent: goalText || 'teach route',
+    app: appGuess,
+    goal: goalText || 'teach route',
+    created_at: new Date().toISOString(),
+    steps: [],
+    source: 'telegram',
+    planner_version: 'v10',
   };
 
-  const path = `${BASE_URL}/${LOGS_PATH}/${taskId}_log.json`;
-  const contentBase64 = Buffer.from(JSON.stringify(logData, null, 2)).toString('base64');
-
-  const result = await ghPutJson(path, {
-    message: `log ${taskId}`,
-    content: contentBase64,
-    branch: BRANCH,
+  const taskUrl = await createTask(taskId, { ...task, file_url: `${GITHUB_API}/${TASKS_PATH}/${taskId}.json` });
+  await writeCurrentTask({
+    task_id: taskId,
+    type: 'teach_start',
+    status: 'pending',
+    intent: task.intent,
+    app: task.app || null,
+    goal: task.goal,
+    file_url: taskUrl,
+    created_at: task.created_at,
+    source: 'telegram',
   });
 
-  if (!result.ok) {
-    throw new Error(`GitHub log write failed: ${result.statusCode} ${result.body}`);
-  }
+  return taskId;
+}
 
-  return result;
+async function createStopTeachTask(goalText) {
+  const taskId = `stopteach_${nanoid(8)}`;
+  const task = {
+    task_id: taskId,
+    type: 'teach_stop',
+    status: 'pending',
+    intent: goalText || 'stop teach',
+    goal: goalText || 'teach route',
+    created_at: new Date().toISOString(),
+    steps: [],
+    source: 'telegram',
+    planner_version: 'v10',
+  };
+
+  const taskUrl = await createTask(taskId, { ...task, file_url: `${GITHUB_API}/${TASKS_PATH}/${taskId}.json` });
+  await writeCurrentTask({
+    task_id: taskId,
+    type: 'teach_stop',
+    status: 'pending',
+    intent: task.intent,
+    goal: task.goal,
+    file_url: taskUrl,
+    created_at: task.created_at,
+    source: 'telegram',
+  });
+
+  return taskId;
 }
 
 async function replyTyping(ctx) {
@@ -668,15 +700,45 @@ async function handleSlashCommand(ctx) {
   if (cmd === 'start') {
     const apps = Object.keys(APP_REGISTRY).slice(0, 8).join(', ');
     await ctx.reply(
-      `DWAI Mobile Agent\n\nI can queue phone tasks from natural language.\n\nExamples:\nOpen YouTube\nSearch for AI news\nOpen Chrome and search for a new bicycle\n\nAvailable apps: ${apps}...`
+      `DWAI Mobile Agent\n\nI can queue phone tasks from natural language.\n\nExamples:\nOpen YouTube\nSearch for AI news\nOpen Chrome and search for a new bicycle\n\nUse /teach <goal> to record a route.\nUse /stopteach <goal> to stop recording.\n\nAvailable apps: ${apps}...`
     );
     return;
   }
 
   if (cmd === 'help') {
     await ctx.reply(
-      `Commands:\n/start\n/help\n/cmd <task>\n/status <task_id>\n/tasks\n\nYou can also just type naturally and I will decide whether it is a task or normal chat.`
+      `Commands:\n/start\n/help\n/cmd <task>\n/teach <goal>\n/stopteach <goal>\n/status <task_id>\n/tasks\n\nYou can also just type naturally and I will decide whether it is a task or normal chat.`
     );
+    return;
+  }
+
+  if (cmd === 'teach') {
+    if (!argText) {
+      await ctx.reply('Usage: /teach youtube search');
+      return;
+    }
+
+    try {
+      const taskId = await createTeachTask(argText);
+      await ctx.reply(`Teach mode queued: ${taskId}\nGoal: ${argText}`);
+    } catch (e) {
+      await ctx.reply(`Failed to queue teach task: ${e.message}`);
+    }
+    return;
+  }
+
+  if (cmd === 'stopteach') {
+    if (!argText) {
+      await ctx.reply('Usage: /stopteach youtube search');
+      return;
+    }
+
+    try {
+      const taskId = await createStopTeachTask(argText);
+      await ctx.reply(`Stop-teach queued: ${taskId}\nGoal: ${argText}`);
+    } catch (e) {
+      await ctx.reply(`Failed to queue stop-teach task: ${e.message}`);
+    }
     return;
   }
 
@@ -703,11 +765,21 @@ async function handleSlashCommand(ctx) {
       created_at: new Date().toISOString(),
       steps,
       source: 'telegram',
-      planner_version: 'v9',
+      planner_version: 'v10',
     };
 
     try {
-      await createTask(taskId, task);
+      const taskUrl = await createTask(taskId, { ...task, file_url: `${GITHUB_API}/${TASKS_PATH}/${taskId}.json` });
+      await writeCurrentTask({
+        task_id: taskId,
+        type: 'automation',
+        status: 'pending',
+        intent: argText,
+        file_url: taskUrl,
+        created_at: task.created_at,
+        source: 'telegram',
+      });
+
       await ctx.reply(
         `Task queued: ${taskId}\nSteps: ${steps.length}\nPreview:\n${JSON.stringify(steps.slice(0, 4), null, 2)}`
       );
@@ -731,7 +803,7 @@ async function handleSlashCommand(ctx) {
       await ctx.reply(
         `${icon} ${task.task_id}\nStatus: ${task.status}\nCreated: ${task.created_at || 'unknown'}\n${task.error ? `Error: ${task.error}` : ''}`
       );
-    } catch (e) {
+    } catch {
       await ctx.reply(`Task not found: ${argText}`);
     }
 
@@ -748,7 +820,7 @@ async function handleSlashCommand(ctx) {
 
       const lines = summaries.map((t) => `• ${t.id} — ${t.status}${t.intent ? ` — ${t.intent}` : ''}`);
       await ctx.reply(`Tasks:\n${lines.join('\n')}`);
-    } catch (e) {
+    } catch {
       await ctx.reply('Could not fetch tasks.');
     }
 
@@ -780,7 +852,7 @@ async function handleNaturalMessage(ctx) {
 
     if (classification.intent === 'HELP') {
       await ctx.reply(
-        `I can help you create phone tasks, check task status, and chat.\nTry:\nOpen YouTube\nSearch for AI news\nCheck tasks`
+        `I can help you create phone tasks, check task status, and chat.\nTry:\nOpen YouTube\nSearch for AI news\nCheck tasks\nTeach me YouTube search`
       );
       return;
     }
@@ -802,10 +874,20 @@ async function handleNaturalMessage(ctx) {
         created_at: new Date().toISOString(),
         steps,
         source: 'telegram',
-        planner_version: 'v9',
+        planner_version: 'v10',
       };
 
-      await createTask(taskId, task);
+      const taskUrl = await createTask(taskId, { ...task, file_url: `${GITHUB_API}/${TASKS_PATH}/${taskId}.json` });
+      await writeCurrentTask({
+        task_id: taskId,
+        type: 'automation',
+        status: 'pending',
+        intent: text,
+        file_url: taskUrl,
+        created_at: task.created_at,
+        source: 'telegram',
+      });
+
       await ctx.reply(
         `Task queued: ${taskId}\nSteps: ${steps.length}\nPreview:\n${JSON.stringify(steps.slice(0, 4), null, 2)}`
       );
@@ -821,14 +903,14 @@ async function handleNaturalMessage(ctx) {
   }
 }
 
-bot.hears(/^\/(start|help|cmd|status|tasks)\b/i, handleSlashCommand);
+bot.hears(/^\/(start|help|cmd|status|tasks|teach|stopteach)\b/i, handleSlashCommand);
 bot.on('text', handleNaturalMessage);
 
 bot.catch((err) => {
   console.error('BOT ERROR:', err);
 });
 
-app.get('/health', (_, res) => {
+app.get('/health', async (_, res) => {
   res.json({
     status: 'ok',
     apps: Object.keys(APP_REGISTRY).length,
