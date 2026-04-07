@@ -1,0 +1,17 @@
+{
+  "task_id": "rsVcGBff",
+  "status": "pending",
+  "intent": "Open tiktok",
+  "type": "automation",
+  "created_at": "2026-04-07T01:04:21.963Z",
+  "steps": [
+    {
+      "action": "launch_app",
+      "value": "com.zhiliaoapp.musically"
+    },
+    {
+      "action": "wait",
+      "ms": 2000
+    }
+  ]
+}
