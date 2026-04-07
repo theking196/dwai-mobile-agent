@@ -5,372 +5,852 @@ const Groq = require('groq-sdk');
 const https = require('https');
 const { nanoid } = require('nanoid');
 
-const groq = new Groq({ apiKey: process.env.GROQ_API_KEY });
-const bot = new Telegraf(process.env.TELEGRAM_BOT_TOKEN);
 const app = express();
 const PORT = process.env.PORT || 3000;
 
-app.use(express.json());
-
+const GROQ_API_KEY = process.env.GROQ_API_KEY;
+const TELEGRAM_BOT_TOKEN = process.env.TELEGRAM_BOT_TOKEN;
 const GITHUB_TOKEN = process.env.GITHUB_TOKEN;
 const GITHUB_REPO = process.env.GITHUB_REPO;
+const GROQ_MODEL = process.env.GROQ_MODEL || 'qwen/qwen3-32b';
+
+if (!GROQ_API_KEY) throw new Error('GROQ_API_KEY required');
+if (!TELEGRAM_BOT_TOKEN) throw new Error('TELEGRAM_BOT_TOKEN required');
 if (!GITHUB_TOKEN || !GITHUB_REPO) throw new Error('GITHUB_TOKEN and GITHUB_REPO required');
+
+const groq = new Groq({ apiKey: GROQ_API_KEY });
+const bot = new Telegraf(TELEGRAM_BOT_TOKEN);
+
+app.use(express.json());
+
+const GITHUB_API = `https://api.github.com/repos/${GITHUB_REPO}/contents`;
+const TASKS_PATH = 'data/tasks';
+const LOGS_PATH = 'data/logs';
+const BRANCH = process.env.GITHUB_BRANCH || 'main';
+
+const APP_REGISTRY = {
+  youtube: { aliases: ['yt', 'you tube'], package: 'com.google.android.youtube' },
+  chrome: { aliases: ['browser', 'google chrome'], package: 'com.android.chrome' },
+  whatsapp: { aliases: ['whatsapp business'], package: 'com.whatsapp' },
+  calculator: { aliases: ['calc'], package: 'com.android.calculator2' },
+  camera: { aliases: [], package: 'com.android.camera2' },
+  photos: { aliases: ['gallery'], package: 'com.google.android.apps.photos' },
+  settings: { aliases: [], package: 'com.android.settings' },
+  phone: { aliases: ['dialer'], package: 'com.android.dialer' },
+  messages: { aliases: ['sms'], package: 'com.android.mms' },
+  gmail: { aliases: [], package: 'com.google.android.gm' },
+  maps: { aliases: ['google maps'], package: 'com.google.android.apps.maps' },
+  spotify: { aliases: [], package: 'com.spotify.music' },
+  facebook: { aliases: [], package: 'com.facebook.katana' },
+  instagram: { aliases: [], package: 'com.instagram.android' },
+  twitter: { aliases: ['x'], package: 'com.twitter.android' },
+  telegram: { aliases: [], package: 'org.telegram.messenger' },
+  signal: { aliases: [], package: 'org.thoughtcrime.securesms' },
+  discord: { aliases: [], package: 'com.discord' },
+  slack: { aliases: [], package: 'com.Slack' },
+  zoom: { aliases: [], package: 'us.zoom.videomeetings' },
+};
+
+const ALLOWED_ACTIONS = new Set([
+  'launch_app',
+  'click',
+  'type',
+  'press',
+  'wait',
+  'toast',
+  'swipe',
+]);
 
 function ghHeaders() {
   return {
     Authorization: `Bearer ${GITHUB_TOKEN}`,
     'Content-Type': 'application/json',
     'User-Agent': 'DWAI/1.0',
+    Accept: 'application/vnd.github+json',
+    'X-GitHub-Api-Version': '2022-11-28',
   };
 }
 
-function ghPut(url, body) {
+function githubRequest(method, url, body) {
   return new Promise((resolve, reject) => {
-    const req = https.request(url, {
-      method: 'PUT',
-      headers: ghHeaders()
-    }, (res) => {
-      let d = '';
-      res.on('data', (c) => d += c);
-      res.on('end', () => resolve(JSON.parse(d)));
-    });
+    const req = https.request(
+      url,
+      {
+        method,
+        headers: ghHeaders(),
+      },
+      (res) => {
+        let d = '';
+        res.on('data', (c) => {
+          d += c;
+        });
+        res.on('end', () => {
+          resolve({
+            ok: res.statusCode >= 200 && res.statusCode < 300,
+            statusCode: res.statusCode,
+            body: d,
+          });
+        });
+      }
+    );
+
     req.on('error', reject);
-    req.write(JSON.stringify(body));
+
+    if (body !== undefined && body !== null) {
+      req.write(typeof body === 'string' ? body : JSON.stringify(body));
+    }
+
     req.end();
   });
 }
 
-function ghGet(url) {
-  return new Promise((resolve, reject) => {
-    https.get(url, { headers: ghHeaders() }, (r) => {
-      let d = '';
-      r.on('data', (c) => d += c);
-      r.on('end', () => resolve(JSON.parse(d)));
-    }).on('error', reject);
-  });
+async function ghGetJson(url) {
+  const res = await githubRequest('GET', url);
+  let json = null;
+
+  try {
+    json = res.body ? JSON.parse(res.body) : null;
+  } catch {
+    json = null;
+  }
+
+  return { ...res, json };
 }
 
-const GITHUB_API = `https://api.github.com/repos/${GITHUB_REPO}/contents`;
+async function ghPutJson(url, body) {
+  return githubRequest('PUT', url, body);
+}
 
-// ==================== TOOLS ====================
+function escapeRegExp(str) {
+  return String(str).replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+}
 
-const TOOLS = {
-  // Execute mobile task
-  execute_task: {
-    name: "execute_task",
-    description: "Control the phone - open apps, click, type, search. Use for: open YouTube, search Google, open calculator, etc.",
-    params: {
-      action: "launch_app | click | type | press | wait",
-      target: "app name or search query",
-      details: "optional: coordinates, text to type"
-    }
-  },
-  
-  // Check pending tasks
-  list_tasks: {
-    name: "list_tasks",
-    description: "Show all pending tasks in the queue",
-    params: {}
-  },
-  
-  // Get task status
-  task_status: {
-    name: "task_status",
-    description: "Check if a specific task completed or failed",
-    params: { task_id: "the task ID" }
-  },
-  
-  // General chat
-  chat: {
-    name: "chat",
-    description: "Have a conversation, answer questions, be helpful",
-    params: { message: "what user said" }
+function normalizeLaunchValue(value) {
+  if (value === undefined || value === null) return null;
+
+  const v = String(value).trim().toLowerCase();
+  if (!v) return null;
+
+  if (APP_REGISTRY[v]) return v;
+
+  for (const [canonical, info] of Object.entries(APP_REGISTRY)) {
+    if (info.package && info.package.toLowerCase() === v) return canonical;
+    if ((info.aliases || []).some((a) => a.toLowerCase() === v)) return canonical;
   }
-};
 
-// VALID APPS
-const VALID_APPS = {
-  "youtube": "com.google.android.youtube",
-  "chrome": "com.android.chrome",
-  "browser": "com.android.chrome",
-  "whatsapp": "com.whatsapp",
-  "calculator": "com.android.calculator2",
-  "camera": "com.android.camera2",
-  "photos": "com.google.android.apps.photos",
-  "gallery": "com.android.gallery3d",
-  "settings": "com.android.settings",
-  "phone": "com.android.dialer",
-  "messages": "com.android.mms",
-  "gmail": "com.google.android.gm",
-  "maps": "com.google.android.apps.maps",
-  "spotify": "com.spotify.music",
-  "facebook": "com.facebook.katana",
-  "instagram": "com.instagram.android",
-  "twitter": "com.twitter.android",
-  "telegram": "org.telegram.messenger"
-};
+  if (v.includes('.')) {
+    return null;
+  }
 
-// ==================== INTENT CLASSIFIER ====================
+  return v;
+}
+
+function findAppCanonical(text) {
+  const lower = String(text || '').toLowerCase();
+
+  const entries = Object.entries(APP_REGISTRY).sort(
+    (a, b) => b[0].length - a[0].length
+  );
+
+  for (const [canonical, info] of entries) {
+    const patterns = [canonical, ...(info.aliases || [])];
+    for (const p of patterns) {
+      const re = new RegExp(`\\b${escapeRegExp(p.toLowerCase())}\\b`, 'i');
+      if (re.test(lower)) return canonical;
+    }
+  }
+
+  return null;
+}
+
+function cleanQuery(q) {
+  return String(q || '')
+    .replace(/^["'`]+|["'`]+$/g, '')
+    .replace(/^[\s:,-]*(a|an|the)\s+/i, '')
+    .replace(/\s+/g, ' ')
+    .trim();
+}
+
+function extractSearchQuery(text) {
+  const input = String(text || '').trim();
+
+  const patterns = [
+    /search(?:\s+for)?\s+(.+)$/i,
+    /find(?:\s+me)?\s+(.+)$/i,
+    /look(?:\s+for)?\s+(.+)$/i,
+    /browse(?:\s+for)?\s+(.+)$/i,
+    /play\s+(.+)$/i,
+    /watch\s+(.+)$/i,
+  ];
+
+  for (const re of patterns) {
+    const m = input.match(re);
+    if (m && m[1]) {
+      const q = cleanQuery(m[1]);
+      if (q) return q;
+    }
+  }
+
+  return null;
+}
+
+function quickIntent(message) {
+  const t = String(message || '').trim().toLowerCase();
+
+  if (!t) return { intent: 'CHAT' };
+  if (/^(hi|hello|hey|yo|good morning|good afternoon|good evening)\b/.test(t)) {
+    return { intent: 'CHAT' };
+  }
+  if (/\b(help|commands?)\b/.test(t)) return { intent: 'HELP' };
+  if (/\b(status|task status|check task|tasks?|queue)\b/.test(t)) return { intent: 'STATUS' };
+  if (/(open|launch|search|find|look for|go to|start|watch|play|type|click|send|scroll)/.test(t)) {
+    return { intent: 'TASK' };
+  }
+
+  return null;
+}
+
+function buildAppHintsText() {
+  return Object.keys(APP_REGISTRY).join(', ');
+}
+
+function isPackageLike(value) {
+  return String(value || '').includes('.');
+}
+
+function isStepValid(step) {
+  if (!step || typeof step !== 'object') return false;
+  if (!step.action || !ALLOWED_ACTIONS.has(step.action)) return false;
+
+  switch (step.action) {
+    case 'launch_app':
+      return typeof step.value === 'string' && step.value.trim().length > 0;
+    case 'click':
+      return Boolean(
+        step.text ||
+          step.contains ||
+          step.desc ||
+          (typeof step.x === 'number' && typeof step.y === 'number')
+      );
+    case 'type':
+      return typeof step.text === 'string' && step.text.trim().length > 0;
+    case 'press':
+      return ['enter', 'back', 'home', 'menu'].includes(String(step.key || '').toLowerCase());
+    case 'wait':
+      return Number(step.ms) >= 0;
+    case 'toast':
+      return true;
+    case 'swipe':
+      return (
+        typeof step.x1 === 'number' &&
+        typeof step.y1 === 'number' &&
+        typeof step.x2 === 'number' &&
+        typeof step.y2 === 'number'
+      );
+    default:
+      return false;
+  }
+}
+
+function sanitizeSteps(rawSteps) {
+  if (!Array.isArray(rawSteps)) return [];
+
+  const out = [];
+  for (let i = 0; i < rawSteps.length; i++) {
+    const original = rawSteps[i];
+    if (!original || typeof original !== 'object' || !original.action) continue;
+
+    const step = JSON.parse(JSON.stringify(original));
+
+    if (!ALLOWED_ACTIONS.has(step.action)) continue;
+
+    if (step.action === 'launch_app') {
+      const normalized = normalizeLaunchValue(step.value);
+      if (!normalized) continue;
+      step.value = normalized;
+    }
+
+    if (step.action === 'wait') {
+      const ms = Number(step.ms);
+      step.ms = Number.isFinite(ms) && ms >= 0 ? ms : 1000;
+    }
+
+    if (step.action === 'type') {
+      step.text = String(step.text || step.value || '').trim();
+      if (!step.text) continue;
+    }
+
+    if (step.action === 'press') {
+      step.key = String(step.key || '').toLowerCase();
+      if (!['enter', 'back', 'home', 'menu'].includes(step.key)) continue;
+    }
+
+    if (!isStepValid(step)) continue;
+
+    out.push(step);
+
+    if (step.action === 'launch_app') {
+      const next = rawSteps[i + 1];
+      if (!next || next.action !== 'wait') {
+        out.push({ action: 'wait', ms: 4000 });
+      }
+    }
+  }
+
+  return out.slice(0, 20);
+}
+
+function buildTemplateSteps(userText) {
+  const text = String(userText || '');
+  const lower = text.toLowerCase();
+
+  const app = findAppCanonical(lower);
+  const query = extractSearchQuery(text);
+  const wantsSearch = /\b(search|find|look for|browse)\b/.test(lower);
+  const wantsFirstResult = /\b(first|first one|watch|video|result|open the first)\b/.test(lower);
+  const wantsLaunch = /\b(open|launch|start|go to)\b/.test(lower);
+
+  // Open a specific app only
+  if (app && wantsLaunch && !wantsSearch) {
+    return sanitizeSteps([
+      { action: 'launch_app', value: app },
+      { action: 'wait', ms: 4000 },
+    ]);
+  }
+
+  // Search flow on Chrome or YouTube
+  if (wantsSearch) {
+    const targetApp = app === 'youtube' ? 'youtube' : 'chrome';
+    const clickStep =
+      targetApp === 'youtube'
+        ? {
+            action: 'click',
+            text: 'Search',
+            contains: 'Search',
+            desc: 'Search',
+          }
+        : {
+            action: 'click',
+            text: 'Search or type URL',
+            contains: 'Search',
+            desc: 'Search',
+          };
+
+    const steps = [
+      { action: 'launch_app', value: targetApp },
+      { action: 'wait', ms: 4000 },
+      clickStep,
+      { action: 'wait', ms: 1000 },
+      { action: 'type', text: query || cleanQuery(text) || text },
+      { action: 'press', key: 'enter' },
+      { action: 'wait', ms: 4000 },
+    ];
+
+    if (targetApp === 'youtube' && wantsFirstResult) {
+      steps.push({
+        action: 'click',
+        contains: 'views',
+        desc: 'video',
+        x: 360,
+        y: 560,
+      });
+      steps.push({ action: 'wait', ms: 4000 });
+    }
+
+    return sanitizeSteps(steps);
+  }
+
+  // Unknown app with launch intent
+  if (app) {
+    return sanitizeSteps([
+      { action: 'launch_app', value: app },
+      { action: 'wait', ms: 4000 },
+    ]);
+  }
+
+  return null;
+}
+
+function extractJsonArray(text) {
+  const raw = String(text || '').trim();
+  const start = raw.indexOf('[');
+  const end = raw.lastIndexOf(']');
+
+  if (start === -1 || end === -1 || end < start) return null;
+
+  const slice = raw.slice(start, end + 1);
+  try {
+    return JSON.parse(slice);
+  } catch {
+    return null;
+  }
+}
+
+function extractJsonObject(text) {
+  const raw = String(text || '').trim();
+  const start = raw.indexOf('{');
+  const end = raw.lastIndexOf('}');
+
+  if (start === -1 || end === -1 || end < start) return null;
+
+  const slice = raw.slice(start, end + 1);
+  try {
+    return JSON.parse(slice);
+  } catch {
+    return null;
+  }
+}
 
 async function classifyIntent(userMessage) {
+  const quick = quickIntent(userMessage);
+  if (quick) return quick;
+
   const prompt = `Classify this user message and decide what to do.
 
 User: "${userMessage}"
 
-Classify into ONE of these intents:
-1. TASK - User wants to do something on the phone (open app, search, click, etc.)
-2. CHAT - Just talking, questions, greeting, casual conversation
-3. STATUS - Checking task status or list
-4. HELP - Asking for help with the bot
-
-Also extract:
-- If TASK: What action? What target app/search?
-- If CHAT: Just respond naturally
-
-Response JSON:
+Return ONLY JSON with this shape:
 {
   "intent": "TASK|CHAT|STATUS|HELP",
   "action": "launch_app|click|type|search|none|respond",
   "target": "app name or search query or none",
-  "response": "what to say if CHAT or HELP"
-}`;
-
-  try {
-    const res = await groq.chat.completions.create({
-      model: 'qwen/qwen3-32b',
-      messages: [
-        { role: 'system', content: 'You are DWAI Intent Classifier. Output ONLY JSON.' },
-        { role: 'user', content: prompt }
-      ],
-      temperature: 0.2,
-      max_tokens: 300
-    });
-    
-    const content = res.choices[0].message.content.trim();
-    const jsonStart = content.search('{');
-    const jsonEnd = content.lastIndexOf('}') + 1;
-    if (jsonStart === -1) return { intent: 'CHAT', action: 'respond', target: null, response: content };
-    return JSON.parse(content.slice(jsonStart, jsonEnd));
-  } catch(e) {
-    return { intent: 'CHAT', action: 'respond', target: null, response: "I'm here! What would you like to do?" };
-  }
+  "response": "short response if CHAT or HELP"
 }
 
-// ==================== TASK GENERATOR ====================
-
-async function generateTaskSteps(userText) {
-  const prompt = `Convert to mobile automation JSON steps.
-
-RULES:
-- Use ONLY: ${Object.values(VALID_APPS).join(', ')}
-- Use selectors (contains) over coordinates
-- Add wait after launches
-
-User: "${userText}"
-
-Output JSON array only:`;
+Rules:
+- If the user wants phone automation, intent must be TASK.
+- If the user is just talking, intent must be CHAT.
+- If they want to check tasks/status, intent must be STATUS.
+- If they want help, intent must be HELP.
+- Do not include markdown.
+- Do not include extra commentary.`;
 
   try {
     const res = await groq.chat.completions.create({
-      model: 'qwen/qwen3-32b',
+      model: GROQ_MODEL,
       messages: [
-        { role: 'system', content: 'Output ONLY JSON array.' },
-        { role: 'user', content: prompt }
+        { role: 'system', content: 'You are DWAI Intent Classifier. Output ONLY JSON.' },
+        { role: 'user', content: prompt },
       ],
       temperature: 0.1,
-      max_tokens: 800
+      max_tokens: 250,
     });
-    
-    const content = res.choices[0].message.content.trim();
-    const jsonStart = content.search('[');
-    const jsonEnd = content.lastIndexOf(']') + 1;
-    if (jsonStart === -1) return [];
-    return JSON.parse(content.slice(jsonStart, jsonEnd));
-  } catch(e) {
+
+    const content = res.choices?.[0]?.message?.content?.trim() || '';
+    const parsed = extractJsonObject(content);
+    if (parsed && parsed.intent) return parsed;
+  } catch {
+    // ignore
+  }
+
+  return { intent: 'CHAT', action: 'respond', target: null, response: "I'm here. What would you like to do?" };
+}
+
+async function generateTaskSteps(userText) {
+  const template = buildTemplateSteps(userText);
+  if (template && template.length) return template;
+
+  const prompt = `Convert this user request into a JSON array of Android automation steps.
+
+User request:
+"${userText}"
+
+App labels you may use in launch_app.value:
+${buildAppHintsText()}
+
+Allowed actions:
+- launch_app
+- click
+- type
+- press
+- wait
+- toast
+- swipe
+
+Rules:
+- Output ONLY a JSON array.
+- Do NOT output package names.
+- Prefer selectors (text, contains, desc) over coordinates.
+- ALWAYS add a wait after launching an app.
+- Keep the sequence short and practical.
+- If a safe plan is not possible, return [].
+
+Examples:
+[
+  {"action":"launch_app","value":"chrome"},
+  {"action":"wait","ms":4000},
+  {"action":"click","contains":"Search","desc":"Search"},
+  {"action":"wait","ms":1000},
+  {"action":"type","text":"AI news"},
+  {"action":"press","key":"enter"},
+  {"action":"wait","ms":4000}
+]`;
+
+  try {
+    const res = await groq.chat.completions.create({
+      model: GROQ_MODEL,
+      messages: [
+        { role: 'system', content: 'You are DWAI Task Planner. Output ONLY JSON array.' },
+        { role: 'user', content: prompt },
+      ],
+      temperature: 0.1,
+      max_tokens: 900,
+    });
+
+    const content = res.choices?.[0]?.message?.content?.trim() || '';
+    const parsed = extractJsonArray(content);
+    if (!parsed) return [];
+
+    const sanitized = sanitizeSteps(parsed);
+    return sanitized;
+  } catch {
     return [];
   }
 }
 
 function validateSteps(steps) {
   if (!Array.isArray(steps)) return false;
-  const allowed = ["launch_app", "click", "type", "press", "wait", "toast"];
-  for (let s of steps) {
-    if (!s.action || !allowed.includes(s.action)) return false;
+  if (steps.length === 0 || steps.length > 20) return false;
+
+  for (const s of steps) {
+    if (!isStepValid(s)) return false;
+    if (s.action === 'launch_app') {
+      const normalized = normalizeLaunchValue(s.value);
+      if (!normalized) return false;
+      if (isPackageLike(s.value) && !normalized) return false;
+    }
   }
-  return steps.length <= 15;
+
+  return true;
 }
 
-function createTask(taskId, data) {
-  const path = `data/tasks/${taskId}.json`;
-  const contentBase64 = Buffer.from(JSON.stringify(data, null, 2)).toString('base64');
-  return ghPut(`${GITHUB_API}/${path}`, { message: `Task ${taskId}`, content: contentBase64, branch: "main" });
-}
-
-// ==================== CHATBOT RESPONSE ====================
-
-async function generateChatResponse(userMessage, context = "") {
-  const prompt = `You are DWAI - a helpful AI assistant that can control a phone and chat.
-
-You have these capabilities:
-1. Mobile automation - open apps, click, type, search
-2. Task management - create and track tasks
-3. General conversation - be helpful and friendly
+async function generateChatResponse(userMessage, context = '') {
+  const prompt = `You are DWAI, a helpful assistant that can chat and help control a phone.
 
 User: "${userMessage}"
 
 ${context}
 
-Respond naturally and helpfully. If they want to do something on the phone, suggest using a command or just describe what you would do.`;
+Respond naturally, clearly, and briefly.`;
 
   try {
     const res = await groq.chat.completions.create({
-      model: 'qwen/qwen3-32b',
+      model: GROQ_MODEL,
       messages: [
         { role: 'system', content: prompt },
-        { role: 'user', content: userMessage }
+        { role: 'user', content: userMessage },
       ],
-      temperature: 0.7,
-      max_tokens: 500
+      temperature: 0.6,
+      max_tokens: 500,
     });
-    return res.choices[0].message.content.trim();
-  } catch(e) {
-    return "I'm here! You can ask me to do things on your phone, or just chat.";
+
+    return res.choices?.[0]?.message?.content?.trim() || "I'm here. What would you like to do?";
+  } catch {
+    return "I'm here. What would you like to do?";
   }
 }
 
-// ==================== BOT HANDLERS ====================
+async function createTask(taskId, data) {
+  const path = `data/tasks/${taskId}.json`;
+  const contentBase64 = Buffer.from(JSON.stringify(data, null, 2)).toString('base64');
 
-bot.command('start', async (ctx) => {
-  const apps = Object.keys(VALID_APPS).slice(0, 8).join(', ');
-  await ctx.reply(`🎯 DWAI Mobile Agent v8
+  const result = await ghPutJson(`${GITHUB_API}/${path}`, {
+    message: `Task ${taskId}`,
+    content: contentBase64,
+    branch: BRANCH,
+  });
 
-I can:
-• Do things on your phone (no /cmd needed!)
-• Chat with you
-• Manage tasks
-
-Just talk to me naturally! Examples:
-• "Open YouTube"
-• "Search for AI news"
-• "What's the weather?"
-• "Open calculator and calculate 5+5"
-
-Available apps: ${apps}...`);
-});
-
-bot.command('help', async (ctx) => {
-  await ctx.reply(`📖 DWAI Commands
-
-Just chat naturally! I understand:
-• "Open YouTube" → creates task
-• "Check tasks" → shows queue
-• "Hello" → just chats
-
-Or use commands:
-/cmd <task> - explicit task
-/status <id> - check task
-/tasks - list all
-/help - this help`);
-});
-
-bot.command('cmd', async (ctx) => {
-  const text = ctx.message.text.split(' ').slice(1).join(' ');
-  if (!text) return ctx.reply('Usage: /cmd open YouTube');
-  
-  await ctx.reply('📱 Creating task...');
-  const steps = await generateTaskSteps(text);
-  
-  if (!validateSteps(steps)) {
-    return ctx.reply('❌ Could not create valid task. Try again.');
+  if (!result.ok) {
+    throw new Error(`GitHub create task failed: ${result.statusCode} ${result.body}`);
   }
-  
-  const taskId = nanoid(8);
-  const task = { task_id: taskId, status: 'pending', intent: text, type: 'automation', created_at: new Date().toISOString(), steps };
-  
-  try {
-    await createTask(taskId, task);
-    await ctx.reply(`✅ Task ${taskId}\n\n${steps.map((s, i) => `${i+1}. ${s.action}`).join(' → ')}`);
-  } catch (e) {
-    await ctx.reply('❌ Failed: ' + e.message);
+
+  return result;
+}
+
+async function updateTaskFile(fileUrl, existingSha, task, message) {
+  const contentBase64 = Buffer.from(JSON.stringify(task, null, 2)).toString('base64');
+  const result = await ghPutJson(fileUrl, {
+    message,
+    content: contentBase64,
+    sha: existingSha,
+    branch: BRANCH,
+  });
+
+  if (!result.ok) {
+    throw new Error(`GitHub update failed: ${result.statusCode} ${result.body}`);
   }
-});
 
-bot.command('status', async (ctx) => {
-  const taskId = ctx.message.text.split(' ')[1];
-  if (!taskId) return ctx.reply('Usage: /status <task_id>');
-  try {
-    const res = await ghGet(`${GITHUB_API}/data/tasks/${taskId}.json`);
-    const task = JSON.parse(Buffer.from(res.content, 'base64').toString());
-    const icon = task.status === 'completed' ? '✅' : task.status === 'failed' ? '❌' : '⏳';
-    await ctx.reply(`${icon} ${taskId}\nStatus: ${task.status}\n${task.error || ''}`);
-  } catch (e) {
-    await ctx.reply('❌ Not found');
+  return result;
+}
+
+async function getTaskFileById(taskId) {
+  const fileUrl = `${GITHUB_API}/data/tasks/${taskId}.json`;
+  const res = await ghGetJson(fileUrl);
+
+  if (!res.ok || !res.json || !res.json.content) {
+    throw new Error(`Task not found: ${taskId}`);
   }
-});
 
-bot.command('tasks', async (ctx) => {
-  try {
-    const res = await ghGet(`${GITHUB_API}/data/tasks`);
-    const files = res.filter(f => f.name !== '.gitkeep');
-    if (!files.length) return ctx.reply('📭 No pending tasks');
-    await ctx.reply(`📋 Tasks:\n${files.map(f => f.name.replace('.json', '')).join('\n')}`);
-  } catch (e) {
-    await ctx.reply('❌ Error');
+  const task = JSON.parse(Buffer.from(res.json.content, 'base64').toString('utf8'));
+  return { file: res.json, task };
+}
+
+async function listTaskSummaries(limit = 15) {
+  const folder = await ghGetJson(`${GITHUB_API}/data/tasks`);
+  if (!folder.ok || !Array.isArray(folder.json)) return [];
+
+  const files = folder.json
+    .filter((f) => f.type === 'file' && f.name !== '.gitkeep' && !f.name.endsWith('_log.json'))
+    .slice(0, limit);
+
+  const out = [];
+  for (const file of files) {
+    try {
+      const taskBundle = await getTaskFileById(file.name.replace('.json', ''));
+      const task = taskBundle.task;
+      out.push({
+        id: task.task_id || file.name.replace('.json', ''),
+        status: task.status || 'unknown',
+        intent: task.intent || '',
+      });
+    } catch {
+      out.push({
+        id: file.name.replace('.json', ''),
+        status: 'unknown',
+        intent: '',
+      });
+    }
   }
-});
 
-// ==================== NATURAL LANGUAGE HANDLING ====================
+  return out;
+}
 
-bot.on('message', async (ctx) => {
-  const text = ctx.message.text;
-  if (!text || text.startsWith('/')) return; // Ignore commands
-  
-  await ctx.reply('🤔...');
-  
+async function writeLog(taskId, status, error) {
+  const logData = {
+    task_id: taskId,
+    status,
+    error,
+    timestamp: new Date().toISOString(),
+  };
+
+  const path = `${BASE_URL}/${LOGS_PATH}/${taskId}_log.json`;
+  const contentBase64 = Buffer.from(JSON.stringify(logData, null, 2)).toString('base64');
+
+  const result = await ghPutJson(path, {
+    message: `log ${taskId}`,
+    content: contentBase64,
+    branch: BRANCH,
+  });
+
+  if (!result.ok) {
+    throw new Error(`GitHub log write failed: ${result.statusCode} ${result.body}`);
+  }
+
+  return result;
+}
+
+async function replyTyping(ctx) {
   try {
-    // Classify intent
+    await ctx.sendChatAction('typing');
+  } catch {
+    // ignore
+  }
+}
+
+async function handleSlashCommand(ctx) {
+  const text = ctx.message?.text || '';
+  const parts = text.trim().split(/\s+/);
+  const cmd = (parts[0] || '').replace(/^\/+/, '').split('@')[0].toLowerCase();
+  const argText = parts.slice(1).join(' ').trim();
+
+  await replyTyping(ctx);
+
+  if (cmd === 'start') {
+    const apps = Object.keys(APP_REGISTRY).slice(0, 8).join(', ');
+    await ctx.reply(
+      `DWAI Mobile Agent\n\nI can queue phone tasks from natural language.\n\nExamples:\nOpen YouTube\nSearch for AI news\nOpen Chrome and search for a new bicycle\n\nAvailable apps: ${apps}...`
+    );
+    return;
+  }
+
+  if (cmd === 'help') {
+    await ctx.reply(
+      `Commands:\n/start\n/help\n/cmd <task>\n/status <task_id>\n/tasks\n\nYou can also just type naturally and I will decide whether it is a task or normal chat.`
+    );
+    return;
+  }
+
+  if (cmd === 'cmd') {
+    if (!argText) {
+      await ctx.reply('Usage: /cmd open YouTube');
+      return;
+    }
+
+    await ctx.reply('Task planning started...');
+    const steps = await generateTaskSteps(argText);
+
+    if (!validateSteps(steps)) {
+      await ctx.reply('Could not build a safe task for that request.');
+      return;
+    }
+
+    const taskId = nanoid(8);
+    const task = {
+      task_id: taskId,
+      status: 'pending',
+      intent: argText,
+      type: 'automation',
+      created_at: new Date().toISOString(),
+      steps,
+      source: 'telegram',
+      planner_version: 'v9',
+    };
+
+    try {
+      await createTask(taskId, task);
+      await ctx.reply(
+        `Task queued: ${taskId}\nSteps: ${steps.length}\nPreview:\n${JSON.stringify(steps.slice(0, 4), null, 2)}`
+      );
+    } catch (e) {
+      await ctx.reply(`Failed to save task: ${e.message}`);
+    }
+
+    return;
+  }
+
+  if (cmd === 'status') {
+    if (!argText) {
+      await ctx.reply('Usage: /status <task_id>');
+      return;
+    }
+
+    try {
+      const bundle = await getTaskFileById(argText);
+      const task = bundle.task;
+      const icon = task.status === 'completed' ? '✅' : task.status === 'failed' ? '❌' : '⏳';
+      await ctx.reply(
+        `${icon} ${task.task_id}\nStatus: ${task.status}\nCreated: ${task.created_at || 'unknown'}\n${task.error ? `Error: ${task.error}` : ''}`
+      );
+    } catch (e) {
+      await ctx.reply(`Task not found: ${argText}`);
+    }
+
+    return;
+  }
+
+  if (cmd === 'tasks') {
+    try {
+      const summaries = await listTaskSummaries(15);
+      if (!summaries.length) {
+        await ctx.reply('No tasks found.');
+        return;
+      }
+
+      const lines = summaries.map((t) => `• ${t.id} — ${t.status}${t.intent ? ` — ${t.intent}` : ''}`);
+      await ctx.reply(`Tasks:\n${lines.join('\n')}`);
+    } catch (e) {
+      await ctx.reply('Could not fetch tasks.');
+    }
+
+    return;
+  }
+
+  await ctx.reply('Unknown command. Try /help');
+}
+
+async function handleNaturalMessage(ctx) {
+  const text = ctx.message?.text;
+  if (!text || text.startsWith('/')) return;
+
+  await replyTyping(ctx);
+
+  try {
     const classification = await classifyIntent(text);
-    
+
+    if (classification.intent === 'STATUS') {
+      const summaries = await listTaskSummaries(10);
+      if (!summaries.length) {
+        await ctx.reply('No tasks found.');
+      } else {
+        const lines = summaries.map((t) => `• ${t.id} — ${t.status}${t.intent ? ` — ${t.intent}` : ''}`);
+        await ctx.reply(`Tasks:\n${lines.join('\n')}`);
+      }
+      return;
+    }
+
+    if (classification.intent === 'HELP') {
+      await ctx.reply(
+        `I can help you create phone tasks, check task status, and chat.\nTry:\nOpen YouTube\nSearch for AI news\nCheck tasks`
+      );
+      return;
+    }
+
     if (classification.intent === 'TASK') {
-      // Generate and create task
       const steps = await generateTaskSteps(text);
-      if (validateSteps(steps)) {
-        const taskId = nanoid(8);
-        const task = { task_id: taskId, status: 'pending', intent: text, type: 'automation', created_at: new Date().toISOString(), steps };
-        await createTask(taskId, task);
-        await ctx.reply(`✅ Done! Task ${taskId} queued\n\n${steps.map((s, i) => `${i+1}. ${s.action}`).join(' → ')}`);
-      } else {
-        await ctx.reply("I'll create a task for that!");
+
+      if (!validateSteps(steps)) {
+        await ctx.reply('I could not build a safe task for that request.');
+        return;
       }
+
+      const taskId = nanoid(8);
+      const task = {
+        task_id: taskId,
+        status: 'pending',
+        intent: text,
+        type: 'automation',
+        created_at: new Date().toISOString(),
+        steps,
+        source: 'telegram',
+        planner_version: 'v9',
+      };
+
+      await createTask(taskId, task);
+      await ctx.reply(
+        `Task queued: ${taskId}\nSteps: ${steps.length}\nPreview:\n${JSON.stringify(steps.slice(0, 4), null, 2)}`
+      );
+      return;
     }
-    else if (classification.intent === 'STATUS') {
-      // List tasks
-      const res = await ghGet(`${GITHUB_API}/data/tasks`);
-      const files = res.filter(f => f.name !== '.gitkeep');
-      if (files.length) {
-        await ctx.reply(`📋 Tasks:\n${files.map(f => f.name.replace('.json', '')).join('\n')}`);
-      } else {
-        await ctx.reply('📭 No pending tasks');
-      }
-    }
-    else {
-      // Just chat
-      const response = await generateChatResponse(text);
-      await ctx.reply(response);
-    }
+
+    const response = await generateChatResponse(text);
+    await ctx.reply(response);
   } catch (e) {
     console.error(e);
     const response = await generateChatResponse(text);
     await ctx.reply(response);
   }
+}
+
+bot.hears(/^\/(start|help|cmd|status|tasks)\b/i, handleSlashCommand);
+bot.on('text', handleNaturalMessage);
+
+bot.catch((err) => {
+  console.error('BOT ERROR:', err);
 });
 
-app.get('/health', (_, res) => res.json({ status: 'ok', tools: Object.keys(TOOLS) }));
+app.get('/health', (_, res) => {
+  res.json({
+    status: 'ok',
+    apps: Object.keys(APP_REGISTRY).length,
+    model: GROQ_MODEL,
+  });
+});
 
 app.listen(PORT, () => {
-  console.log(`DWAI v8 running on ${PORT}`);
-  bot.launch();
+  console.log(`DWAI main server listening on ${PORT}`);
+  bot.launch().then(() => {
+    console.log('Telegram bot launched');
+  }).catch((err) => {
+    console.error('Bot launch failed:', err);
+  });
 });
 
-process.on('SIGINT', () => { bot.stop(); process.exit(0); });
-process.on('SIGTERM', () => { bot.stop(); process.exit(0); });
+process.on('SIGINT', () => {
+  bot.stop('SIGINT');
+  process.exit(0);
+});
+
+process.on('SIGTERM', () => {
+  bot.stop('SIGTERM');
+  process.exit(0);
+});
