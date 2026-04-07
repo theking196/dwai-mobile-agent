@@ -1,0 +1,17 @@
+{
+  "task_id": "yQqgpuN5",
+  "status": "pending",
+  "intent": "com.afmobi.boomplayer",
+  "type": "automation",
+  "created_at": "2026-04-07T01:00:48.639Z",
+  "steps": [
+    {
+      "action": "launch_app",
+      "value": "com.afmobi.boomplayer"
+    },
+    {
+      "action": "wait",
+      "ms": 2000
+    }
+  ]
+}
