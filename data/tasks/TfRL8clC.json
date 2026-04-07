@@ -1,0 +1,61 @@
+{
+  "task_id": "TfRL8clC",
+  "status": "pending",
+  "intent": "Go to lite",
+  "type": "automation",
+  "created_at": "2026-04-07T00:50:31.105Z",
+  "steps": [
+    {
+      "action": "launch_app",
+      "value": "com.android.settings"
+    },
+    {
+      "action": "wait",
+      "ms": 2000
+    },
+    {
+      "action": "click",
+      "contains": "About phone"
+    },
+    {
+      "action": "wait",
+      "ms": 1000
+    },
+    {
+      "action": "click",
+      "contains": "Software information"
+    },
+    {
+      "action": "wait",
+      "ms": 1000
+    },
+    {
+      "action": "click",
+      "contains": "Developer options"
+    },
+    {
+      "action": "wait",
+      "ms": 1000
+    },
+    {
+      "action": "click",
+      "contains": "Feature flags"
+    },
+    {
+      "action": "wait",
+      "ms": 1000
+    },
+    {
+      "action": "click",
+      "contains": "settings_lw_theme"
+    },
+    {
+      "action": "wait",
+      "ms": 1000
+    },
+    {
+      "action": "click",
+      "contains": "Enabled"
+    }
+  ]
+}
