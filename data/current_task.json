@@ -1,10 +1,12 @@
 {
   "task_id": "stopteach_ir3mG-Xl",
   "type": "teach_stop",
-  "status": "pending",
+  "status": "executing",
   "intent": "how to search for a word in chrome",
   "goal": "how to search for a word in chrome",
   "file_url": "https://api.github.com/repos/theking196/dwai-mobile-agent/contents/data/tasks/stopteach_ir3mG-Xl.json",
   "created_at": "2026-04-07T16:33:05.575Z",
-  "source": "telegram"
+  "source": "telegram",
+  "started_at": "2026-04-07T16:33:06.904Z",
+  "worker_id": "phone-vivo 1906-720x1544"
 }
