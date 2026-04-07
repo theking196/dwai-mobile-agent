@@ -137,7 +137,7 @@ Response JSON:
 
   try {
     const res = await groq.chat.completions.create({
-      model: 'llama-3.3-70b-versatile',
+      model: 'qwen/qwen3-32b',
       messages: [
         { role: 'system', content: 'You are DWAI Intent Classifier. Output ONLY JSON.' },
         { role: 'user', content: prompt }
@@ -172,7 +172,7 @@ Output JSON array only:`;
 
   try {
     const res = await groq.chat.completions.create({
-      model: 'llama-3.3-70b-versatile',
+      model: 'qwen/qwen3-32b',
       messages: [
         { role: 'system', content: 'Output ONLY JSON array.' },
         { role: 'user', content: prompt }
@@ -224,7 +224,7 @@ Respond naturally and helpfully. If they want to do something on the phone, sugg
 
   try {
     const res = await groq.chat.completions.create({
-      model: 'llama-3.3-70b-versatile',
+      model: 'qwen/qwen3-32b',
       messages: [
         { role: 'system', content: prompt },
         { role: 'user', content: userMessage }
