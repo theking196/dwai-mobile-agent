@@ -1,7 +1,7 @@
 {
   "task_id": "teach_wNTg_yTl",
   "type": "teach_start",
-  "status": "pending",
+  "status": "executing",
   "intent": "how to send a message to someone with any content",
   "app": null,
   "goal": "how to send a message to someone with any content",
@@ -9,5 +9,7 @@
   "steps": [],
   "source": "telegram",
   "planner_version": "v11",
-  "file_url": "https://api.github.com/repos/theking196/dwai-mobile-agent/contents/data/tasks/teach_wNTg_yTl.json"
+  "file_url": "https://api.github.com/repos/theking196/dwai-mobile-agent/contents/data/tasks/teach_wNTg_yTl.json",
+  "started_at": "2026-04-07T16:40:51.071Z",
+  "worker_id": "phone-vivo 1906-720x1544"
 }
