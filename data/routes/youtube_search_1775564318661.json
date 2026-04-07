@@ -1,0 +1,23 @@
+{
+  "route_id": "teach_C0KdKPfg",
+  "goal": "youtube search",
+  "app": "youtube",
+  "started_at": "2026-04-07T12:18:29.767Z",
+  "finished_at": "2026-04-07T12:18:38.661Z",
+  "snapshots": [
+    {
+      "package": "com.google.android.youtube",
+      "activity": "com.google.android.apps.youtube.app.watchwhile.MainActivity",
+      "texts": [
+        "search",
+        "Home",
+        "Shorts",
+        "Subscriptions",
+        "You"
+      ],
+      "ts": "2026-04-07T12:18:36.180Z"
+    }
+  ],
+  "touches": [],
+  "notes": "Route memory captured from teach mode."
+}
