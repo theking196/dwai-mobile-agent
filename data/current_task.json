@@ -1,11 +1,10 @@
 {
-  "task_id": "teach_LZP56J5u",
-  "type": "teach_start",
+  "task_id": "stopteach__o68tMae",
+  "type": "teach_stop",
   "status": "pending",
   "intent": "how to send a message to someone using a content",
-  "app": null,
   "goal": "how to send a message to someone using a content",
-  "file_url": "https://api.github.com/repos/theking196/dwai-mobile-agent/contents/data/tasks/teach_LZP56J5u.json",
-  "created_at": "2026-04-07T16:35:40.041Z",
+  "file_url": "https://api.github.com/repos/theking196/dwai-mobile-agent/contents/data/tasks/stopteach__o68tMae.json",
+  "created_at": "2026-04-07T16:36:27.967Z",
   "source": "telegram"
 }
