@@ -1,11 +1,13 @@
 {
   "task_id": "fK604aB0",
   "type": "automation",
-  "status": "executing",
+  "status": "completed",
   "intent": "open chrome and reload the page you land on",
   "file_url": "https://api.github.com/repos/theking196/dwai-mobile-agent/contents/data/tasks/fK604aB0.json",
   "created_at": "2026-04-07T16:28:23.101Z",
   "source": "telegram",
   "started_at": "2026-04-07T16:28:27.407Z",
-  "worker_id": "phone-vivo 1906-720x1544"
+  "worker_id": "phone-vivo 1906-720x1544",
+  "finished_at": "2026-04-07T16:28:38.169Z",
+  "error": null
 }
