@@ -1,0 +1,1892 @@
+{
+  "route_id": "teach_mbFlRZgT",
+  "goal": "youtube search",
+  "app": "youtube",
+  "started_at": "2026-04-07T12:06:34.491Z",
+  "finished_at": "2026-04-07T12:17:56.990Z",
+  "snapshots": [
+    {
+      "package": "com.vivo.upslide",
+      "activity": "com.vivo.upslide.recents.RecentsActivity",
+      "texts": [
+        "Telegram",
+        "GitHub",
+        "Autox.js v6",
+        "Settings",
+        "YouTube"
+      ],
+      "ts": "2026-04-07T12:07:24.343Z"
+    },
+    {
+      "package": "com.google.android.youtube",
+      "activity": "com.google.android.apps.youtube.app.watchwhile.MainActivity",
+      "texts": [
+        "ssearch",
+        "All",
+        "Shorts",
+        "Videos",
+        "Unwatched",
+        "Watched",
+        "Home",
+        "Shorts",
+        "Subscriptions",
+        "You"
+      ],
+      "ts": "2026-04-07T12:07:27.876Z"
+    },
+    {
+      "package": "com.vivo.upslide",
+      "activity": "com.vivo.upslide.recents.RecentsActivity",
+      "texts": [
+        "Settings",
+        "YouTube",
+        "Autox.js v6",
+        "Telegram"
+      ],
+      "ts": "2026-04-07T12:07:34.289Z"
+    },
+    {
+      "package": "com.vivo.upslide",
+      "activity": "com.vivo.upslide.recents.RecentsActivity",
+      "texts": [
+        "Autox.js v6",
+        "Telegram",
+        "Settings",
+        "YouTube",
+        "GitHub",
+        "ChatGPT",
+        "Chrome",
+        "Close all"
+      ],
+      "ts": "2026-04-07T12:07:37.005Z"
+    },
+    {
+      "package": "com.vivo.upslide",
+      "activity": "com.vivo.upslide.recents.RecentsActivity",
+      "texts": [
+        "Telegram",
+        "Settings",
+        "YouTube",
+        "Autox.js v6",
+        "GitHub",
+        "ChatGPT",
+        "Chrome",
+        "Close all"
+      ],
+      "ts": "2026-04-07T12:07:39.600Z"
+    },
+    {
+      "package": "com.github.android",
+      "activity": "com.github.android.repository.files.RepositoryFilesActivity",
+      "texts": [
+        "data/tasks/stopteach_PqYOzUaF.json",
+        "1",
+        "​{",
+        "2",
+        "​  ​\"task_id\"​: ​\"​stopteach_PqYOzUaF​\"​,",
+        "3",
+        "​  ​\"type\"​: ​\"​teach_stop​\"​,",
+        "4",
+        "​  ​\"status\"​: ​\"​pending​\"​,",
+        "5"
+      ],
+      "ts": "2026-04-07T12:07:42.347Z"
+    },
+    {
+      "package": "com.vivo.upslide",
+      "activity": "android.widget.FrameLayout",
+      "texts": [
+        ".gitkeep",
+        "stopteach_PqYOzUaF.json",
+        "teach_mbFlRZgT.json",
+        "data/tasks"
+      ],
+      "ts": "2026-04-07T12:07:44.757Z"
+    },
+    {
+      "package": "com.vivo.upslide",
+      "activity": "android.widget.FrameLayout",
+      "texts": [
+        "data/tasks/teach_mbFlRZgT.json",
+        "1",
+        "​{",
+        "2",
+        "​  ​\"task_id\"​: ​\"​teach_mbFlRZgT​\"​,",
+        "3",
+        "​  ​\"type\"​: ​\"​teach_start​\"​,",
+        "4",
+        "​  ​\"status\"​: ​\"​completed​\"​,",
+        "5"
+      ],
+      "ts": "2026-04-07T12:07:47.419Z"
+    },
+    {
+      "package": "com.vivo.upslide",
+      "activity": "android.widget.FrameLayout",
+      "texts": [
+        "data/tasks/stopteach_PqYOzUaF.json",
+        "1",
+        "​{",
+        "2",
+        "​  ​\"task_id\"​: ​\"​stopteach_PqYOzUaF​\"​,",
+        "3",
+        "​  ​\"type\"​: ​\"​teach_stop​\"​,",
+        "4",
+        "​  ​\"status\"​: ​\"​pending​\"​,",
+        "5"
+      ],
+      "ts": "2026-04-07T12:07:52.795Z"
+    },
+    {
+      "package": "com.vivo.upslide",
+      "activity": "android.widget.FrameLayout",
+      "texts": [
+        "logs",
+        "routes",
+        "tasks",
+        "current_task.json",
+        "data"
+      ],
+      "ts": "2026-04-07T12:07:57.619Z"
+    },
+    {
+      "package": "com.vivo.upslide",
+      "activity": "android.widget.FrameLayout",
+      "texts": [
+        "data/logs"
+      ],
+      "ts": "2026-04-07T12:08:03.093Z"
+    },
+    {
+      "package": "com.vivo.upslide",
+      "activity": "android.widget.FrameLayout",
+      "texts": [
+        "data/logs/teach_mbFlRZgT_log.json",
+        "1",
+        "​{",
+        "2",
+        "​  ​\"task_id\"​: ​\"​teach_mbFlRZgT​\"​,",
+        "3",
+        "​  ​\"status\"​: ​\"​completed​\"​,",
+        "4",
+        "​  ​\"error\"​: ​null​,",
+        "5"
+      ],
+      "ts": "2026-04-07T12:08:10.332Z"
+    },
+    {
+      "package": "com.vivo.upslide",
+      "activity": "com.vivo.upslide.recents.RecentsActivity",
+      "texts": [
+        "YouTube",
+        "Telegram",
+        "Autox.js v6",
+        "Settings",
+        "GitHub",
+        "Close all"
+      ],
+      "ts": "2026-04-07T12:08:15.283Z"
+    },
+    {
+      "package": "com.vivo.upslide",
+      "activity": "com.vivo.upslide.recents.RecentsActivity",
+      "texts": [
+        "Settings",
+        "YouTube",
+        "ChatGPT",
+        "Telegram",
+        "Autox.js v6",
+        "GitHub",
+        "Close all"
+      ],
+      "ts": "2026-04-07T12:08:18.521Z"
+    },
+    {
+      "package": "com.vivo.upslide",
+      "activity": "com.vivo.upslide.recents.RecentsActivity",
+      "texts": [
+        "AutoPhone",
+        "bot"
+      ],
+      "ts": "2026-04-07T12:08:23.839Z"
+    },
+    {
+      "package": "com.google.android.inputmethod.latin",
+      "activity": "android.inputmethodservice.SoftInputWindow",
+      "texts": [
+        "AutoPhone",
+        "bot"
+      ],
+      "ts": "2026-04-07T12:08:26.633Z"
+    },
+    {
+      "package": "com.vivo.upslide",
+      "activity": "android.widget.FrameLayout",
+      "texts": [
+        "AutoPhone",
+        "bot"
+      ],
+      "ts": "2026-04-07T12:08:37.277Z"
+    },
+    {
+      "package": "com.google.android.inputmethod.latin",
+      "activity": "",
+      "texts": [
+        "AutoPhone",
+        "bot"
+      ],
+      "ts": "2026-04-07T12:08:39.947Z"
+    },
+    {
+      "package": "com.vivo.upslide",
+      "activity": "com.vivo.upslide.recents.RecentsActivity",
+      "texts": [],
+      "ts": "2026-04-07T12:08:54.354Z"
+    },
+    {
+      "package": "com.android.systemui",
+      "activity": "android.widget.FrameLayout",
+      "texts": [
+        "1:08",
+        "Tue    7 Apr  PM",
+        "#Classic Red Lip Picks!# Not all reds feel...   More",
+        "1.40",
+        "KB/s"
+      ],
+      "ts": "2026-04-07T12:08:57.017Z"
+    },
+    {
+      "package": "com.vivo.upslide",
+      "activity": "com.vivo.upslide.recents.RecentsActivity",
+      "texts": [
+        "1:08",
+        "Tue    7 Apr  PM",
+        "#Classic Red Lip Picks!# Not all reds feel...   More",
+        "Use facial recognition or draw pattern",
+        "3.80",
+        "KB/s"
+      ],
+      "ts": "2026-04-07T12:08:59.597Z"
+    },
+    {
+      "package": "newer.galaxya.launcher",
+      "activity": "com.galaxy_a.launcher.Launcher",
+      "texts": [
+        "1:09",
+        "3.80",
+        "KB/s"
+      ],
+      "ts": "2026-04-07T12:09:03.597Z"
+    },
+    {
+      "package": "com.vivo.upslide",
+      "activity": "com.vivo.upslide.recents.RecentsActivity",
+      "texts": [
+        "Telegram",
+        "YouTube",
+        "Settings",
+        "GitHub",
+        "Close all"
+      ],
+      "ts": "2026-04-07T12:09:06.225Z"
+    },
+    {
+      "package": "com.vivo.upslide",
+      "activity": "com.vivo.upslide.recents.RecentsActivity",
+      "texts": [
+        "YouTube",
+        "Settings",
+        "GitHub",
+        "Telegram",
+        "Autox.js v6",
+        "Close all"
+      ],
+      "ts": "2026-04-07T12:09:09.018Z"
+    },
+    {
+      "package": "newer.galaxya.launcher",
+      "activity": "com.galaxy_a.launcher.Launcher",
+      "texts": [],
+      "ts": "2026-04-07T12:09:12.204Z"
+    },
+    {
+      "package": "com.vivo.upslide",
+      "activity": "com.vivo.upslide.recents.RecentsActivity",
+      "texts": [
+        "GitHub",
+        "Telegram",
+        "YouTube",
+        "Settings",
+        "Close all"
+      ],
+      "ts": "2026-04-07T12:09:15.279Z"
+    },
+    {
+      "package": "com.github.android",
+      "activity": "com.github.android.repository.files.RepositoryFilesActivity",
+      "texts": [
+        "data/current_task.json"
+      ],
+      "ts": "2026-04-07T12:09:18.026Z"
+    },
+    {
+      "package": "com.github.android",
+      "activity": "android.widget.FrameLayout",
+      "texts": [
+        "data/current_task.json"
+      ],
+      "ts": "2026-04-07T12:09:23.502Z"
+    },
+    {
+      "package": "com.vivo.upslide",
+      "activity": "android.widget.FrameLayout",
+      "texts": [
+        "Preview",
+        "actions/starter-workflows/blob/main/code-scanning/new/README.md",
+        "1",
+        "​def​ ​fibonacci​(​n​)",
+        "2",
+        "​    ​//​ A long comment demonstrating the effects of the line wrapping option.",
+        "3",
+        "​    ​return​ ​n​ ​if​ ​(​0​..​1​)​.​include?​ ​n",
+        "4",
+        "​    ​(​fibonacci​(​n​-​1​)​ + ​fibonacci​(​n​-​2​)​)"
+      ],
+      "ts": "2026-04-07T12:09:26.896Z"
+    },
+    {
+      "package": "com.github.android",
+      "activity": "android.widget.FrameLayout",
+      "texts": [
+        "Edit file",
+        "Show History"
+      ],
+      "ts": "2026-04-07T12:09:29.684Z"
+    },
+    {
+      "package": "com.github.android",
+      "activity": "com.github.android.commits.CommitsActivity",
+      "texts": [
+        "Commits",
+        "current task teach_mbFlRZgT",
+        "7m",
+        "theking196 authored"
+      ],
+      "ts": "2026-04-07T12:09:32.378Z"
+    },
+    {
+      "package": "com.android.systemui",
+      "activity": "android.widget.FrameLayout",
+      "texts": [
+        "1:09",
+        "Tue    7 Apr  PM",
+        "#Kids Skiing Essentials# Safety and Fun Ti...   More",
+        "4.90",
+        "KB/s"
+      ],
+      "ts": "2026-04-07T12:09:36.038Z"
+    },
+    {
+      "package": "com.github.android",
+      "activity": "com.github.android.commits.CommitsActivity",
+      "texts": [
+        "1:09",
+        "2.10",
+        "KB/s"
+      ],
+      "ts": "2026-04-07T12:09:40.419Z"
+    },
+    {
+      "package": "com.vivo.upslide",
+      "activity": "android.widget.FrameLayout",
+      "texts": [
+        "Commits",
+        "current task teach_mbFlRZgT",
+        "8m",
+        "theking196 authored"
+      ],
+      "ts": "2026-04-07T12:09:43.189Z"
+    },
+    {
+      "package": "com.github.android",
+      "activity": "android.widget.FrameLayout",
+      "texts": [
+        "Edit file",
+        "Show History"
+      ],
+      "ts": "2026-04-07T12:09:45.924Z"
+    },
+    {
+      "package": "com.github.android",
+      "activity": "com.github.android.fileeditor.FileEditorActivity",
+      "texts": [
+        "current_task.json",
+        "Edit file",
+        "COMMIT CHANGES"
+      ],
+      "ts": "2026-04-07T12:09:48.500Z"
+    },
+    {
+      "package": "com.google.android.inputmethod.latin",
+      "activity": "android.inputmethodservice.SoftInputWindow",
+      "texts": [
+        "current_task.json",
+        "Edit file",
+        "COMMIT CHANGES"
+      ],
+      "ts": "2026-04-07T12:09:50.892Z"
+    },
+    {
+      "package": "com.github.android",
+      "activity": "android.widget.FrameLayout",
+      "texts": [
+        "Commit changes",
+        "Add an optional commit description",
+        "COMMIT"
+      ],
+      "ts": "2026-04-07T12:09:53.642Z"
+    },
+    {
+      "package": "com.github.android",
+      "activity": "android.view.View",
+      "texts": [],
+      "ts": "2026-04-07T12:09:56.074Z"
+    },
+    {
+      "package": "com.google.android.inputmethod.latin",
+      "activity": "",
+      "texts": [
+        "data/current_task.json"
+      ],
+      "ts": "2026-04-07T12:09:58.486Z"
+    },
+    {
+      "package": "com.vivo.upslide",
+      "activity": "android.widget.FrameLayout",
+      "texts": [
+        "logs",
+        "routes",
+        "tasks",
+        "current_task.json",
+        "data"
+      ],
+      "ts": "2026-04-07T12:10:00.964Z"
+    },
+    {
+      "package": "com.github.android",
+      "activity": "android.view.ViewGroup",
+      "texts": [
+        "Create file",
+        "Show History"
+      ],
+      "ts": "2026-04-07T12:10:03.374Z"
+    },
+    {
+      "package": "com.github.android",
+      "activity": "com.github.android.repository.files.RepositoryFilesActivity",
+      "texts": [
+        ".gitkeep",
+        "stopteach_PqYOzUaF.json",
+        "teach_C0KdKPfg.json",
+        "teach_mbFlRZgT.json",
+        "data/tasks"
+      ],
+      "ts": "2026-04-07T12:10:05.740Z"
+    },
+    {
+      "package": "com.vivo.upslide",
+      "activity": "android.widget.FrameLayout",
+      "texts": [
+        "logs",
+        "routes",
+        "tasks",
+        "current_task.json",
+        "data"
+      ],
+      "ts": "2026-04-07T12:10:10.463Z"
+    },
+    {
+      "package": "com.github.android",
+      "activity": "android.view.ViewGroup",
+      "texts": [
+        "Create new file in:",
+        "dwai-mobile-agent/data",
+        "CANCEL",
+        "CREATE FILE"
+      ],
+      "ts": "2026-04-07T12:10:18.134Z"
+    },
+    {
+      "package": "com.github.android",
+      "activity": "t3.s",
+      "texts": [
+        "Create new file in:",
+        "dwai-mobile-agent/data",
+        "Name your file…",
+        "CANCEL",
+        "CREATE FILE"
+      ],
+      "ts": "2026-04-07T12:10:20.595Z"
+    },
+    {
+      "package": "com.github.android",
+      "activity": "t3.s",
+      "texts": [
+        "Create new file in:",
+        "dwai-mobile-agent/data",
+        "CANCEL",
+        "CREATE FILE"
+      ],
+      "ts": "2026-04-07T12:10:22.941Z"
+    },
+    {
+      "package": "com.github.android",
+      "activity": "com.github.android.fileeditor.FileEditorActivity",
+      "texts": [
+        ".gitkeep",
+        "Edit file",
+        "COMMIT CHANGES"
+      ],
+      "ts": "2026-04-07T12:10:31.244Z"
+    },
+    {
+      "package": "com.google.android.inputmethod.latin",
+      "activity": "",
+      "texts": [
+        ".gitkeep",
+        "Edit file",
+        "COMMIT CHANGES"
+      ],
+      "ts": "2026-04-07T12:10:33.967Z"
+    },
+    {
+      "package": "com.github.android",
+      "activity": "com.github.android.repository.files.RepositoryFilesActivity",
+      "texts": [
+        "logs",
+        "routes",
+        "tasks",
+        "current_task.json",
+        "data"
+      ],
+      "ts": "2026-04-07T12:10:39.451Z"
+    },
+    {
+      "package": "com.github.android",
+      "activity": "t3.s",
+      "texts": [
+        "Create new file in:",
+        "dwai-mobile-agent/data",
+        "CANCEL",
+        "CREATE FILE"
+      ],
+      "ts": "2026-04-07T12:10:44.229Z"
+    },
+    {
+      "package": "com.github.android",
+      "activity": "com.github.android.fileeditor.FileEditorActivity",
+      "texts": [
+        ".gitkeep",
+        "Edit file",
+        "COMMIT CHANGES"
+      ],
+      "ts": "2026-04-07T12:10:49.320Z"
+    },
+    {
+      "package": "com.google.android.inputmethod.latin",
+      "activity": "",
+      "texts": [
+        ".gitkeep",
+        "Edit file",
+        "COMMIT CHANGES"
+      ],
+      "ts": "2026-04-07T12:10:51.800Z"
+    },
+    {
+      "package": "com.github.android",
+      "activity": "android.view.View",
+      "texts": [
+        "Commit changes",
+        "Add an optional commit description",
+        "COMMIT"
+      ],
+      "ts": "2026-04-07T12:10:54.360Z"
+    },
+    {
+      "package": "com.google.android.inputmethod.latin",
+      "activity": "",
+      "texts": [
+        "logs",
+        "routes",
+        "tasks",
+        ".gitkeep",
+        "current_task.json",
+        "data"
+      ],
+      "ts": "2026-04-07T12:10:56.770Z"
+    },
+    {
+      "package": "com.vivo.upslide",
+      "activity": "android.widget.FrameLayout",
+      "texts": [
+        ".gitkeep",
+        "teach_mbFlRZgT_log.json",
+        "data/logs"
+      ],
+      "ts": "2026-04-07T12:10:59.255Z"
+    },
+    {
+      "package": "com.vivo.upslide",
+      "activity": "android.widget.FrameLayout",
+      "texts": [
+        "logs",
+        "routes",
+        "tasks",
+        ".gitkeep",
+        "current_task.json",
+        "data"
+      ],
+      "ts": "2026-04-07T12:11:01.794Z"
+    },
+    {
+      "package": "com.vivo.upslide",
+      "activity": "android.widget.FrameLayout",
+      "texts": [
+        "data/tasks"
+      ],
+      "ts": "2026-04-07T12:11:09.816Z"
+    },
+    {
+      "package": "com.vivo.upslide",
+      "activity": "android.widget.FrameLayout",
+      "texts": [
+        "data/routes"
+      ],
+      "ts": "2026-04-07T12:11:12.488Z"
+    },
+    {
+      "package": "com.vivo.upslide",
+      "activity": "android.widget.FrameLayout",
+      "texts": [
+        ".gitkeep",
+        "teach_mbFlRZgT_log.json",
+        "data/logs"
+      ],
+      "ts": "2026-04-07T12:11:15.592Z"
+    },
+    {
+      "package": "com.vivo.upslide",
+      "activity": "android.widget.FrameLayout",
+      "texts": [],
+      "ts": "2026-04-07T12:11:18.306Z"
+    },
+    {
+      "package": "com.vivo.upslide",
+      "activity": "com.vivo.upslide.recents.RecentsActivity",
+      "texts": [
+        "Settings",
+        "Autox.js v6",
+        "YouTube",
+        "Telegram",
+        "GitHub"
+      ],
+      "ts": "2026-04-07T12:11:20.886Z"
+    },
+    {
+      "package": "org.telegram.messenger",
+      "activity": "org.telegram.ui.LaunchActivity",
+      "texts": [
+        "Reply",
+        "Forward",
+        "AutoPhone",
+        "bot"
+      ],
+      "ts": "2026-04-07T12:11:23.242Z"
+    },
+    {
+      "package": "com.google.android.inputmethod.latin",
+      "activity": "android.inputmethodservice.SoftInputWindow",
+      "texts": [
+        "AutoPhone",
+        "bot",
+        "Text copied to clipboard"
+      ],
+      "ts": "2026-04-07T12:11:26.077Z"
+    },
+    {
+      "package": "com.google.android.inputmethod.latin",
+      "activity": "android.inputmethodservice.SoftInputWindow",
+      "texts": [
+        "AutoPhone",
+        "bot"
+      ],
+      "ts": "2026-04-07T12:11:28.489Z"
+    },
+    {
+      "package": "com.google.android.inputmethod.latin",
+      "activity": "android.inputmethodservice.SoftInputWindow",
+      "texts": [
+        "AutoPhone",
+        "typing",
+        "Text copied to clipboard"
+      ],
+      "ts": "2026-04-07T12:11:31.116Z"
+    },
+    {
+      "package": "com.google.android.inputmethod.latin",
+      "activity": "android.inputmethodservice.SoftInputWindow",
+      "texts": [
+        "AutoPhone",
+        "typing"
+      ],
+      "ts": "2026-04-07T12:11:33.549Z"
+    },
+    {
+      "package": "com.vivo.upslide",
+      "activity": "com.vivo.upslide.recents.RecentsActivity",
+      "texts": [
+        "YouTube",
+        "GitHub",
+        "Settings",
+        "Telegram"
+      ],
+      "ts": "2026-04-07T12:11:35.920Z"
+    },
+    {
+      "package": "com.google.android.inputmethod.latin",
+      "activity": "",
+      "texts": [
+        "Settings",
+        "Autox.js v6",
+        "YouTube",
+        "GitHub",
+        "ChatGPT",
+        "Telegram",
+        "Chrome",
+        "Notes",
+        "Close all"
+      ],
+      "ts": "2026-04-07T12:11:38.401Z"
+    },
+    {
+      "package": "com.vivo.floatingball",
+      "activity": "android.widget.FrameLayout",
+      "texts": [],
+      "ts": "2026-04-07T12:11:41.014Z"
+    },
+    {
+      "package": "com.openai.chatgpt",
+      "activity": "com.openai.chatgpt.MainActivity",
+      "texts": [
+        "Search",
+        "New chat",
+        "Images",
+        "Apps",
+        "New project",
+        "AI Website Control Extensions",
+        "Greeting response",
+        "Browser Automation Overview",
+        "Code Debugging Assistance",
+        "Full Logging Implementation"
+      ],
+      "ts": "2026-04-07T12:11:47.686Z"
+    },
+    {
+      "package": "com.openai.chatgpt",
+      "activity": "com.openai.chatgpt.MainActivity",
+      "texts": [
+        "Ask ChatGPT"
+      ],
+      "ts": "2026-04-07T12:11:50.259Z"
+    },
+    {
+      "package": "com.google.android.inputmethod.latin",
+      "activity": "",
+      "texts": [
+        "Why it felt broken",
+        "Your teach task itself was queued successfully:",
+        "Teach mode queued: teach_mbFlRZgT",
+        "But the server crashed on the pointer write to current_task.json, so the agent never got the clean state handoff.",
+        "The two fixes you need now",
+        "1.",
+        "Change writeCurrentTask() to upsert with optional sha",
+        "2.",
+        "Add /offteach alias if you want that shortcut",
+        "If you paste your current server.js, I can \ufffd\u2060return the fully corrected full file with this fix already merged."
+      ],
+      "ts": "2026-04-07T12:11:56.737Z"
+    },
+    {
+      "package": "com.google.android.inputmethod.latin",
+      "activity": "",
+      "texts": [
+        "bot.hears(/^\\/(start|help|cmd|status|tasks|teach|stopteach|offteach)\\b/i, handleSlashCommand);",
+        "Why it felt broken",
+        "Your teach task itself was queued successfully:",
+        "Teach mode queued: teach_mbFlRZgT",
+        "But the server crashed on the pointer write to current_task.json, so the agent never got the clean state handoff.",
+        "The two fixes you need now",
+        "1.",
+        "Change writeCurrentTask() to upsert with optional sha",
+        "2.",
+        "Add /offteach alias if you want that shortcut"
+      ],
+      "ts": "2026-04-07T12:12:00.216Z"
+    },
+    {
+      "package": "com.google.android.inputmethod.latin",
+      "activity": "",
+      "texts": [
+        "/stopteach youtube search",
+        "/offteach is not a command in the server file, so it will not work unless you add it as an alias.",
+        "If you want /offteach to work too, add this near your slash command handling:",
+        "Javascript",
+        "Copy code",
+        "if (cmd === 'offteach') {\n  const argText = parts.slice(1).join(' ').trim();\n  if (!argText) {\n    await ctx.reply('Usage: /offteach youtube search');\n    return;\n  }\n\n  try {\n    const taskId = await createStopTeachTask(argText);\n    await ctx.reply(`Stop-teach queued: ${taskId}\\nGoal: ${argText}`);\n  } catch (e) {\n    await ctx.reply(`Failed to queue stop-teach task: ${e.message}`);\n  }\n  return;\n}",
+        "And include it in the command matcher:",
+        "Javascript",
+        "Reply to ChatGPT"
+      ],
+      "ts": "2026-04-07T12:12:03.324Z"
+    },
+    {
+      "package": "com.google.android.inputmethod.latin",
+      "activity": "",
+      "texts": [
+        "AutoPhone:\nTeach mode queued: teach_mbFlRZgT\nGoal: youtube search",
+        "Theking:\n/offteach",
+        "/stopteach",
+        "AutoPhone:\nUsage: /stopteach youtube search",
+        "Theking:\n/stopteach youtube search",
+        "AutoPhone:\nFailed to queue stop-teach task: GitHub current_task write failed: 422 {\"message\":\"Invalid request.\\n\\n\"sha\" wasn't supplied.\",\"documentation_url\":\"https://docs.github.com/rest/repos/contents#create-or-update-file-contents\u2060\ufffd\",\"status\":\"422\"}",
+        "Thought for a few seconds",
+        "Yep — that 422 is the exact clue.",
+        "Reply to ChatGPT"
+      ],
+      "ts": "2026-04-07T12:12:06.120Z"
+    },
+    {
+      "package": "com.google.android.inputmethod.latin",
+      "activity": "",
+      "texts": [
+        "AutoPhone:\nFailed to queue stop-teach task: GitHub current_task write failed: 422 {\"message\":\"Invalid request.\\n\\n\"sha\" wasn't supplied.\",\"documentation_url\":\"https://docs.github.com/rest/repos/contents#create-or-update-file-contents\u2060\ufffd\",\"status\":\"422\"}",
+        "Thought for a few seconds",
+        "Yep — that 422 is the exact clue.",
+        "What happened",
+        "Your server tried to update/create data/current_task.json with PUT, but GitHub said:",
+        "\"sha\" wasn't supplied",
+        "That means the file did not already exist, so GitHub treated it like a create/update problem and rejected it.",
+        "The rule",
+        "For GitHub Contents API:",
+        "•"
+      ],
+      "ts": "2026-04-07T12:12:08.703Z"
+    },
+    {
+      "package": "com.google.android.inputmethod.latin",
+      "activity": "",
+      "texts": [
+        "Thought for a few seconds",
+        "Yep — that 422 is the exact clue.",
+        "What happened",
+        "Your server tried to update/create data/current_task.json with PUT, but GitHub said:",
+        "\"sha\" wasn't supplied",
+        "That means the file did not already exist, so GitHub treated it like a create/update problem and rejected it.",
+        "The rule",
+        "For GitHub Contents API:",
+        "•",
+        "Create a new file → no sha"
+      ],
+      "ts": "2026-04-07T12:12:11.759Z"
+    },
+    {
+      "package": "com.google.android.inputmethod.latin",
+      "activity": "",
+      "texts": [
+        "What happened",
+        "Your server tried to update/create data/current_task.json with PUT, but GitHub said:",
+        "\"sha\" wasn't supplied",
+        "That means the file did not already exist, so GitHub treated it like a create/update problem and rejected it.",
+        "The rule",
+        "For GitHub Contents API:",
+        "•",
+        "Create a new file → no sha",
+        "•",
+        "Update an existing file → sha is required"
+      ],
+      "ts": "2026-04-07T12:12:14.331Z"
+    },
+    {
+      "package": "com.google.android.inputmethod.latin",
+      "activity": "",
+      "texts": [
+        "The rule",
+        "For GitHub Contents API:",
+        "•",
+        "Create a new file → no sha",
+        "•",
+        "Update an existing file → sha is required",
+        "So current_task.json needs an upsert helper:",
+        "1.",
+        "try to GET the file",
+        "2."
+      ],
+      "ts": "2026-04-07T12:12:16.792Z"
+    },
+    {
+      "package": "com.google.android.inputmethod.latin",
+      "activity": "",
+      "texts": [
+        "async function writeCurrentTask(pointer) {\n  const url = `${GITHUB_API}/${CURRENT_TASK_PATH}`;\n  const contentBase64 = Buffer.from(JSON.stringify(pointer, null, 2)).toString('base64');\n\n  // Check if file already exists\n  const existing = await ghGetJson(url);\n\n  const payload = {\n    message: `current task ${pointer.task_id}`,\n    content: contentBase64,\n    branch: GITHUB_BRANCH,\n  };\n\n  // Only include sha if the file already exists\n  if (existing.ok && existing.json && existing.json.sha) {\n    payload.sha = existing.json.sha;\n  }\n\n  const result = await ghPutJson(url, payload);\n\n  if (!result.ok) {\n    throw new Error(`GitHub current_task write failed: ${result.statusCode} ${result.body}`);\n  }\n\n  return result;\n}",
+        "Also fix the teach flow",
+        "Your /teach youtube search is fine.\nYour /stopteach should be used exactly like this:",
+        "Reply to ChatGPT"
+      ],
+      "ts": "2026-04-07T12:12:19.530Z"
+    },
+    {
+      "package": "com.google.android.inputmethod.latin",
+      "activity": "",
+      "texts": [
+        "async function writeCurrentTask(pointer) {\n  const url = `${GITHUB_API}/${CURRENT_TASK_PATH}`;\n  const contentBase64 = Buffer.from(JSON.stringify(pointer, null, 2)).toString('base64');\n\n  // Check if file already exists\n  const existing = await ghGetJson(url);\n\n  const payload = {\n    message: `current task ${pointer.task_id}`,\n    content: contentBase64,\n    branch: GITHUB_BRANCH,\n  };\n\n  // Only include sha if the file already exists\n  if (existing.ok && existing.json && existing.json.sha) {\n    payload.sha = existing.json.sha;\n  }\n\n  const result = await ghPutJson(url, payload);\n\n  if (!result.ok) {\n    throw new Error(`GitHub current_task write failed: ${result.statusCode} ${result.body}`);\n  }\n\n  return result;\n}",
+        "Also fix the teach flow",
+        "Your /teach youtube search is fine.\nYour /stopteach should be used exactly like this:",
+        "Text",
+        "Copy code",
+        "/stopteach youtube search",
+        "/offteach is not a command in the server file, so it will not work unless you add it as an alias.",
+        "If you want /offteach to work too, add this near your slash command handling:",
+        "Javascript",
+        "Copy code"
+      ],
+      "ts": "2026-04-07T12:12:22.022Z"
+    },
+    {
+      "package": "com.google.android.inputmethod.latin",
+      "activity": "",
+      "texts": [
+        "Also fix the teach flow",
+        "Your /teach youtube search is fine.\nYour /stopteach should be used exactly like this:",
+        "Text",
+        "Copy code",
+        "/stopteach youtube search",
+        "/offteach is not a command in the server file, so it will not work unless you add it as an alias.",
+        "If you want /offteach to work too, add this near your slash command handling:",
+        "Javascript",
+        "Copy code",
+        "if (cmd === 'offteach') {\n  const argText = parts.slice(1).join(' ').trim();\n  if (!argText) {\n    await ctx.reply('Usage: /offteach youtube search');\n    return;\n  }\n\n  try {\n    const taskId = await createStopTeachTask(argText);\n    await ctx.reply(`Stop-teach queued: ${taskId}\\nGoal: ${argText}`);\n  } catch (e) {\n    await ctx.reply(`Failed to queue stop-teach task: ${e.message}`);\n  }\n  return;\n}"
+      ],
+      "ts": "2026-04-07T12:12:27.077Z"
+    },
+    {
+      "package": "com.google.android.inputmethod.latin",
+      "activity": "",
+      "texts": [
+        "Your /teach youtube search is fine.\nYour /stopteach should be used exactly like this:",
+        "Text",
+        "Copy code",
+        "/stopteach youtube search",
+        "/offteach is not a command in the server file, so it will not work unless you add it as an alias.",
+        "If you want /offteach to work too, add this near your slash command handling:",
+        "Javascript",
+        "Copy code",
+        "if (cmd === 'offteach') {\n  const argText = parts.slice(1).join(' ').trim();\n  if (!argText) {\n    await ctx.reply('Usage: /offteach youtube search');\n    return;\n  }\n\n  try {\n    const taskId = await createStopTeachTask(argText);\n    await ctx.reply(`Stop-teach queued: ${taskId}\\nGoal: ${argText}`);\n  } catch (e) {\n    await ctx.reply(`Failed to queue stop-teach task: ${e.message}`);\n  }\n  return;\n}",
+        "Reply to ChatGPT"
+      ],
+      "ts": "2026-04-07T12:12:29.577Z"
+    },
+    {
+      "package": "com.google.android.inputmethod.latin",
+      "activity": "",
+      "texts": [
+        "Your /teach youtube search is fine.\nYour /stopteach should be used exactly like this:",
+        "/stopteach youtube search",
+        "/offteach is not a command in the server file, so it will not work unless you add it as an alias.",
+        "If you want /offteach to work too, add this near your slash command handling:",
+        "Javascript",
+        "Copy code",
+        "if (cmd === 'offteach') {\n  const argText = parts.slice(1).join(' ').trim();\n  if (!argText) {\n    await ctx.reply('Usage: /offteach youtube search');\n    return;\n  }\n\n  try {\n    const taskId = await createStopTeachTask(argText);\n    await ctx.reply(`Stop-teach queued: ${taskId}\\nGoal: ${argText}`);\n  } catch (e) {\n    await ctx.reply(`Failed to queue stop-teach task: ${e.message}`);\n  }\n  return;\n}",
+        "And include it in the command matcher:",
+        "Reply to ChatGPT"
+      ],
+      "ts": "2026-04-07T12:12:31.937Z"
+    },
+    {
+      "package": "com.google.android.inputmethod.latin",
+      "activity": "",
+      "texts": [
+        "if (cmd === 'offteach') {\n  const argText = parts.slice(1).join(' ').trim();\n  if (!argText) {\n    await ctx.reply('Usage: /offteach youtube search');\n    return;\n  }\n\n  try {\n    const taskId = await createStopTeachTask(argText);\n    await ctx.reply(`Stop-teach queued: ${taskId}\\nGoal: ${argText}`);\n  } catch (e) {\n    await ctx.reply(`Failed to queue stop-teach task: ${e.message}`);\n  }\n  return;\n}",
+        "And include it in the command matcher:",
+        "Javascript",
+        "Copy code",
+        "bot.hears(/^\\/(start|help|cmd|status|tasks|teach|stopteach|offteach)\\b/i, handleSlashCommand);",
+        "Why it felt broken",
+        "Your teach task itself was queued successfully:",
+        "Teach mode queued: teach_mbFlRZgT",
+        "But the server crashed on the pointer write to current_task.json, so the agent never got the clean state handoff.",
+        "Reply to ChatGPT"
+      ],
+      "ts": "2026-04-07T12:12:34.393Z"
+    },
+    {
+      "package": "com.google.android.inputmethod.latin",
+      "activity": "",
+      "texts": [
+        "if (cmd === 'offteach') {\n  const argText = parts.slice(1).join(' ').trim();\n  if (!argText) {\n    await ctx.reply('Usage: /offteach youtube search');\n    return;\n  }\n\n  try {\n    const taskId = await createStopTeachTask(argText);\n    await ctx.reply(`Stop-teach queued: ${taskId}\\nGoal: ${argText}`);\n  } catch (e) {\n    await ctx.reply(`Failed to queue stop-teach task: ${e.message}`);\n  }\n  return;\n}",
+        "And include it in the command matcher:",
+        "Javascript",
+        "Copy code",
+        "bot.hears(/^\\/(start|help|cmd|status|tasks|teach|stopteach|offteach)\\b/i, handleSlashCommand);",
+        "Why it felt broken",
+        "Your teach task itself was queued successfully:",
+        "Teach mode queued: teach_mbFlRZgT",
+        "Reply to ChatGPT"
+      ],
+      "ts": "2026-04-07T12:12:36.979Z"
+    },
+    {
+      "package": "com.google.android.inputmethod.latin",
+      "activity": "",
+      "texts": [
+        "Why it felt broken",
+        "Your teach task itself was queued successfully:",
+        "Teach mode queued: teach_mbFlRZgT",
+        "But the server crashed on the pointer write to current_task.json, so the agent never got the clean state handoff.",
+        "The two fixes you need now",
+        "1.",
+        "Change writeCurrentTask() to upsert with optional sha",
+        "2.",
+        "Add /offteach alias if you want that shortcut",
+        "If you paste your current server.js, I can \ufffd\u2060return the fully corrected full file with this fix already merged."
+      ],
+      "ts": "2026-04-07T12:12:39.814Z"
+    },
+    {
+      "package": "com.google.android.inputmethod.latin",
+      "activity": "",
+      "texts": [
+        "Photos",
+        "Camera",
+        "Files",
+        "Create image",
+        "Thinking"
+      ],
+      "ts": "2026-04-07T12:12:42.215Z"
+    },
+    {
+      "package": "com.google.android.inputmethod.latin",
+      "activity": "",
+      "texts": [
+        "Files",
+        "Create image",
+        "Thinking",
+        "Deep research",
+        "Web search"
+      ],
+      "ts": "2026-04-07T12:12:44.613Z"
+    },
+    {
+      "package": "com.google.android.inputmethod.latin",
+      "activity": "",
+      "texts": [
+        "Deep research",
+        "Web search",
+        "GitHub",
+        "Lovable",
+        "Quizzes"
+      ],
+      "ts": "2026-04-07T12:12:47.170Z"
+    },
+    {
+      "package": "com.google.android.inputmethod.latin",
+      "activity": "",
+      "texts": [
+        "Camera",
+        "Files",
+        "Create image",
+        "Thinking",
+        "Deep research"
+      ],
+      "ts": "2026-04-07T12:12:49.537Z"
+    },
+    {
+      "package": "com.google.android.inputmethod.latin",
+      "activity": "",
+      "texts": [
+        "Files",
+        "Create image",
+        "Thinking",
+        "Deep research",
+        "Web search"
+      ],
+      "ts": "2026-04-07T12:12:51.854Z"
+    },
+    {
+      "package": "com.google.android.inputmethod.latin",
+      "activity": "",
+      "texts": [
+        "Why it felt broken",
+        "Your teach task itself was queued successfully:",
+        "Teach mode queued: teach_mbFlRZgT",
+        "But the server crashed on the pointer write to current_task.json, so the agent never got the clean state handoff.",
+        "The two fixes you need now",
+        "1.",
+        "Change writeCurrentTask() to upsert with optional sha",
+        "2.",
+        "Add /offteach alias if you want that shortcut",
+        "If you paste your current server.js, I can \ufffd\u2060return the fully corrected full file with this fix already merged."
+      ],
+      "ts": "2026-04-07T12:12:54.233Z"
+    },
+    {
+      "package": "com.google.android.inputmethod.latin",
+      "activity": "",
+      "texts": [
+        "Why it felt broken",
+        "Your teach task itself was queued successfully:",
+        "Teach mode queued: teach_mbFlRZgT",
+        "But the server crashed on the pointer write to current_task.json, so the agent never got the clean state handoff.",
+        "The two fixes you need now",
+        "1.",
+        "Change writeCurrentTask() to upsert with optional sha",
+        "Add /offteach alias if you want that shortcut",
+        "If you paste your current server.js, I can \ufffd\u2060return the fully corrected full file with this fix already merged.",
+        "Think"
+      ],
+      "ts": "2026-04-07T12:12:56.944Z"
+    },
+    {
+      "package": "com.google.android.inputmethod.latin",
+      "activity": "",
+      "texts": [
+        "Why it felt broken",
+        "Your teach task itself was queued successfully:",
+        "Teach mode queued: teach_mbFlRZgT",
+        "But the server crashed on the pointer write to current_task.json, so the agent never got the clean state handoff.",
+        "The two fixes you need now",
+        "1.",
+        "Change writeCurrentTask() to upsert with optional sha",
+        "2.",
+        "Add /offteach alias if you want that shortcut",
+        "If you paste your current server.js, I can \ufffd\u2060return the fully corrected full file with this fix already merged."
+      ],
+      "ts": "2026-04-07T12:12:59.421Z"
+    },
+    {
+      "package": "com.google.android.inputmethod.latin",
+      "activity": "",
+      "texts": [
+        "The two fixes you need now",
+        "1.",
+        "Change writeCurrentTask() to upsert with optional sha",
+        "2.",
+        "Add /offteach alias if you want that shortcut",
+        "If you paste your current server.js, I can \ufffd\u2060return the fully corrected full file with this fix already merged.",
+        "Think"
+      ],
+      "ts": "2026-04-07T12:13:01.873Z"
+    },
+    {
+      "package": "com.google.android.inputmethod.latin",
+      "activity": "",
+      "texts": [
+        "But the server crashed on the pointer write to current_task.json, so the agent never got the clean state handoff.",
+        "The two fixes you need now",
+        "1.",
+        "Change writeCurrentTask() to upsert with optional sha",
+        "2.",
+        "Add /offteach alias if you want that shortcut",
+        "If you paste your current server.js, I can \ufffd\u2060return the fully corrected full file with this fix already merged.",
+        "Think"
+      ],
+      "ts": "2026-04-07T12:13:04.322Z"
+    },
+    {
+      "package": "com.google.android.inputmethod.latin",
+      "activity": "",
+      "texts": [
+        "But the server crashed on the pointer write to current_task.json, so the agent never got the clean state handoff.",
+        "The two fixes you need now",
+        "1.",
+        "Change writeCurrentTask() to upsert with optional sha",
+        "2.",
+        "Add /offteach alias if you want that shortcut",
+        "If you paste your current server.js, I can \ufffd\u2060return the fully corrected full file with this fix already merged.",
+        "Reply to ChatGPT"
+      ],
+      "ts": "2026-04-07T12:13:20.349Z"
+    },
+    {
+      "package": "com.google.android.inputmethod.latin",
+      "activity": "",
+      "texts": [
+        "If you paste your current server.js, I can \ufffd\u2060return the fully corrected full file with this fix already merged.",
+        "Full server.js file now from last one we did",
+        "Thought for a couple of seconds",
+        "Javascript",
+        "Copy code",
+        "require('dotenv').config();\nconst express = require('",
+        "Reply to ChatGPT"
+      ],
+      "ts": "2026-04-07T12:13:24.562Z"
+    },
+    {
+      "package": "com.google.android.inputmethod.latin",
+      "activity": "",
+      "texts": [
+        "Full server.js file now from last one we did",
+        "Thought for a couple of seconds",
+        "Javascript",
+        "Copy code",
+        "require('dotenv').config();\nconst express = require('express');\nconst { Telegraf } = require('telegraf');\nconst Groq = require('groq-sdk');\nconst https = require('https');\nconst { nanoid } = require('nanoid');\n\nconst app = express();\nconst PORT = process.env.PORT || 3000;\n\nconst GROQ_API_KEY = process.env.GROQ_API_KEY;\nconst TELEGRAM_BOT_TOKEN = process.env.TELEGRAM_BOT_TOKEN;\nconst GITHUB_TOKEN = process.env.GITHUB_TOKEN;\nconst GITHUB_REPO = process.env.GITHUB_REPO;\nconst GROQ_MODEL = process.env.GROQ_MODEL || 'qwen/qwen3-32b';\nconst GITHUB_BRANCH = process.env.GITHUB_BRANCH || 'main';\n\nif (!GROQ_API_KEY) throw new Error('GROQ_API_KEY required');\nif (!TELEGRAM_BOT_TOKEN) throw new Error('TELEGRAM_BOT_TOKEN required');\nif (!GITHUB_TOKEN || !GITHUB_REPO) throw new Error('GITHUB_TOKEN and GITHUB_REPO required');\n\nconst groq = new Groq({ apiKey: GROQ_API_KEY });\nconst bot = new Telegraf(TELEGRAM_BOT_TOKEN);\n\napp.use(express.json());\n\nconst GITHUB_API = `https://api.github.com/repos/${GITHUB_REPO}/contents`;\nconst TASKS_PATH = 'data/tasks';\nconst LOGS_PATH = 'data/logs';\nconst ROUTES_PATH = 'data/routes';\nconst CURRENT_TASK_PATH = 'data/current_task.json';\n\nconst APP_REGISTRY = {\n  youtube: { aliases: ['yt', 'you tube'], package: 'com.google.android.youtube' },\n  chrome: { aliases: ['browser', 'google chrome'], package: 'com.android.chrome' },\n  whatsapp: { aliases: ['whatsapp business'], package: 'com.whatsapp' },\n  calculator: { aliases: ['calc'], package: 'com.android.calculator2' },\n  camera: { aliases: [], package: 'com.android.camera2' },\n  photos: { aliases: ['gallery'], package: 'com.google.android.apps.photos' },\n  settings: { aliases: [], package: 'com.android.settings' },\n  phone: { aliases: ['dialer'], package: 'com.android.dialer' },\n  messages: { aliases: ['sms'], package: 'com.android.mms' },\n  gmail: { aliases: [], package: 'com.google.android.gm' },\n  maps: { aliases: ['google maps'], package: 'com.google.android.apps.maps' },\n  spotify: { aliases: [], package: 'com.spotify.music' },\n  facebook: { aliases: [], package: 'com.facebook.katana' },\n  instagram: { aliases: [], package: 'com.instagram.android' },\n  twitter: { aliases: ['x'], package: 'com.twitter.android' },\n  telegram: { aliases: [], package: 'org.telegram.messenger' },\n  signal: { aliases: [], package: 'org.thoughtcrime.securesms' },\n  discord: { aliases: [], package: 'com.discord' },\n  slack: { aliases: [], package: 'com.Slack' },\n  zoom: { aliases: [], package: 'us.zoom.videomeetings' },\n};\n\nconst ALLOWED_ACTIONS = new Set([\n  'launch_app',\n  'click',\n  'type',\n  'press',\n  'wait',\n  'toast',\n  'swipe',\n  'verify',\n  'open_url',\n]);\n\nfunction ghHeaders() {\n  return {\n    Authorization: `Bearer ${GITHUB_TOKEN}`,\n    'Content-Type': 'application/json',\n    'User-Agent': 'DWAI/1.0',\n    Accept: 'application/vnd.github+json',\n    'X-GitHub-Api-Version': '2022-11-28',\n  };\n}\n\nfunction githubRequest(method, url, body) {\n  return new Promise((resolve, reject) => {\n    const req = https.request(\n      url,\n      { method, headers: ghHeaders() },\n      (res) => {\n        let d = '';\n        res.on('data', (c) => {\n          d += c;\n        });\n        res.on('end', () => {\n          resolve({\n            ok: res.statusCode >= 200 && res.statusCode < 300,\n            statusCode: res.statusCode,\n            body: d,\n          });\n        });\n      }\n    );\n\n    req.on('error', reject);\n\n    if (body !== undefined && body !== null) {\n      req.write(typeof body === 'string' ? body : JSON.stringify(body));\n    }\n\n    req.end();\n  });\n}\n\nasync function ghGetJson(url) {\n  const res = await githubRequest('GET', url);\n  let json = null;\n  try {\n    json = res.body ? JSON.parse(res.body) : null;\n  } catch {\n    json = null;\n  }\n  return { ...res, json };\n}\n\nasync function ghPutJson(url, body) {\n  return githubRequest('PUT', url, body);\n}\n\nfunction escapeRegExp(str) {\n  return String(str).replace(/[.*+?^${}()|[\\]\\\\]/g, '\\\\$&');\n}\n\nfunction normalizeLaunchValue(value) {\n  if (value === undefined || value === null) return null;\n  const v = String(value).trim().toLowerCase();\n  if (!v) return null;\n\n  if (APP_REGISTRY[v]) return v;\n\n  for (const [canonical, info] of Object.entries(APP_REGISTRY)) {\n    if (info.package && info.package.toLowerCase() === v) return canonical;\n    if ((info.aliases || []).some((a) => a.toLowerCase() === v)) return canonical;\n  }\n\n  if (v.includes('.')) return v;\n  return null;\n}\n\nfunction findAppCanonical(text) {\n  const lower = String(text || '').toLowerCase();\n  const entries = Object.entries(APP_REGISTRY).sort((a, b) => b[0].length - a[0].length);\n\n  for (const [canonical, info] of entries) {\n    const patterns = [canonical, ...(info.aliases || [])];\n    for (const p of patterns) {\n      const re = new RegExp(`\\\\b${escapeRegExp(p.toLowerCase())}\\\\b`, 'i');\n      if (re.test(lower)) return canonical;\n    }\n  }\n\n  return null;\n}\n\nfunction cleanQuery(q) {\n  return String(q || '')\n    .replace(/^[\"'`]+|[\"'`]+$/g, '')\n    .replace(/^[\\s:,-]*(a|an|the)\\s+/i, '')\n    .replace(/\\s+/g, ' ')\n    .trim();\n}\n\nfunction extractSearchQuery(text) {\n  const input = String(text || '').trim();\n\n  const patterns = [\n    /search(?:\\s+for)?\\s+(.+)$/i,\n    /find(?:\\s+me)?\\s+(.+)$/i,\n    /look(?:\\s+for)?\\s+(.+)$/i,\n    /browse(?:\\s+for)?\\s+(.+)$/i,\n    /play\\s+(.+)$/i,\n    /watch\\s+(.+)$/i,\n  ];\n\n  for (const re of patterns) {\n    const m = input.match(re);\n    if (m && m[1]) {\n      const q = cleanQuery(m[1]);\n      if (q) return q;\n    }\n  }\n\n  return null;\n}\n\nfunction quickIntent(message) {\n  const t = String(message || '').trim().toLowerCase();\n  if (!t) return { intent: 'CHAT' };\n\n  if (/^(hi|hello|hey|yo|good morning|good afternoon|good evening)\\b/.test(t)) {\n    return { intent: 'CHAT' };\n  }\n  if (/\\b(help|commands?)\\b/.test(t)) return { intent: 'HELP' };\n  if (/\\b(status|task status|check task|tasks?|queue)\\b/.test(t)) return { intent: 'STATUS' };\n\n  if (/(open|launch|search|find|look for|go to|start|watch|play|type|click|send|scroll)/.test(t)) {\n    return { intent: 'TASK' };\n  }\n\n  return null;\n}\n\nfunction buildAppHintsText() {\n  return Object.keys(APP_REGISTRY).join(', ');\n}\n\nfunction isStepValid(step) {\n  if (!step || typeof step !== 'object') return false;\n  if (!step.action || !ALLOWED_ACTIONS.has(step.action)) return false;\n\n  switch (step.action) {\n    case 'launch_app':\n      return typeof step.value === 'string' && step.value.trim().length > 0;\n    case 'click':\n      return Boolean(",
+        "Reply to ChatGPT"
+      ],
+      "ts": "2026-04-07T12:13:27.237Z"
+    },
+    {
+      "package": "com.google.android.inputmethod.latin",
+      "activity": "",
+      "texts": [
+        "require('dotenv').config();\nconst express = require('express');\nconst { Telegraf } = require('telegraf');\nconst Groq = require('groq-sdk');\nconst https = require('https');\nconst { nanoid } = require('nanoid');\n\nconst app = express();\nconst PORT = process.env.PORT || 3000;\n\nconst GROQ_API_KEY = process.env.GROQ_API_KEY;\nconst TELEGRAM_BOT_TOKEN = process.env.TELEGRAM_BOT_TOKEN;\nconst GITHUB_TOKEN = process.env.GITHUB_TOKEN;\nconst GITHUB_REPO = process.env.GITHUB_REPO;\nconst GROQ_MODEL = process.env.GROQ_MODEL || 'qwen/qwen3-32b';\nconst GITHUB_BRANCH = process.env.GITHUB_BRANCH || 'main';\n\nif (!GROQ_API_KEY) throw new Error('GROQ_API_KEY required');\nif (!TELEGRAM_BOT_TOKEN) throw new Error('TELEGRAM_BOT_TOKEN required');\nif (!GITHUB_TOKEN || !GITHUB_REPO) throw new Error('GITHUB_TOKEN and GITHUB_REPO required');\n\nconst groq = new Groq({ apiKey: GROQ_API_KEY });\nconst bot = new Telegraf(TELEGRAM_BOT_TOKEN);\n\napp.use(express.json());\n\nconst GITHUB_API = `https://api.github.com/repos/${GITHUB_REPO}/contents`;\nconst TASKS_PATH = 'data/tasks';\nconst LOGS_PATH = 'data/logs';\nconst ROUTES_PATH = 'data/routes';\nconst CURRENT_TASK_PATH = 'data/current_task.json';\n\nconst APP_REGISTRY = {\n  youtube: { aliases: ['yt', 'you tube'], package: 'com.google.android.youtube' },\n  chrome: { aliases: ['browser', 'google chrome'], package: 'com.android.chrome' },\n  whatsapp: { aliases: ['whatsapp business'], package: 'com.whatsapp' },\n  calculator: { aliases: ['calc'], package: 'com.android.calculator2' },\n  camera: { aliases: [], package: 'com.android.camera2' },\n  photos: { aliases: ['gallery'], package: 'com.google.android.apps.photos' },\n  settings: { aliases: [], package: 'com.android.settings' },\n  phone: { aliases: ['dialer'], package: 'com.android.dialer' },\n  messages: { aliases: ['sms'], package: 'com.android.mms' },\n  gmail: { aliases: [], package: 'com.google.android.gm' },\n  maps: { aliases: ['google maps'], package: 'com.google.android.apps.maps' },\n  spotify: { aliases: [], package: 'com.spotify.music' },\n  facebook: { aliases: [], package: 'com.facebook.katana' },\n  instagram: { aliases: [], package: 'com.instagram.android' },\n  twitter: { aliases: ['x'], package: 'com.twitter.android' },\n  telegram: { aliases: [], package: 'org.telegram.messenger' },\n  signal: { aliases: [], package: 'org.thoughtcrime.securesms' },\n  discord: { aliases: [], package: 'com.discord' },\n  slack: { aliases: [], package: 'com.Slack' },\n  zoom: { aliases: [], package: 'us.zoom.videomeetings' },\n};\n\nconst ALLOWED_ACTIONS = new Set([\n  'launch_app',\n  'click',\n  'type',\n  'press',\n  'wait',\n  'toast',\n  'swipe',\n  'verify',\n  'open_url',\n]);\n\nfunction ghHeaders() {\n  return {\n    Authorization: `Bearer ${GITHUB_TOKEN}`,\n    'Content-Type': 'application/json',\n    'User-Agent': 'DWAI/1.0',\n    Accept: 'application/vnd.github+json',\n    'X-GitHub-Api-Version': '2022-11-28',\n  };\n}\n\nfunction githubRequest(method, url, body) {\n  return new Promise((resolve, reject) => {\n    const req = https.request(\n      url,\n      { method, headers: ghHeaders() },\n      (res) => {\n        let d = '';\n        res.on('data', (c) => {\n          d += c;\n        });\n        res.on('end', () => {\n          resolve({\n            ok: res.statusCode >= 200 && res.statusCode < 300,\n            statusCode: res.statusCode,\n            body: d,\n          });\n        });\n      }\n    );\n\n    req.on('error', reject);\n\n    if (body !== undefined && body !== null) {\n      req.write(typeof body === 'string' ? body : JSON.stringify(body));\n    }\n\n    req.end();\n  });\n}\n\nasync function ghGetJson(url) {\n  const res = await githubRequest('GET', url);\n  let json = null;\n  try {\n    json = res.body ? JSON.parse(res.body) : null;\n  } catch {\n    json = null;\n  }\n  return { ...res, json };\n}\n\nasync function ghPutJson(url, body) {\n  return githubRequest('PUT', url, body);\n}\n\nfunction escapeRegExp(str) {\n  return String(str).replace(/[.*+?^${}()|[\\]\\\\]/g, '\\\\$&');\n}\n\nfunction normalizeLaunchValue(value) {\n  if (value === undefined || value === null) return null;\n  const v = String(value).trim().toLowerCase();\n  if (!v) return null;\n\n  if (APP_REGISTRY[v]) return v;\n\n  for (const [canonical, info] of Object.entries(APP_REGISTRY)) {\n    if (info.package && info.package.toLowerCase() === v) return canonical;\n    if ((info.aliases || []).some((a) => a.toLowerCase() === v)) return canonical;\n  }\n\n  if (v.includes('.')) return v;\n  return null;\n}\n\nfunction findAppCanonical(text) {\n  const lower = String(text || '').toLowerCase();\n  const entries = Object.entries(APP_REGISTRY).sort((a, b) => b[0].length - a[0].length);\n\n  for (const [canonical, info] of entries) {\n    const patterns = [canonical, ...(info.aliases || [])];\n    for (const p of patterns) {\n      const re = new RegExp(`\\\\b${escapeRegExp(p.toLowerCase())}\\\\b`, 'i');\n      if (re.test(lower)) return canonical;\n    }\n  }\n\n  return null;\n}\n\nfunction cleanQuery(q) {\n  return String(q || '')\n    .replace(/^[\"'`]+|[\"'`]+$/g, '')\n    .replace(/^[\\s:,-]*(a|an|the)\\s+/i, '')\n    .replace(/\\s+/g, ' ')\n    .trim();\n}\n\nfunction extractSearchQuery(text) {\n  const input = String(text || '').trim();\n\n  const patterns = [\n    /search(?:\\s+for)?\\s+(.+)$/i,\n    /find(?:\\s+me)?\\s+(.+)$/i,\n    /look(?:\\s+for)?\\s+(.+)$/i,\n    /browse(?:\\s+for)?\\s+(.+)$/i,\n    /play\\s+(.+)$/i,\n    /watch\\s+(.+)$/i,\n  ];\n\n  for (const re of patterns) {\n    const m = input.match(re);\n    if (m && m[1]) {\n      const q = cleanQuery(m[1]);\n      if (q) return q;\n    }\n  }\n\n  return null;\n}\n\nfunction quickIntent(message) {\n  const t = String(message || '').trim().toLowerCase();\n  if (!t) return { intent: 'CHAT' };\n\n  if (/^(hi|hello|hey|yo|good morning|good afternoon|good evening)\\b/.test(t)) {\n    return { intent: 'CHAT' };\n  }\n  if (/\\b(help|commands?)\\b/.test(t)) return { intent: 'HELP' };\n  if (/\\b(status|task status|check task|tasks?|queue)\\b/.test(t)) return { intent: 'STATUS' };\n\n  if (/(open|launch|search|find|look for|go to|start|watch|play|type|click|send|scroll)/.test(t)) {\n    return { intent: 'TASK' };\n  }\n\n  return null;\n}\n\nfunction buildAppHintsText() {\n  return Object.keys(APP_REGISTRY).join(', ');\n}\n\nfunction isStepValid(step) {\n  if (!step || typeof step !== 'object') return false;\n  if (!step.action || !ALLOWED_ACTIONS.has(step.action)) return false;\n\n  switch (step.action) {\n    case 'launch_app':\n      return typeof step.value === 'string' && step.value.trim().length > 0;\n    case 'click':\n      return Boolean(\n        step.text ||\n          step.contains ||\n          step.desc ||\n          (typeof step.x === 'number' && typeof step.y === 'number')\n      );\n    case 'type':\n      return typeof step.text === 'string' && step.text.trim().length > 0;\n    case 'press':\n      return ['enter', 'back', 'home', 'menu'].includes(String(step.key || '').toLowerCase());\n    case 'wait':\n      return Number(step.ms) >= 0;\n    case 'toast':\n      return true;\n    case 'swipe':\n      return (\n        typeof step.x1 === 'number' &&\n        typeof step.y1 === 'number' &&\n        typeof step.x2 === 'number' &&\n        typeof step.y2 === 'number'\n      );\n    case 'verify':\n      return true;\n    case 'open_url':\n      return typeof step.value === 'string' && step.value.trim().length > 0;\n    default:\n      return false;\n  }\n}\n\nfunction sanitizeSteps(rawSteps) {\n  if (!Array.isArray(rawSteps)) return [];\n\n  const out = [];\n  for (let i = 0; i < rawSteps.length; i++) {\n    const original = rawSteps[i];\n    if (!original || typeof original !== 'object' || !original.action) continue;\n    if (!ALLOWED_ACTIONS.has(original.action)) continue;\n\n    const step = JSON.parse(JSON.stringify(original));\n\n    if (step.action === 'launch_app') {\n      const normalized = normalizeLaunchValue(step.value);\n      if (!normalized) continue;\n      step.value = normalized;\n    }\n\n    if (step.action === 'wait') {\n      const ms = Number(step.ms);\n      step.ms = Number.isFinite(ms) && ms >= 0 ? ms : 1000;\n    }\n\n    if (step.action === 'type') {\n      step.text = String(step.text || step.value || '').trim();\n      if (!step.text) continue;\n    }\n\n    if (step.action === 'press') {\n      step.key = String(step.key || '').toLowerCase();\n      if (!['enter', 'back', 'home', 'menu'].includes(step.key)) continue;\n    }\n\n    if (step.action === 'verify') {\n      if (!step.contains && !step.text && !step.desc && !step.package) continue;\n    }\n\n    if (!isStepValid(step)) continue;\n\n    out.push(step);\n\n    if (step.action === 'launch_app') {\n      const next = rawSteps[i + 1];\n      if (!next || next.action !== 'wait') {\n        out.push({ action: 'wait', ms: 4000 });\n      }\n    }\n  }\n\n  return out.slice(0, 20);\n}\n\nfunction buildTemplateSteps(userText) {\n  const text = String(userText || '');\n  const lower = text.toLowerCase();\n\n  const app = findAppCanonical(lower);\n  const query = extractSearchQuery(text);\n  const wantsSearch = /\\b(search|find|look for|browse)\\b/.test(lower);\n  const wantsFirstResult = /\\b(first|first one|watch|video|result|open the first)\\b/.test(lower);\n  const wantsLaunch = /\\b(open|launch|start|go to)\\b/.test(lower);\n\n  if (app && wantsLaunch && !wantsSearch) {\n    return sanitizeSteps([\n      { action: 'launch_app', value: app },\n      { action: 'wait', ms: 4000 },\n      { action: 'verify', package: app },\n    ]);\n  }\n\n  if (wantsSearch) {\n    const targetApp = app === 'youtube' ? 'youtube' : 'chrome';\n    const clickStep =\n      targetApp === 'youtube'\n        ? {\n            action: 'click',\n            text: 'Search',\n            contains: 'Search',\n            desc: 'Search',\n            fallbacks: [{ action: 'click', x: 650, y: 120 }],\n          }\n        : {\n            action: 'click',\n            text: 'Search or type URL',\n            contains: 'Search',\n            desc: 'Search',\n            fallbacks: [{ action: 'click', x: 650, y: 120 }],\n          };\n\n    const steps = [\n      { action: 'launch_app', value: targetApp },\n      { action: 'wait', ms: 4000 },\n      clickStep,\n      { action: 'wait', ms: 1000 },\n      { action: 'type', text: query || cleanQuery(text) || text },\n      { action: 'press', key: 'enter' },\n      { action: 'wait', ms: 4000 },\n    ];\n\n    if (targetApp === 'youtube' && wantsFirstResult) {\n      steps.push({\n        action: 'click',\n        contains: 'views',\n        desc: 'video',\n        x: 360,\n        y: 560,\n      });\n      steps.push({ action: 'wait', ms: 4000 });\n    }\n\n    return sanitizeSteps(steps);\n  }\n\n  if (app) {\n    return sanitizeSteps([\n      { action: 'launch_app",
+        "Reply to ChatGPT"
+      ],
+      "ts": "2026-04-07T12:13:31.798Z"
+    },
+    {
+      "package": "com.google.android.inputmethod.latin",
+      "activity": "",
+      "texts": [
+        "require('dotenv').config();\nconst express = require('express');\nconst { Telegraf } = require('telegraf');\nconst Groq = require('groq-sdk');\nconst https = require('https');\nconst { nanoid } = require('nanoid');\n\nconst app = express();\nconst PORT = process.env.PORT || 3000;\n\nconst GROQ_API_KEY = process.env.GROQ_API_KEY;\nconst TELEGRAM_BOT_TOKEN = process.env.TELEGRAM_BOT_TOKEN;\nconst GITHUB_TOKEN = process.env.GITHUB_TOKEN;\nconst GITHUB_REPO = process.env.GITHUB_REPO;\nconst GROQ_MODEL = process.env.GROQ_MODEL || 'qwen/qwen3-32b';\nconst GITHUB_BRANCH = process.env.GITHUB_BRANCH || 'main';\n\nif (!GROQ_API_KEY) throw new Error('GROQ_API_KEY required');\nif (!TELEGRAM_BOT_TOKEN) throw new Error('TELEGRAM_BOT_TOKEN required');\nif (!GITHUB_TOKEN || !GITHUB_REPO) throw new Error('GITHUB_TOKEN and GITHUB_REPO required');\n\nconst groq = new Groq({ apiKey: GROQ_API_KEY });\nconst bot = new Telegraf(TELEGRAM_BOT_TOKEN);\n\napp.use(express.json());\n\nconst GITHUB_API = `https://api.github.com/repos/${GITHUB_REPO}/contents`;\nconst TASKS_PATH = 'data/tasks';\nconst LOGS_PATH = 'data/logs';\nconst ROUTES_PATH = 'data/routes';\nconst CURRENT_TASK_PATH = 'data/current_task.json';\n\nconst APP_REGISTRY = {\n  youtube: { aliases: ['yt', 'you tube'], package: 'com.google.android.youtube' },\n  chrome: { aliases: ['browser', 'google chrome'], package: 'com.android.chrome' },\n  whatsapp: { aliases: ['whatsapp business'], package: 'com.whatsapp' },\n  calculator: { aliases: ['calc'], package: 'com.android.calculator2' },\n  camera: { aliases: [], package: 'com.android.camera2' },\n  photos: { aliases: ['gallery'], package: 'com.google.android.apps.photos' },\n  settings: { aliases: [], package: 'com.android.settings' },\n  phone: { aliases: ['dialer'], package: 'com.android.dialer' },\n  messages: { aliases: ['sms'], package: 'com.android.mms' },\n  gmail: { aliases: [], package: 'com.google.android.gm' },\n  maps: { aliases: ['google maps'], package: 'com.google.android.apps.maps' },\n  spotify: { aliases: [], package: 'com.spotify.music' },\n  facebook: { aliases: [], package: 'com.facebook.katana' },\n  instagram: { aliases: [], package: 'com.instagram.android' },\n  twitter: { aliases: ['x'], package: 'com.twitter.android' },\n  telegram: { aliases: [], package: 'org.telegram.messenger' },\n  signal: { aliases: [], package: 'org.thoughtcrime.securesms' },\n  discord: { aliases: [], package: 'com.discord' },\n  slack: { aliases: [], package: 'com.Slack' },\n  zoom: { aliases: [], package: 'us.zoom.videomeetings' },\n};\n\nconst ALLOWED_ACTIONS = new Set([\n  'launch_app',\n  'click',\n  'type',\n  'press',\n  'wait',\n  'toast',\n  'swipe',\n  'verify',\n  'open_url',\n]);\n\nfunction ghHeaders() {\n  return {\n    Authorization: `Bearer ${GITHUB_TOKEN}`,\n    'Content-Type': 'application/json',\n    'User-Agent': 'DWAI/1.0',\n    Accept: 'application/vnd.github+json',\n    'X-GitHub-Api-Version': '2022-11-28',\n  };\n}\n\nfunction githubRequest(method, url, body) {\n  return new Promise((resolve, reject) => {\n    const req = https.request(\n      url,\n      { method, headers: ghHeaders() },\n      (res) => {\n        let d = '';\n        res.on('data', (c) => {\n          d += c;\n        });\n        res.on('end', () => {\n          resolve({\n            ok: res.statusCode >= 200 && res.statusCode < 300,\n            statusCode: res.statusCode,\n            body: d,\n          });\n        });\n      }\n    );\n\n    req.on('error', reject);\n\n    if (body !== undefined && body !== null) {\n      req.write(typeof body === 'string' ? body : JSON.stringify(body));\n    }\n\n    req.end();\n  });\n}\n\nasync function ghGetJson(url) {\n  const res = await githubRequest('GET', url);\n  let json = null;\n  try {\n    json = res.body ? JSON.parse(res.body) : null;\n  } catch {\n    json = null;\n  }\n  return { ...res, json };\n}\n\nasync function ghPutJson(url, body) {\n  return githubRequest('PUT', url, body);\n}\n\nfunction escapeRegExp(str) {\n  return String(str).replace(/[.*+?^${}()|[\\]\\\\]/g, '\\\\$&');\n}\n\nfunction normalizeLaunchValue(value) {\n  if (value === undefined || value === null) return null;\n  const v = String(value).trim().toLowerCase();\n  if (!v) return null;\n\n  if (APP_REGISTRY[v]) return v;\n\n  for (const [canonical, info] of Object.entries(APP_REGISTRY)) {\n    if (info.package && info.package.toLowerCase() === v) return canonical;\n    if ((info.aliases || []).some((a) => a.toLowerCase() === v)) return canonical;\n  }\n\n  if (v.includes('.')) return v;\n  return null;\n}\n\nfunction findAppCanonical(text) {\n  const lower = String(text || '').toLowerCase();\n  const entries = Object.entries(APP_REGISTRY).sort((a, b) => b[0].length - a[0].length);\n\n  for (const [canonical, info] of entries) {\n    const patterns = [canonical, ...(info.aliases || [])];\n    for (const p of patterns) {\n      const re = new RegExp(`\\\\b${escapeRegExp(p.toLowerCase())}\\\\b`, 'i');\n      if (re.test(lower)) return canonical;\n    }\n  }\n\n  return null;\n}\n\nfunction cleanQuery(q) {\n  return String(q || '')\n    .replace(/^[\"'`]+|[\"'`]+$/g, '')\n    .replace(/^[\\s:,-]*(a|an|the)\\s+/i, '')\n    .replace(/\\s+/g, ' ')\n    .trim();\n}\n\nfunction extractSearchQuery(text) {\n  const input = String(text || '').trim();\n\n  const patterns = [\n    /search(?:\\s+for)?\\s+(.+)$/i,\n    /find(?:\\s+me)?\\s+(.+)$/i,\n    /look(?:\\s+for)?\\s+(.+)$/i,\n    /browse(?:\\s+for)?\\s+(.+)$/i,\n    /play\\s+(.+)$/i,\n    /watch\\s+(.+)$/i,\n  ];\n\n  for (const re of patterns) {\n    const m = input.match(re);\n    if (m && m[1]) {\n      const q = cleanQuery(m[1]);\n      if (q) return q;\n    }\n  }\n\n  return null;\n}\n\nfunction quickIntent(message) {\n  const t = String(message || '').trim().toLowerCase();\n  if (!t) return { intent: 'CHAT' };\n\n  if (/^(hi|hello|hey|yo|good morning|good afternoon|good evening)\\b/.test(t)) {\n    return { intent: 'CHAT' };\n  }\n  if (/\\b(help|commands?)\\b/.test(t)) return { intent: 'HELP' };\n  if (/\\b(status|task status|check task|tasks?|queue)\\b/.test(t)) return { intent: 'STATUS' };\n\n  if (/(open|launch|search|find|look for|go to|start|watch|play|type|click|send|scroll)/.test(t)) {\n    return { intent: 'TASK' };\n  }\n\n  return null;\n}\n\nfunction buildAppHintsText() {\n  return Object.keys(APP_REGISTRY).join(', ');\n}\n\nfunction isStepValid(step) {\n  if (!step || typeof step !== 'object') return false;\n  if (!step.action || !ALLOWED_ACTIONS.has(step.action)) return false;\n\n  switch (step.action) {\n    case 'launch_app':\n      return typeof step.value === 'string' && step.value.trim().length > 0;\n    case 'click':\n      return Boolean(\n        step.text ||\n          step.contains ||\n          step.desc ||\n          (typeof step.x === 'number' && typeof step.y === 'number')\n      );\n    case 'type':\n      return typeof step.text === 'string' && step.text.trim().length > 0;\n    case 'press':\n      return ['enter', 'back', 'home', 'menu'].includes(String(step.key || '').toLowerCase());\n    case 'wait':\n      return Number(step.ms) >= 0;\n    case 'toast':\n      return true;\n    case 'swipe':\n      return (\n        typeof step.x1 === 'number' &&\n        typeof step.y1 === 'number' &&\n        typeof step.x2 === 'number' &&\n        typeof step.y2 === 'number'\n      );\n    case 'verify':\n      return true;\n    case 'open_url':\n      return typeof step.value === 'string' && step.value.trim().length > 0;\n    default:\n      return false;\n  }\n}\n\nfunction sanitizeSteps(rawSteps) {\n  if (!Array.isArray(rawSteps)) return [];\n\n  const out = [];\n  for (let i = 0; i < rawSteps.length; i++) {\n    const original = rawSteps[i];\n    if (!original || typeof original !== 'object' || !original.action) continue;\n    if (!ALLOWED_ACTIONS.has(original.action)) continue;\n\n    const step = JSON.parse(JSON.stringify(original));\n\n    if (step.action === 'launch_app') {\n      const normalized = normalizeLaunchValue(step.value);\n      if (!normalized) continue;\n      step.value = normalized;\n    }\n\n    if (step.action === 'wait') {\n      const ms = Number(step.ms);\n      step.ms = Number.isFinite(ms) && ms >= 0 ? ms : 1000;\n    }\n\n    if (step.action === 'type') {\n      step.text = String(step.text || step.value || '').trim();\n      if (!step.text) continue;\n    }\n\n    if (step.action === 'press') {\n      step.key = String(step.key || '').toLowerCase();\n      if (!['enter', 'back', 'home', 'menu'].includes(step.key)) continue;\n    }\n\n    if (step.action === 'verify') {\n      if (!step.contains && !step.text && !step.desc && !step.package) continue;\n    }\n\n    if (!isStepValid(step)) continue;\n\n    out.push(step);\n\n    if (step.action === 'launch_app') {\n      const next = rawSteps[i + 1];\n      if (!next || next.action !== 'wait') {\n        out.push({ action: 'wait', ms: 4000 });\n      }\n    }\n  }\n\n  return out.slice(0, 20);\n}\n\nfunction buildTemplateSteps(userText) {\n  const text = String(userText || '');\n  const lower = text.toLowerCase();\n\n  const app = findAppCanonical(lower);\n  const query = extractSearchQuery(text);\n  const wantsSearch = /\\b(search|find|look for|browse)\\b/.test(lower);\n  const wantsFirstResult = /\\b(first|first one|watch|video|result|open the first)\\b/.test(lower);\n  const wantsLaunch = /\\b(open|launch|start|go to)\\b/.test(lower);\n\n  if (app && wantsLaunch && !wantsSearch) {\n    return sanitizeSteps([\n      { action: 'launch_app', value: app },\n      { action: 'wait', ms: 4000 },\n      { action: 'verify', package: app },\n    ]);\n  }\n\n  if (wantsSearch) {\n    const targetApp = app === 'youtube' ? 'youtube' : 'chrome';\n    const clickStep =\n      targetApp === 'youtube'\n        ? {\n            action: 'click',\n            text: 'Search',\n            contains: 'Search',\n            desc: 'Search',\n            fallbacks: [{ action: 'click', x: 650, y: 120 }],\n          }\n        : {\n            action: 'click',\n            text: 'Search or type URL',\n            contains: 'Search',\n            desc: 'Search',\n            fallbacks: [{ action: 'click', x: 650, y: 120 }],\n          };\n\n    const steps = [\n      { action: 'launch_app', value: targetApp },\n      { action: 'wait', ms: 4000 },\n      clickStep,\n      { action: 'wait', ms: 1000 },\n      { action: 'type', text: query || cleanQuery(text) || text },\n      { action: 'press', key: 'enter' },\n      { action: 'wait', ms: 4000 },\n    ];\n\n    if (targetApp === 'youtube' && wantsFirstResult) {\n      steps.push({\n        action: 'click',\n        contains: 'views',\n        desc: 'video',\n        x: 360,\n        y: 560,\n      });\n      steps.push({ action: 'wait', ms: 4000 });\n    }\n\n    return sanitizeSteps(steps);\n  }\n\n  if (app) {\n    return sanitizeSteps([\n      { action: 'launch_app', value: app },\n      { action: 'wait', ms: 4000 },\n      { action: 'verify', package: app },\n    ]);\n  }\n\n  return null;\n}\n\nfunction extractJsonArray(text) {\n  const raw = String(text || '').trim();\n  const start = raw.indexOf('[');\n  const end = raw.lastIndexOf(']');\n  if (start === -1 || end === -1 || end < start) return null;\n\n  try {\n    return JSON.parse(raw.slice(start, end + 1));\n  } catch {\n    return null;\n  }\n}\n\nfunction extractJsonObject(text) {\n  const raw = String(text || '').trim();\n  const start = raw.indexOf('{');\n  const end = raw.lastIndexOf('}');\n  if (start === -1 || end === -1 || end < start) return null;\n\n  try {\n    return JSON.parse(raw.slice(start, end + 1));\n  } catch {\n    return null;\n  }\n}\n\nasync function classifyIntent(userMessage) {\n  const quick = quickIntent(userMessage);\n  if (quick) return quick;\n\n  const prompt = `Classify this user message and decide what to do.\n\nUser: \"${userMessage}\"\n\nReturn ONLY JSON with this shape:\n{\n  \"intent\": \"TASK|CHAT|STATUS|HELP\",\n  \"action\": \"launch_app|click|type|search|none|respond\",\n  \"target\": \"app name or search query or none\",\n  \"response\": \"short response if CHAT or HELP\"\n}\n\nRules:\n- If the user wants phone automation, intent must be TASK.\n- If the user is just talking, intent must be CHAT.\n- If they want to check tasks/status, intent must be STATUS.\n- If they want help, intent must be HELP.\n- No markdown.\n- No extra text.`;\n\n  try {\n    const res = await groq.chat.completions.create({\n      model: GROQ_MODEL,\n      messages: [\n        { role: 'system', content: 'You are DWAI Intent Classifier. Output ONLY JSON.' },\n        { role: 'user', content: prompt },\n      ],\n      temperature: 0.1,\n      max_tokens: 250,\n    });\n\n    const content = res.choices?.[0]?.message?.content?.trim() || '';\n    const parsed = extractJsonObject(content);\n    if (parsed && parsed.intent) return parsed;\n  } catch {\n    // ignore\n  }\n\n  return { intent: 'CHAT', action: 'respond', target: null, response: \"I'm here. What would you like to do?\" };\n}\n\nasync function generateTaskSteps(userText) {\n  const template = buildTemplateSteps(userText);\n  if (template && template.length) return template;\n\n  const prompt = `Convert this user request into a JSON array of Android automation steps.\n\nUser request:\n\"${userText}\"\n\nApp labels you may use in launch_app.value:\n${buildAppHintsText()}\n\nAllowed actions:\n- launch_app\n- click\n- type\n- press\n- wait\n- toast\n- swipe\n- verify\n- open_url\n\nRules:\n- Output ONLY a JSON array.\n- Do NOT output package names.\n- Prefer selectors (text, contains, desc) over coordinates.\n- ALWAYS add a wait after launching an app.\n- Keep the sequence short and practical.\n- If a safe plan is not possible, return [].\n\nExamples:\n[\n  {\"action\":\"launch_app\",\"value\":\"chrome\"},\n  {\"action\":\"wait\",\"ms\":4000},\n  {\"action\":\"click\",\"contains\":\"Search\",\"desc\":\"Search\"},\n  {\"action\":\"wait\",\"ms\":1000},\n  {\"action\":\"type\",\"text\":\"AI news\"},\n  {\"action\":\"press\",\"key\":\"enter\"},\n  {\"action\":\"wait\",\"ms\":4000}\n]`;\n\n  try {\n    const res = await groq.chat.completions.create({\n      model: GROQ_MODEL,\n      messages: [\n        { role: 'system', content: 'You are DWAI Task Planner. Output ONLY JSON array.' },\n        { role: 'user', content: prompt },\n      ],\n      temperature: 0.1,\n      max_tokens: 900,\n    });\n\n    const content = res.choices?.[0]?.message?.content?.trim() || '';\n    const parsed = extractJsonArray(content);\n    if (!parsed) return [];\n\n    return sanitizeSteps(parsed);\n  } catch {\n    return [];\n  }\n}\n\nfunction validateSteps(steps) {\n  if (!Array.isArray(steps)) return false;\n  if (steps.length === 0 || steps.length > 20) return false;\n\n  for (const s of steps) {\n    if (!isStepValid(s)) return false;\n    if (s.action === 'launch_app') {\n      const normalized = normalizeLaunchValue(s.value);\n      if (!normalized) return false;\n    }\n  }\n\n  return true;\n}\n\nasync function generateChatResponse(userMessage) {\n  const prompt = `You are DWAI, a helpful assistant that can chat and help control a phone.\n\nUser: \"${userMessage}\"\n\nRespond naturally and briefly.`;\n\n  try {\n    const res = await groq.chat.completions.create({\n      model: GROQ_MODEL,\n      messages: [\n        { role: 'system', content: prompt },\n        { role: 'user', content: userMessage },\n      ],\n      temperature: 0.6,\n      max_tokens: 500,\n    });\n\n    return res.choices?.[0]?.message?.content?.trim() || \"I'm here. What would you like to do?\";\n  } catch {\n    return \"I'm here. What would you like to do?\";\n  }\n}\n\nasync function createTask(taskId, taskData) {\n  const taskPath = `${TASKS_PATH}/${taskId}.json`;\n  const taskUrl = `${GITHUB_API}/${taskPath}`;\n  const contentBase64 = Buffer.from(JSON.stringify(taskData, null, 2)).toString('base64');\n\n  const result = await ghPutJson(taskUrl, {\n    message: `Task ${taskId}`,\n    content: contentBase64,\n    branch: GITHUB_BRANCH,\n  });\n\n  if (!result.ok) {\n    throw new Error(`GitHub create task failed: ${result.statusCode} ${result.body}`);\n  }\n\n  return taskUrl;\n}\n\nasync function writeCurrentTask(pointer) {\n  const url = `${GITHUB_API}/${CURRENT_TASK_PATH}`;\n  const contentBase64 = Buffer.from(JSON.stringify(pointer, null, 2)).toString('base64');\n\n  const existing = await ghGetJson(url);\n\n  const payload = {\n    message: `current task ${pointer.task_id}`,\n    content: contentBase64,\n    branch: GITHUB_BRANCH,\n  };\n\n  if (existing.ok && existing.json && existing.json.sha) {\n    payload.sha = existing.json.sha;\n  }\n\n  const result = await ghPutJson(url, payload);\n\n  if (!result.ok) {\n    throw new Error(`GitHub current_task write failed: ${result.statusCode} ${result.body}`);\n  }\n\n  return result;",
+        "Reply to ChatGPT"
+      ],
+      "ts": "2026-04-07T12:13:34.607Z"
+    },
+    {
+      "package": "com.google.android.inputmethod.latin",
+      "activity": "",
+      "texts": [
+        "require('dotenv').config();\nconst express = require('express');\nconst { Telegraf } = require('telegraf');\nconst Groq = require('groq-sdk');\nconst https = require('https');\nconst { nanoid } = require('nanoid');\n\nconst app = express();\nconst PORT = process.env.PORT || 3000;\n\nconst GROQ_API_KEY = process.env.GROQ_API_KEY;\nconst TELEGRAM_BOT_TOKEN = process.env.TELEGRAM_BOT_TOKEN;\nconst GITHUB_TOKEN = process.env.GITHUB_TOKEN;\nconst GITHUB_REPO = process.env.GITHUB_REPO;\nconst GROQ_MODEL = process.env.GROQ_MODEL || 'qwen/qwen3-32b';\nconst GITHUB_BRANCH = process.env.GITHUB_BRANCH || 'main';\n\nif (!GROQ_API_KEY) throw new Error('GROQ_API_KEY required');\nif (!TELEGRAM_BOT_TOKEN) throw new Error('TELEGRAM_BOT_TOKEN required');\nif (!GITHUB_TOKEN || !GITHUB_REPO) throw new Error('GITHUB_TOKEN and GITHUB_REPO required');\n\nconst groq = new Groq({ apiKey: GROQ_API_KEY });\nconst bot = new Telegraf(TELEGRAM_BOT_TOKEN);\n\napp.use(express.json());\n\nconst GITHUB_API = `https://api.github.com/repos/${GITHUB_REPO}/contents`;\nconst TASKS_PATH = 'data/tasks';\nconst LOGS_PATH = 'data/logs';\nconst ROUTES_PATH = 'data/routes';\nconst CURRENT_TASK_PATH = 'data/current_task.json';\n\nconst APP_REGISTRY = {\n  youtube: { aliases: ['yt', 'you tube'], package: 'com.google.android.youtube' },\n  chrome: { aliases: ['browser', 'google chrome'], package: 'com.android.chrome' },\n  whatsapp: { aliases: ['whatsapp business'], package: 'com.whatsapp' },\n  calculator: { aliases: ['calc'], package: 'com.android.calculator2' },\n  camera: { aliases: [], package: 'com.android.camera2' },\n  photos: { aliases: ['gallery'], package: 'com.google.android.apps.photos' },\n  settings: { aliases: [], package: 'com.android.settings' },\n  phone: { aliases: ['dialer'], package: 'com.android.dialer' },\n  messages: { aliases: ['sms'], package: 'com.android.mms' },\n  gmail: { aliases: [], package: 'com.google.android.gm' },\n  maps: { aliases: ['google maps'], package: 'com.google.android.apps.maps' },\n  spotify: { aliases: [], package: 'com.spotify.music' },\n  facebook: { aliases: [], package: 'com.facebook.katana' },\n  instagram: { aliases: [], package: 'com.instagram.android' },\n  twitter: { aliases: ['x'], package: 'com.twitter.android' },\n  telegram: { aliases: [], package: 'org.telegram.messenger' },\n  signal: { aliases: [], package: 'org.thoughtcrime.securesms' },\n  discord: { aliases: [], package: 'com.discord' },\n  slack: { aliases: [], package: 'com.Slack' },\n  zoom: { aliases: [], package: 'us.zoom.videomeetings' },\n};\n\nconst ALLOWED_ACTIONS = new Set([\n  'launch_app',\n  'click',\n  'type',\n  'press',\n  'wait',\n  'toast',\n  'swipe',\n  'verify',\n  'open_url',\n]);\n\nfunction ghHeaders() {\n  return {\n    Authorization: `Bearer ${GITHUB_TOKEN}`,\n    'Content-Type': 'application/json',\n    'User-Agent': 'DWAI/1.0',\n    Accept: 'application/vnd.github+json',\n    'X-GitHub-Api-Version': '2022-11-28',\n  };\n}\n\nfunction githubRequest(method, url, body) {\n  return new Promise((resolve, reject) => {\n    const req = https.request(\n      url,\n      { method, headers: ghHeaders() },\n      (res) => {\n        let d = '';\n        res.on('data', (c) => {\n          d += c;\n        });\n        res.on('end', () => {\n          resolve({\n            ok: res.statusCode >= 200 && res.statusCode < 300,\n            statusCode: res.statusCode,\n            body: d,\n          });\n        });\n      }\n    );\n\n    req.on('error', reject);\n\n    if (body !== undefined && body !== null) {\n      req.write(typeof body === 'string' ? body : JSON.stringify(body));\n    }\n\n    req.end();\n  });\n}\n\nasync function ghGetJson(url) {\n  const res = await githubRequest('GET', url);\n  let json = null;\n  try {\n    json = res.body ? JSON.parse(res.body) : null;\n  } catch {\n    json = null;\n  }\n  return { ...res, json };\n}\n\nasync function ghPutJson(url, body) {\n  return githubRequest('PUT', url, body);\n}\n\nfunction escapeRegExp(str) {\n  return String(str).replace(/[.*+?^${}()|[\\]\\\\]/g, '\\\\$&');\n}\n\nfunction normalizeLaunchValue(value) {\n  if (value === undefined || value === null) return null;\n  const v = String(value).trim().toLowerCase();\n  if (!v) return null;\n\n  if (APP_REGISTRY[v]) return v;\n\n  for (const [canonical, info] of Object.entries(APP_REGISTRY)) {\n    if (info.package && info.package.toLowerCase() === v) return canonical;\n    if ((info.aliases || []).some((a) => a.toLowerCase() === v)) return canonical;\n  }\n\n  if (v.includes('.')) return v;\n  return null;\n}\n\nfunction findAppCanonical(text) {\n  const lower = String(text || '').toLowerCase();\n  const entries = Object.entries(APP_REGISTRY).sort((a, b) => b[0].length - a[0].length);\n\n  for (const [canonical, info] of entries) {\n    const patterns = [canonical, ...(info.aliases || [])];\n    for (const p of patterns) {\n      const re = new RegExp(`\\\\b${escapeRegExp(p.toLowerCase())}\\\\b`, 'i');\n      if (re.test(lower)) return canonical;\n    }\n  }\n\n  return null;\n}\n\nfunction cleanQuery(q) {\n  return String(q || '')\n    .replace(/^[\"'`]+|[\"'`]+$/g, '')\n    .replace(/^[\\s:,-]*(a|an|the)\\s+/i, '')\n    .replace(/\\s+/g, ' ')\n    .trim();\n}\n\nfunction extractSearchQuery(text) {\n  const input = String(text || '').trim();\n\n  const patterns = [\n    /search(?:\\s+for)?\\s+(.+)$/i,\n    /find(?:\\s+me)?\\s+(.+)$/i,\n    /look(?:\\s+for)?\\s+(.+)$/i,\n    /browse(?:\\s+for)?\\s+(.+)$/i,\n    /play\\s+(.+)$/i,\n    /watch\\s+(.+)$/i,\n  ];\n\n  for (const re of patterns) {\n    const m = input.match(re);\n    if (m && m[1]) {\n      const q = cleanQuery(m[1]);\n      if (q) return q;\n    }\n  }\n\n  return null;\n}\n\nfunction quickIntent(message) {\n  const t = String(message || '').trim().toLowerCase();\n  if (!t) return { intent: 'CHAT' };\n\n  if (/^(hi|hello|hey|yo|good morning|good afternoon|good evening)\\b/.test(t)) {\n    return { intent: 'CHAT' };\n  }\n  if (/\\b(help|commands?)\\b/.test(t)) return { intent: 'HELP' };\n  if (/\\b(status|task status|check task|tasks?|queue)\\b/.test(t)) return { intent: 'STATUS' };\n\n  if (/(open|launch|search|find|look for|go to|start|watch|play|type|click|send|scroll)/.test(t)) {\n    return { intent: 'TASK' };\n  }\n\n  return null;\n}\n\nfunction buildAppHintsText() {\n  return Object.keys(APP_REGISTRY).join(', ');\n}\n\nfunction isStepValid(step) {\n  if (!step || typeof step !== 'object') return false;\n  if (!step.action || !ALLOWED_ACTIONS.has(step.action)) return false;\n\n  switch (step.action) {\n    case 'launch_app':\n      return typeof step.value === 'string' && step.value.trim().length > 0;\n    case 'click':\n      return Boolean(\n        step.text ||\n          step.contains ||\n          step.desc ||\n          (typeof step.x === 'number' && typeof step.y === 'number')\n      );\n    case 'type':\n      return typeof step.text === 'string' && step.text.trim().length > 0;\n    case 'press':\n      return ['enter', 'back', 'home', 'menu'].includes(String(step.key || '').toLowerCase());\n    case 'wait':\n      return Number(step.ms) >= 0;\n    case 'toast':\n      return true;\n    case 'swipe':\n      return (\n        typeof step.x1 === 'number' &&\n        typeof step.y1 === 'number' &&\n        typeof step.x2 === 'number' &&\n        typeof step.y2 === 'number'\n      );\n    case 'verify':\n      return true;\n    case 'open_url':\n      return typeof step.value === 'string' && step.value.trim().length > 0;\n    default:\n      return false;\n  }\n}\n\nfunction sanitizeSteps(rawSteps) {\n  if (!Array.isArray(rawSteps)) return [];\n\n  const out = [];\n  for (let i = 0; i < rawSteps.length; i++) {\n    const original = rawSteps[i];\n    if (!original || typeof original !== 'object' || !original.action) continue;\n    if (!ALLOWED_ACTIONS.has(original.action)) continue;\n\n    const step = JSON.parse(JSON.stringify(original));\n\n    if (step.action === 'launch_app') {\n      const normalized = normalizeLaunchValue(step.value);\n      if (!normalized) continue;\n      step.value = normalized;\n    }\n\n    if (step.action === 'wait') {\n      const ms = Number(step.ms);\n      step.ms = Number.isFinite(ms) && ms >= 0 ? ms : 1000;\n    }\n\n    if (step.action === 'type') {\n      step.text = String(step.text || step.value || '').trim();\n      if (!step.text) continue;\n    }\n\n    if (step.action === 'press') {\n      step.key = String(step.key || '').toLowerCase();\n      if (!['enter', 'back', 'home', 'menu'].includes(step.key)) continue;\n    }\n\n    if (step.action === 'verify') {\n      if (!step.contains && !step.text && !step.desc && !step.package) continue;\n    }\n\n    if (!isStepValid(step)) continue;\n\n    out.push(step);\n\n    if (step.action === 'launch_app') {\n      const next = rawSteps[i + 1];\n      if (!next || next.action !== 'wait') {\n        out.push({ action: 'wait', ms: 4000 });\n      }\n    }\n  }\n\n  return out.slice(0, 20);\n}\n\nfunction buildTemplateSteps(userText) {\n  const text = String(userText || '');\n  const lower = text.toLowerCase();\n\n  const app = findAppCanonical(lower);\n  const query = extractSearchQuery(text);\n  const wantsSearch = /\\b(search|find|look for|browse)\\b/.test(lower);\n  const wantsFirstResult = /\\b(first|first one|watch|video|result|open the first)\\b/.test(lower);\n  const wantsLaunch = /\\b(open|launch|start|go to)\\b/.test(lower);\n\n  if (app && wantsLaunch && !wantsSearch) {\n    return sanitizeSteps([\n      { action: 'launch_app', value: app },\n      { action: 'wait', ms: 4000 },\n      { action: 'verify', package: app },\n    ]);\n  }\n\n  if (wantsSearch) {\n    const targetApp = app === 'youtube' ? 'youtube' : 'chrome';\n    const clickStep =\n      targetApp === 'youtube'\n        ? {\n            action: 'click',\n            text: 'Search',\n            contains: 'Search',\n            desc: 'Search',\n            fallbacks: [{ action: 'click', x: 650, y: 120 }],\n          }\n        : {\n            action: 'click',\n            text: 'Search or type URL',\n            contains: 'Search',\n            desc: 'Search',\n            fallbacks: [{ action: 'click', x: 650, y: 120 }],\n          };\n\n    const steps = [\n      { action: 'launch_app', value: targetApp },\n      { action: 'wait', ms: 4000 },\n      clickStep,\n      { action: 'wait', ms: 1000 },\n      { action: 'type', text: query || cleanQuery(text) || text },\n      { action: 'press', key: 'enter' },\n      { action: 'wait', ms: 4000 },\n    ];\n\n    if (targetApp === 'youtube' && wantsFirstResult) {\n      steps.push({\n        action: 'click',\n        contains: 'views',\n        desc: 'video',\n        x: 360,\n        y: 560,\n      });\n      steps.push({ action: 'wait', ms: 4000 });\n    }\n\n    return sanitizeSteps(steps);\n  }\n\n  if (app) {\n    return sanitizeSteps([\n      { action: 'launch_app', value: app },\n      { action: 'wait', ms: 4000 },\n      { action: 'verify', package: app },\n    ]);\n  }\n\n  return null;\n}\n\nfunction extractJsonArray(text) {\n  const raw = String(text || '').trim();\n  const start = raw.indexOf('[');\n  const end = raw.lastIndexOf(']');\n  if (start === -1 || end === -1 || end < start) return null;\n\n  try {\n    return JSON.parse(raw.slice(start, end + 1));\n  } catch {\n    return null;\n  }\n}\n\nfunction extractJsonObject(text) {\n  const raw = String(text || '').trim();\n  const start = raw.indexOf('{');\n  const end = raw.lastIndexOf('}');\n  if (start === -1 || end === -1 || end < start) return null;\n\n  try {\n    return JSON.parse(raw.slice(start, end + 1));\n  } catch {\n    return null;\n  }\n}\n\nasync function classifyIntent(userMessage) {\n  const quick = quickIntent(userMessage);\n  if (quick) return quick;\n\n  const prompt = `Classify this user message and decide what to do.\n\nUser: \"${userMessage}\"\n\nReturn ONLY JSON with this shape:\n{\n  \"intent\": \"TASK|CHAT|STATUS|HELP\",\n  \"action\": \"launch_app|click|type|search|none|respond\",\n  \"target\": \"app name or search query or none\",\n  \"response\": \"short response if CHAT or HELP\"\n}\n\nRules:\n- If the user wants phone automation, intent must be TASK.\n- If the user is just talking, intent must be CHAT.\n- If they want to check tasks/status, intent must be STATUS.\n- If they want help, intent must be HELP.\n- No markdown.\n- No extra text.`;\n\n  try {\n    const res = await groq.chat.completions.create({\n      model: GROQ_MODEL,\n      messages: [\n        { role: 'system', content: 'You are DWAI Intent Classifier. Output ONLY JSON.' },\n        { role: 'user', content: prompt },\n      ],\n      temperature: 0.1,\n      max_tokens: 250,\n    });\n\n    const content = res.choices?.[0]?.message?.content?.trim() || '';\n    const parsed = extractJsonObject(content);\n    if (parsed && parsed.intent) return parsed;\n  } catch {\n    // ignore\n  }\n\n  return { intent: 'CHAT', action: 'respond', target: null, response: \"I'm here. What would you like to do?\" };\n}\n\nasync function generateTaskSteps(userText) {\n  const template = buildTemplateSteps(userText);\n  if (template && template.length) return template;\n\n  const prompt = `Convert this user request into a JSON array of Android automation steps.\n\nUser request:\n\"${userText}\"\n\nApp labels you may use in launch_app.value:\n${buildAppHintsText()}\n\nAllowed actions:\n- launch_app\n- click\n- type\n- press\n- wait\n- toast\n- swipe\n- verify\n- open_url\n\nRules:\n- Output ONLY a JSON array.\n- Do NOT output package names.\n- Prefer selectors (text, contains, desc) over coordinates.\n- ALWAYS add a wait after launching an app.\n- Keep the sequence short and practical.\n- If a safe plan is not possible, return [].\n\nExamples:\n[\n  {\"action\":\"launch_app\",\"value\":\"chrome\"},\n  {\"action\":\"wait\",\"ms\":4000},\n  {\"action\":\"click\",\"contains\":\"Search\",\"desc\":\"Search\"},\n  {\"action\":\"wait\",\"ms\":1000},\n  {\"action\":\"type\",\"text\":\"AI news\"},\n  {\"action\":\"press\",\"key\":\"enter\"},\n  {\"action\":\"wait\",\"ms\":4000}\n]`;\n\n  try {\n    const res = await groq.chat.completions.create({\n      model: GROQ_MODEL,\n      messages: [\n        { role: 'system', content: 'You are DWAI Task Planner. Output ONLY JSON array.' },\n        { role: 'user', content: prompt },\n      ],\n      temperature: 0.1,\n      max_tokens: 900,\n    });\n\n    const content = res.choices?.[0]?.message?.content?.trim() || '';\n    const parsed = extractJsonArray(content);\n    if (!parsed) return [];\n\n    return sanitizeSteps(parsed);\n  } catch {\n    return [];\n  }\n}\n\nfunction validateSteps(steps) {\n  if (!Array.isArray(steps)) return false;\n  if (steps.length === 0 || steps.length > 20) return false;\n\n  for (const s of steps) {\n    if (!isStepValid(s)) return false;\n    if (s.action === 'launch_app') {\n      const normalized = normalizeLaunchValue(s.value);\n      if (!normalized) return false;\n    }\n  }\n\n  return true;\n}\n\nasync function generateChatResponse(userMessage) {\n  const prompt = `You are DWAI, a helpful assistant that can chat and help control a phone.\n\nUser: \"${userMessage}\"\n\nRespond naturally and briefly.`;\n\n  try {\n    const res = await groq.chat.completions.create({\n      model: GROQ_MODEL,\n      messages: [\n        { role: 'system', content: prompt },\n        { role: 'user', content: userMessage },\n      ],\n      temperature: 0.6,\n      max_tokens: 500,\n    });\n\n    return res.choices?.[0]?.message?.content?.trim() || \"I'm here. What would you like to do?\";\n  } catch {\n    return \"I'm here. What would you like to do?\";\n  }\n}\n\nasync function createTask(taskId, taskData) {\n  const taskPath = `${TASKS_PATH}/${taskId}.json`;\n  const taskUrl = `${GITHUB_API}/${taskPath}`;\n  const contentBase64 = Buffer.from(JSON.stringify(taskData, null, 2)).toString('base64');\n\n  const result = await ghPutJson(taskUrl, {\n    message: `Task ${taskId}`,\n    content: contentBase64,\n    branch: GITHUB_BRANCH,\n  });\n\n  if (!result.ok) {\n    throw new Error(`GitHub create task failed: ${result.statusCode} ${result.body}`);\n  }\n\n  return taskUrl;\n}\n\nasync function writeCurrentTask(pointer) {\n  const url = `${GITHUB_API}/${CURRENT_TASK_PATH}`;\n  const contentBase64 = Buffer.from(JSON.stringify(pointer, null, 2)).toString('base64');\n\n  const existing = await ghGetJson(url);\n\n  const payload = {\n    message: `current task ${pointer.task_id}`,\n    content: contentBase64,\n    branch: GITHUB_BRANCH,\n  };\n\n  if (existing.ok && existing.json && existing.json.sha) {\n    payload.sha = existing.json.sha;\n  }\n\n  const result = await ghPutJson(url, payload);\n\n  if (!result.ok) {\n    throw new Error(`GitHub current_task write failed: ${result.statusCode} ${result.body}`);\n  }\n\n  return result;\n}\n\nasync function getTaskFileById(taskId) {\n  const fileUrl = `${GITHUB_API}/${TASKS_PATH}/${taskId}.json`;\n  const res = await ghGetJson(fileUrl);\n\n  if (!res.ok || !res.json || !res.json.content) {\n    throw new Error(`Task not found: ${taskId}`);\n  }\n\n  const task = JSON.parse(Buffer.from(res.json.content, 'base64').toString('utf8'));\n  return { file: res.json, task, fileUrl };\n}\n\nasync function listTaskSummaries(limit = 15) {\n  const folder = await ghGetJson(`${GITHUB_API}/${TASKS_PATH}`);\n  if (!folder.ok || !Array.isArray(folder.json)) return [];\n\n  const files = folder.json\n    .filter((f) => f.type === 'file' && f.name !== '.gitkeep' && !f.name.endsWith('_log.json'))\n    .slice(0, limit);\n\n  const out = [];\n  for (const file of files) {\n    try {\n      const taskBundle = await getTaskFileById(file.name.replace('.json', ''));\n      const task = taskBundle.task;\n      out.push({\n        id: task.task_id || file.name.replace('.json', ''),\n        status: task.status || 'unknown',\n        intent: task.intent || '',\n      });\n    } catch {\n      out.push({\n        id: file.name.replace('.json', ''),\n        status: 'unknown',\n        intent: '',\n      });\n    }\n  }\n\n  return out;\n}\n\nasync function createTeachTask(goalText) {\n  const parts = String(goalText || '').trim().split(/\\s+/).filter(Boolean);\n  const appGuess = parts[0] ? findAppCanonical(parts[0]) : null;\n\n  const taskId = `teach_${nanoid(8)}`;\n  const task = {\n    task_id: taskId,\n    type: 'teach_start',\n    status: 'pending',\n    intent: goalText || 'teach route',\n    app: appGuess,\n    goal: goalText || 'teach route',\n    created_at: new Date().toISOString(),\n    steps: [],\n    source: 'telegram',\n    planner_version: 'v10',\n  };\n\n  const taskUrl = await createTask(taskId, { ...task, file_url: `${GITHUB_API}/${TASKS_PATH}/${taskId}.json` });\n  await writeCurrentTask({\n    task_id: taskId,\n    type: 'teach_start',\n    status: 'pending',\n    intent: task.intent,\n    app: task.app || null,\n    goal: task.goal,\n    file_url: taskUrl,\n    created_at: task.created_at,\n    source: 'telegram',\n  });\n\n  return taskId;\n}\n\nasync function createStopTeachTask(goalText) {\n  const taskId = `stopteach_${nanoid(8)}`;\n  const task = {\n    task_id: taskId,\n    type: 'teach_stop',\n    status: 'pending',\n    intent: goalText || 'stop teach',\n    goal: goalText || 'teach route',\n    created_at: new Date().toISOString(),\n    steps: [],\n    source: 'telegram',\n    planner_version: 'v10',\n  };\n\n  const taskUrl = await createTask(taskId, { ...task, file_url: `${GITHUB_API}/${TASKS_PATH}/${taskId}.json` });\n  await writeCurrentTask({\n    task_id: taskId,\n    type: 'teach_stop',\n    status: 'pending',\n    intent: task.intent,\n    goal: task.goal,\n    file_url: taskUrl,\n    created_at: task.created_at,\n    source: 'telegram',\n  });\n\n  return taskId;\n}\n\nasync function replyTyping(ctx) {\n  try {\n    await ctx.sendChatAction('typing');\n  } catch {\n    // ignore\n  }\n}\n\nasync function handleSlashCommand(ctx) {\n  const text = ctx.message?.text || '';\n  const parts = text.trim().split(/\\s+/);\n  const cmd = (parts[0] || '').replace(/^\\/+/, '').split('@')[0].toLowerCase();\n  const argText = parts.slice(1).join(' ').trim();\n\n  await replyTyping(ctx);\n\n  if (cmd === 'start') {\n    const apps = Object.keys(APP_REGISTRY).slice(0, 8).join(', ');\n    await ctx.reply(\n      `DWAI Mobile Agent\\n\\nI can queue phone tasks from natural language.\\n\\nExamples:\\nOpen YouTube\\nSearch for AI news\\nOpen Chrome and search for a new bicycle\\n\\nUse /teach <goal> to record a route.\\nUse /stopteach <goal> to stop recording.\\nUse /offteach as an alias for /stopteach.\\n\\nAvailable apps: ${apps}...`\n    );\n    return;\n  }\n\n  if (cmd === 'help') {\n    await ctx.reply(\n      `Commands:\\n/start\\n/help\\n/cmd <task>\\n/teach <goal>\\n/stopteach <goal>\\n/offteach <goal>\\n/status <task_id>\\n/tasks\\n\\nYou can also just type naturally and I will decide whether it is a task or normal chat.`\n    );\n    return;\n  }\n\n  if (cmd === 'teach') {\n    if (!argText) {\n      await ctx.reply('Usage: /teach youtube search');\n      return;\n    }\n\n    try {\n      const taskId = await createTeachTask(argText);\n      await ctx.reply(`Teach mode queued: ${taskId}\\nGoal: ${argText}`);\n    } catch (e) {\n      await ctx.reply(`Failed to queue teach task: ${e.message}`);\n    }\n    return;\n  }\n\n  if (cmd === 'stopteach' || cmd === 'offteach') {\n    if (!",
+        "Reply to ChatGPT"
+      ],
+      "ts": "2026-04-07T12:13:39.607Z"
+    },
+    {
+      "package": "com.google.android.inputmethod.latin",
+      "activity": "",
+      "texts": [
+        "require('dotenv').config();\nconst express = require('express');\nconst { Telegraf } = require('telegraf');\nconst Groq = require('groq-sdk');\nconst https = require('https');\nconst { nanoid } = require('nanoid');\n\nconst app = express();\nconst PORT = process.env.PORT || 3000;\n\nconst GROQ_API_KEY = process.env.GROQ_API_KEY;\nconst TELEGRAM_BOT_TOKEN = process.env.TELEGRAM_BOT_TOKEN;\nconst GITHUB_TOKEN = process.env.GITHUB_TOKEN;\nconst GITHUB_REPO = process.env.GITHUB_REPO;\nconst GROQ_MODEL = process.env.GROQ_MODEL || 'qwen/qwen3-32b';\nconst GITHUB_BRANCH = process.env.GITHUB_BRANCH || 'main';\n\nif (!GROQ_API_KEY) throw new Error('GROQ_API_KEY required');\nif (!TELEGRAM_BOT_TOKEN) throw new Error('TELEGRAM_BOT_TOKEN required');\nif (!GITHUB_TOKEN || !GITHUB_REPO) throw new Error('GITHUB_TOKEN and GITHUB_REPO required');\n\nconst groq = new Groq({ apiKey: GROQ_API_KEY });\nconst bot = new Telegraf(TELEGRAM_BOT_TOKEN);\n\napp.use(express.json());\n\nconst GITHUB_API = `https://api.github.com/repos/${GITHUB_REPO}/contents`;\nconst TASKS_PATH = 'data/tasks';\nconst LOGS_PATH = 'data/logs';\nconst ROUTES_PATH = 'data/routes';\nconst CURRENT_TASK_PATH = 'data/current_task.json';\n\nconst APP_REGISTRY = {\n  youtube: { aliases: ['yt', 'you tube'], package: 'com.google.android.youtube' },\n  chrome: { aliases: ['browser', 'google chrome'], package: 'com.android.chrome' },\n  whatsapp: { aliases: ['whatsapp business'], package: 'com.whatsapp' },\n  calculator: { aliases: ['calc'], package: 'com.android.calculator2' },\n  camera: { aliases: [], package: 'com.android.camera2' },\n  photos: { aliases: ['gallery'], package: 'com.google.android.apps.photos' },\n  settings: { aliases: [], package: 'com.android.settings' },\n  phone: { aliases: ['dialer'], package: 'com.android.dialer' },\n  messages: { aliases: ['sms'], package: 'com.android.mms' },\n  gmail: { aliases: [], package: 'com.google.android.gm' },\n  maps: { aliases: ['google maps'], package: 'com.google.android.apps.maps' },\n  spotify: { aliases: [], package: 'com.spotify.music' },\n  facebook: { aliases: [], package: 'com.facebook.katana' },\n  instagram: { aliases: [], package: 'com.instagram.android' },\n  twitter: { aliases: ['x'], package: 'com.twitter.android' },\n  telegram: { aliases: [], package: 'org.telegram.messenger' },\n  signal: { aliases: [], package: 'org.thoughtcrime.securesms' },\n  discord: { aliases: [], package: 'com.discord' },\n  slack: { aliases: [], package: 'com.Slack' },\n  zoom: { aliases: [], package: 'us.zoom.videomeetings' },\n};\n\nconst ALLOWED_ACTIONS = new Set([\n  'launch_app',\n  'click',\n  'type',\n  'press',\n  'wait',\n  'toast',\n  'swipe',\n  'verify',\n  'open_url',\n]);\n\nfunction ghHeaders() {\n  return {\n    Authorization: `Bearer ${GITHUB_TOKEN}`,\n    'Content-Type': 'application/json',\n    'User-Agent': 'DWAI/1.0',\n    Accept: 'application/vnd.github+json',\n    'X-GitHub-Api-Version': '2022-11-28',\n  };\n}\n\nfunction githubRequest(method, url, body) {\n  return new Promise((resolve, reject) => {\n    const req = https.request(\n      url,\n      { method, headers: ghHeaders() },\n      (res) => {\n        let d = '';\n        res.on('data', (c) => {\n          d += c;\n        });\n        res.on('end', () => {\n          resolve({\n            ok: res.statusCode >= 200 && res.statusCode < 300,\n            statusCode: res.statusCode,\n            body: d,\n          });\n        });\n      }\n    );\n\n    req.on('error', reject);\n\n    if (body !== undefined && body !== null) {\n      req.write(typeof body === 'string' ? body : JSON.stringify(body));\n    }\n\n    req.end();\n  });\n}\n\nasync function ghGetJson(url) {\n  const res = await githubRequest('GET', url);\n  let json = null;\n  try {\n    json = res.body ? JSON.parse(res.body) : null;\n  } catch {\n    json = null;\n  }\n  return { ...res, json };\n}\n\nasync function ghPutJson(url, body) {\n  return githubRequest('PUT', url, body);\n}\n\nfunction escapeRegExp(str) {\n  return String(str).replace(/[.*+?^${}()|[\\]\\\\]/g, '\\\\$&');\n}\n\nfunction normalizeLaunchValue(value) {\n  if (value === undefined || value === null) return null;\n  const v = String(value).trim().toLowerCase();\n  if (!v) return null;\n\n  if (APP_REGISTRY[v]) return v;\n\n  for (const [canonical, info] of Object.entries(APP_REGISTRY)) {\n    if (info.package && info.package.toLowerCase() === v) return canonical;\n    if ((info.aliases || []).some((a) => a.toLowerCase() === v)) return canonical;\n  }\n\n  if (v.includes('.')) return v;\n  return null;\n}\n\nfunction findAppCanonical(text) {\n  const lower = String(text || '').toLowerCase();\n  const entries = Object.entries(APP_REGISTRY).sort((a, b) => b[0].length - a[0].length);\n\n  for (const [canonical, info] of entries) {\n    const patterns = [canonical, ...(info.aliases || [])];\n    for (const p of patterns) {\n      const re = new RegExp(`\\\\b${escapeRegExp(p.toLowerCase())}\\\\b`, 'i');\n      if (re.test(lower)) return canonical;\n    }\n  }\n\n  return null;\n}\n\nfunction cleanQuery(q) {\n  return String(q || '')\n    .replace(/^[\"'`]+|[\"'`]+$/g, '')\n    .replace(/^[\\s:,-]*(a|an|the)\\s+/i, '')\n    .replace(/\\s+/g, ' ')\n    .trim();\n}\n\nfunction extractSearchQuery(text) {\n  const input = String(text || '').trim();\n\n  const patterns = [\n    /search(?:\\s+for)?\\s+(.+)$/i,\n    /find(?:\\s+me)?\\s+(.+)$/i,\n    /look(?:\\s+for)?\\s+(.+)$/i,\n    /browse(?:\\s+for)?\\s+(.+)$/i,\n    /play\\s+(.+)$/i,\n    /watch\\s+(.+)$/i,\n  ];\n\n  for (const re of patterns) {\n    const m = input.match(re);\n    if (m && m[1]) {\n      const q = cleanQuery(m[1]);\n      if (q) return q;\n    }\n  }\n\n  return null;\n}\n\nfunction quickIntent(message) {\n  const t = String(message || '').trim().toLowerCase();\n  if (!t) return { intent: 'CHAT' };\n\n  if (/^(hi|hello|hey|yo|good morning|good afternoon|good evening)\\b/.test(t)) {\n    return { intent: 'CHAT' };\n  }\n  if (/\\b(help|commands?)\\b/.test(t)) return { intent: 'HELP' };\n  if (/\\b(status|task status|check task|tasks?|queue)\\b/.test(t)) return { intent: 'STATUS' };\n\n  if (/(open|launch|search|find|look for|go to|start|watch|play|type|click|send|scroll)/.test(t)) {\n    return { intent: 'TASK' };\n  }\n\n  return null;\n}\n\nfunction buildAppHintsText() {\n  return Object.keys(APP_REGISTRY).join(', ');\n}\n\nfunction isStepValid(step) {\n  if (!step || typeof step !== 'object') return false;\n  if (!step.action || !ALLOWED_ACTIONS.has(step.action)) return false;\n\n  switch (step.action) {\n    case 'launch_app':\n      return typeof step.value === 'string' && step.value.trim().length > 0;\n    case 'click':\n      return Boolean(\n        step.text ||\n          step.contains ||\n          step.desc ||\n          (typeof step.x === 'number' && typeof step.y === 'number')\n      );\n    case 'type':\n      return typeof step.text === 'string' && step.text.trim().length > 0;\n    case 'press':\n      return ['enter', 'back', 'home', 'menu'].includes(String(step.key || '').toLowerCase());\n    case 'wait':\n      return Number(step.ms) >= 0;\n    case 'toast':\n      return true;\n    case 'swipe':\n      return (\n        typeof step.x1 === 'number' &&\n        typeof step.y1 === 'number' &&\n        typeof step.x2 === 'number' &&\n        typeof step.y2 === 'number'\n      );\n    case 'verify':\n      return true;\n    case 'open_url':\n      return typeof step.value === 'string' && step.value.trim().length > 0;\n    default:\n      return false;\n  }\n}\n\nfunction sanitizeSteps(rawSteps) {\n  if (!Array.isArray(rawSteps)) return [];\n\n  const out = [];\n  for (let i = 0; i < rawSteps.length; i++) {\n    const original = rawSteps[i];\n    if (!original || typeof original !== 'object' || !original.action) continue;\n    if (!ALLOWED_ACTIONS.has(original.action)) continue;\n\n    const step = JSON.parse(JSON.stringify(original));\n\n    if (step.action === 'launch_app') {\n      const normalized = normalizeLaunchValue(step.value);\n      if (!normalized) continue;\n      step.value = normalized;\n    }\n\n    if (step.action === 'wait') {\n      const ms = Number(step.ms);\n      step.ms = Number.isFinite(ms) && ms >= 0 ? ms : 1000;\n    }\n\n    if (step.action === 'type') {\n      step.text = String(step.text || step.value || '').trim();\n      if (!step.text) continue;\n    }\n\n    if (step.action === 'press') {\n      step.key = String(step.key || '').toLowerCase();\n      if (!['enter', 'back', 'home', 'menu'].includes(step.key)) continue;\n    }\n\n    if (step.action === 'verify') {\n      if (!step.contains && !step.text && !step.desc && !step.package) continue;\n    }\n\n    if (!isStepValid(step)) continue;\n\n    out.push(step);\n\n    if (step.action === 'launch_app') {\n      const next = rawSteps[i + 1];\n      if (!next || next.action !== 'wait') {\n        out.push({ action: 'wait', ms: 4000 });\n      }\n    }\n  }\n\n  return out.slice(0, 20);\n}\n\nfunction buildTemplateSteps(userText) {\n  const text = String(userText || '');\n  const lower = text.toLowerCase();\n\n  const app = findAppCanonical(lower);\n  const query = extractSearchQuery(text);\n  const wantsSearch = /\\b(search|find|look for|browse)\\b/.test(lower);\n  const wantsFirstResult = /\\b(first|first one|watch|video|result|open the first)\\b/.test(lower);\n  const wantsLaunch = /\\b(open|launch|start|go to)\\b/.test(lower);\n\n  if (app && wantsLaunch && !wantsSearch) {\n    return sanitizeSteps([\n      { action: 'launch_app', value: app },\n      { action: 'wait', ms: 4000 },\n      { action: 'verify', package: app },\n    ]);\n  }\n\n  if (wantsSearch) {\n    const targetApp = app === 'youtube' ? 'youtube' : 'chrome';\n    const clickStep =\n      targetApp === 'youtube'\n        ? {\n            action: 'click',\n            text: 'Search',\n            contains: 'Search',\n            desc: 'Search',\n            fallbacks: [{ action: 'click', x: 650, y: 120 }],\n          }\n        : {\n            action: 'click',\n            text: 'Search or type URL',\n            contains: 'Search',\n            desc: 'Search',\n            fallbacks: [{ action: 'click', x: 650, y: 120 }],\n          };\n\n    const steps = [\n      { action: 'launch_app', value: targetApp },\n      { action: 'wait', ms: 4000 },\n      clickStep,\n      { action: 'wait', ms: 1000 },\n      { action: 'type', text: query || cleanQuery(text) || text },\n      { action: 'press', key: 'enter' },\n      { action: 'wait', ms: 4000 },\n    ];\n\n    if (targetApp === 'youtube' && wantsFirstResult) {\n      steps.push({\n        action: 'click',\n        contains: 'views',\n        desc: 'video',\n        x: 360,\n        y: 560,\n      });\n      steps.push({ action: 'wait', ms: 4000 });\n    }\n\n    return sanitizeSteps(steps);\n  }\n\n  if (app) {\n    return sanitizeSteps([\n      { action: 'launch_app', value: app },\n      { action: 'wait', ms: 4000 },\n      { action: 'verify', package: app },\n    ]);\n  }\n\n  return null;\n}\n\nfunction extractJsonArray(text) {\n  const raw = String(text || '').trim();\n  const start = raw.indexOf('[');\n  const end = raw.lastIndexOf(']');\n  if (start === -1 || end === -1 || end < start) return null;\n\n  try {\n    return JSON.parse(raw.slice(start, end + 1));\n  } catch {\n    return null;\n  }\n}\n\nfunction extractJsonObject(text) {\n  const raw = String(text || '').trim();\n  const start = raw.indexOf('{');\n  const end = raw.lastIndexOf('}');\n  if (start === -1 || end === -1 || end < start) return null;\n\n  try {\n    return JSON.parse(raw.slice(start, end + 1));\n  } catch {\n    return null;\n  }\n}\n\nasync function classifyIntent(userMessage) {\n  const quick = quickIntent(userMessage);\n  if (quick) return quick;\n\n  const prompt = `Classify this user message and decide what to do.\n\nUser: \"${userMessage}\"\n\nReturn ONLY JSON with this shape:\n{\n  \"intent\": \"TASK|CHAT|STATUS|HELP\",\n  \"action\": \"launch_app|click|type|search|none|respond\",\n  \"target\": \"app name or search query or none\",\n  \"response\": \"short response if CHAT or HELP\"\n}\n\nRules:\n- If the user wants phone automation, intent must be TASK.\n- If the user is just talking, intent must be CHAT.\n- If they want to check tasks/status, intent must be STATUS.\n- If they want help, intent must be HELP.\n- No markdown.\n- No extra text.`;\n\n  try {\n    const res = await groq.chat.completions.create({\n      model: GROQ_MODEL,\n      messages: [\n        { role: 'system', content: 'You are DWAI Intent Classifier. Output ONLY JSON.' },\n        { role: 'user', content: prompt },\n      ],\n      temperature: 0.1,\n      max_tokens: 250,\n    });\n\n    const content = res.choices?.[0]?.message?.content?.trim() || '';\n    const parsed = extractJsonObject(content);\n    if (parsed && parsed.intent) return parsed;\n  } catch {\n    // ignore\n  }\n\n  return { intent: 'CHAT', action: 'respond', target: null, response: \"I'm here. What would you like to do?\" };\n}\n\nasync function generateTaskSteps(userText) {\n  const template = buildTemplateSteps(userText);\n  if (template && template.length) return template;\n\n  const prompt = `Convert this user request into a JSON array of Android automation steps.\n\nUser request:\n\"${userText}\"\n\nApp labels you may use in launch_app.value:\n${buildAppHintsText()}\n\nAllowed actions:\n- launch_app\n- click\n- type\n- press\n- wait\n- toast\n- swipe\n- verify\n- open_url\n\nRules:\n- Output ONLY a JSON array.\n- Do NOT output package names.\n- Prefer selectors (text, contains, desc) over coordinates.\n- ALWAYS add a wait after launching an app.\n- Keep the sequence short and practical.\n- If a safe plan is not possible, return [].\n\nExamples:\n[\n  {\"action\":\"launch_app\",\"value\":\"chrome\"},\n  {\"action\":\"wait\",\"ms\":4000},\n  {\"action\":\"click\",\"contains\":\"Search\",\"desc\":\"Search\"},\n  {\"action\":\"wait\",\"ms\":1000},\n  {\"action\":\"type\",\"text\":\"AI news\"},\n  {\"action\":\"press\",\"key\":\"enter\"},\n  {\"action\":\"wait\",\"ms\":4000}\n]`;\n\n  try {\n    const res = await groq.chat.completions.create({\n      model: GROQ_MODEL,\n      messages: [\n        { role: 'system', content: 'You are DWAI Task Planner. Output ONLY JSON array.' },\n        { role: 'user', content: prompt },\n      ],\n      temperature: 0.1,\n      max_tokens: 900,\n    });\n\n    const content = res.choices?.[0]?.message?.content?.trim() || '';\n    const parsed = extractJsonArray(content);\n    if (!parsed) return [];\n\n    return sanitizeSteps(parsed);\n  } catch {\n    return [];\n  }\n}\n\nfunction validateSteps(steps) {\n  if (!Array.isArray(steps)) return false;\n  if (steps.length === 0 || steps.length > 20) return false;\n\n  for (const s of steps) {\n    if (!isStepValid(s)) return false;\n    if (s.action === 'launch_app') {\n      const normalized = normalizeLaunchValue(s.value);\n      if (!normalized) return false;\n    }\n  }\n\n  return true;\n}\n\nasync function generateChatResponse(userMessage) {\n  const prompt = `You are DWAI, a helpful assistant that can chat and help control a phone.\n\nUser: \"${userMessage}\"\n\nRespond naturally and briefly.`;\n\n  try {\n    const res = await groq.chat.completions.create({\n      model: GROQ_MODEL,\n      messages: [\n        { role: 'system', content: prompt },\n        { role: 'user', content: userMessage },\n      ],\n      temperature: 0.6,\n      max_tokens: 500,\n    });\n\n    return res.choices?.[0]?.message?.content?.trim() || \"I'm here. What would you like to do?\";\n  } catch {\n    return \"I'm here. What would you like to do?\";\n  }\n}\n\nasync function createTask(taskId, taskData) {\n  const taskPath = `${TASKS_PATH}/${taskId}.json`;\n  const taskUrl = `${GITHUB_API}/${taskPath}`;\n  const contentBase64 = Buffer.from(JSON.stringify(taskData, null, 2)).toString('base64');\n\n  const result = await ghPutJson(taskUrl, {\n    message: `Task ${taskId}`,\n    content: contentBase64,\n    branch: GITHUB_BRANCH,\n  });\n\n  if (!result.ok) {\n    throw new Error(`GitHub create task failed: ${result.statusCode} ${result.body}`);\n  }\n\n  return taskUrl;\n}\n\nasync function writeCurrentTask(pointer) {\n  const url = `${GITHUB_API}/${CURRENT_TASK_PATH}`;\n  const contentBase64 = Buffer.from(JSON.stringify(pointer, null, 2)).toString('base64');\n\n  const existing = await ghGetJson(url);\n\n  const payload = {\n    message: `current task ${pointer.task_id}`,\n    content: contentBase64,\n    branch: GITHUB_BRANCH,\n  };\n\n  if (existing.ok && existing.json && existing.json.sha) {\n    payload.sha = existing.json.sha;\n  }\n\n  const result = await ghPutJson(url, payload);\n\n  if (!result.ok) {\n    throw new Error(`GitHub current_task write failed: ${result.statusCode} ${result.body}`);\n  }\n\n  return result;\n}\n\nasync function getTaskFileById(taskId) {\n  const fileUrl = `${GITHUB_API}/${TASKS_PATH}/${taskId}.json`;\n  const res = await ghGetJson(fileUrl);\n\n  if (!res.ok || !res.json || !res.json.content) {\n    throw new Error(`Task not found: ${taskId}`);\n  }\n\n  const task = JSON.parse(Buffer.from(res.json.content, 'base64').toString('utf8'));\n  return { file: res.json, task, fileUrl };\n}\n\nasync function listTaskSummaries(limit = 15) {\n  const folder = await ghGetJson(`${GITHUB_API}/${TASKS_PATH}`);\n  if (!folder.ok || !Array.isArray(folder.json)) return [];\n\n  const files = folder.json\n    .filter((f) => f.type === 'file' && f.name !== '.gitkeep' && !f.name.endsWith('_log.json'))\n    .slice(0, limit);\n\n  const out = [];\n  for (const file of files) {\n    try {\n      const taskBundle = await getTaskFileById(file.name.replace('.json', ''));\n      const task = taskBundle.task;\n      out.push({\n        id: task.task_id || file.name.replace('.json', ''),\n        status: task.status || 'unknown',\n        intent: task.intent || '',\n      });\n    } catch {\n      out.push({\n        id: file.name.replace('.json', ''),\n        status: 'unknown',\n        intent: '',\n      });\n    }\n  }\n\n  return out;\n}\n\nasync function createTeachTask(goalText) {\n  const parts = String(goalText || '').trim().split(/\\s+/).filter(Boolean);\n  const appGuess = parts[0] ? findAppCanonical(parts[0]) : null;\n\n  const taskId = `teach_${nanoid(8)}`;\n  const task = {\n    task_id: taskId,\n    type: 'teach_start',\n    status: 'pending',\n    intent: goalText || 'teach route',\n    app: appGuess,\n    goal: goalText || 'teach route',\n    created_at: new Date().toISOString(),\n    steps: [],\n    source: 'telegram',\n    planner_version: 'v10',\n  };\n\n  const taskUrl = await createTask(taskId, { ...task, file_url: `${GITHUB_API}/${TASKS_PATH}/${taskId}.json` });\n  await writeCurrentTask({\n    task_id: taskId,\n    type: 'teach_start',\n    status: 'pending',\n    intent: task.intent,\n    app: task.app || null,\n    goal: task.goal,\n    file_url: taskUrl,\n    created_at: task.created_at,\n    source: 'telegram',\n  });\n\n  return taskId;\n}\n\nasync function createStopTeachTask(goalText) {\n  const taskId = `stopteach_${nanoid(8)}`;\n  const task = {\n    task_id: taskId,\n    type: 'teach_stop',\n    status: 'pending',\n    intent: goalText || 'stop teach',\n    goal: goalText || 'teach route',\n    created_at: new Date().toISOString(),\n    steps: [],\n    source: 'telegram',\n    planner_version: 'v10',\n  };\n\n  const taskUrl = await createTask(taskId, { ...task, file_url: `${GITHUB_API}/${TASKS_PATH}/${taskId}.json` });\n  await writeCurrentTask({\n    task_id: taskId,\n    type: 'teach_stop',\n    status: 'pending',\n    intent: task.intent,\n    goal: task.goal,\n    file_url: taskUrl,\n    created_at: task.created_at,\n    source: 'telegram',\n  });\n\n  return taskId;\n}\n\nasync function replyTyping(ctx) {\n  try {\n    await ctx.sendChatAction('typing');\n  } catch {\n    // ignore\n  }\n}\n\nasync function handleSlashCommand(ctx) {\n  const text = ctx.message?.text || '';\n  const parts = text.trim().split(/\\s+/);\n  const cmd = (parts[0] || '').replace(/^\\/+/, '').split('@')[0].toLowerCase();\n  const argText = parts.slice(1).join(' ').trim();\n\n  await replyTyping(ctx);\n\n  if (cmd === 'start') {\n    const apps = Object.keys(APP_REGISTRY).slice(0, 8).join(', ');\n    await ctx.reply(\n      `DWAI Mobile Agent\\n\\nI can queue phone tasks from natural language.\\n\\nExamples:\\nOpen YouTube\\nSearch for AI news\\nOpen Chrome and search for a new bicycle\\n\\nUse /teach <goal> to record a route.\\nUse /stopteach <goal> to stop recording.\\nUse /offteach as an alias for /stopteach.\\n\\nAvailable apps: ${apps}...`\n    );\n    return;\n  }\n\n  if (cmd === 'help') {\n    await ctx.reply(\n      `Commands:\\n/start\\n/help\\n/cmd <task>\\n/teach <goal>\\n/stopteach <goal>\\n/offteach <goal>\\n/status <task_id>\\n/tasks\\n\\nYou can also just type naturally and I will decide whether it is a task or normal chat.`\n    );\n    return;\n  }\n\n  if (cmd === 'teach') {\n    if (!argText) {\n      await ctx.reply('Usage: /teach youtube search');\n      return;\n    }\n\n    try {\n      const taskId = await createTeachTask(argText);\n      await ctx.reply(`Teach mode queued: ${taskId}\\nGoal: ${argText}`);\n    } catch (e) {\n      await ctx.reply(`Failed to queue teach task: ${e.message}`);\n    }\n    return;\n  }\n\n  if (cmd === 'stopteach' || cmd === 'offteach') {\n    if (!argText) {\n      await ctx.reply('Usage: /stopteach youtube search');\n      return;\n    }\n\n    try {\n      const taskId = await createStopTeachTask(argText);\n      await ctx.reply(`Stop-teach queued: ${taskId}\\nGoal: ${argText}`);\n    } catch (e) {\n      await ctx.reply(`Failed to queue stop-teach task: ${e.message}`);\n    }\n    return;\n  }\n\n  if (cmd === 'cmd') {\n    if (!argText) {\n      await ctx.reply('Usage: /cmd open YouTube');\n      return;\n    }\n\n    await ctx.reply('Task planning started...');\n    const steps = await generateTaskSteps(argText);\n\n    if (!validateSteps(steps)) {\n      await ctx.reply('Could not build a safe task for that request.');\n      return;\n    }\n\n    const taskId = nanoid(8);\n    const task = {\n      task_id: taskId,\n      status: 'pending',\n      intent: argText,\n      type: 'automation',\n      created_at: new Date().toISOString(),\n      steps,\n      source: 'telegram',\n      planner_version: 'v10',\n    };\n\n    try {\n      const taskUrl = await createTask(taskId, { ...task, file_url: `${GITHUB_API}/${TASKS_PATH}/${taskId}.json` });\n      await writeCurrentTask({\n        task_id: taskId,\n        type: 'automation',\n        status: 'pending',\n        intent: argText,\n        file_url: taskUrl,\n        created_at: task.created_at,\n        source: 'telegram',\n      });\n\n      await ctx.reply(\n        `Task queued: ${taskId}\\nSteps: ${steps.length}\\nPreview:\\n${JSON.stringify(steps.slice(0, 4), null, 2)}`\n      );\n    } catch (e) {\n      await ctx.reply(`Failed to save task: ${e.message}`);\n    }\n\n    return;\n  }\n\n  if (cmd === 'status') {\n    if (!argText) {\n      await ctx.reply('Usage: /status <task_id>');\n      return;\n    }\n\n    try {\n      const bundle = await getTaskFileById(argText);\n      const task = bundle.task;\n      const icon = task.status === 'completed' ? '✅' : task.status === 'failed' ? '❌' : '⏳';\n      await ctx.reply(\n        `${icon} ${task.task_id}\\nStatus: ${task.status}\\nCreated: ${task.created_at || 'unknown'}\\n${task.error ? `Error: ${task.error}` : ''}`\n      );\n    } catch {\n      await ctx.reply(`Task not found: ${argText}`);\n    }\n\n    return;\n  }\n\n  if (cmd === 'tasks') {\n    try {\n      const summaries = await listTaskSummaries(15);\n      if (!summaries.length) {\n        await ctx.reply('No tasks found.');\n        return;\n      }\n\n      const lines = summaries.map((t) => `• ${t.id} — ${t.status}${t.intent ? ` — ${t.intent}` : ''}`);\n      await ctx.reply(`Tasks:\\n${lines.join('\\n')}`);\n    } catch {\n      await ctx.reply('Could not fetch tasks.');\n    }\n\n    return;\n  }\n\n  await ctx.reply('Unknown command. Try /help');\n}\n\nasync function handleNaturalMessage(ctx) {\n  const text = ctx.message?.text;\n  if (!text || text.startsWith('/')) return;\n\n  await replyTyping(ctx);\n\n  try {\n    const classification = await classifyIntent(text);\n\n    if (classification.intent === 'STATUS') {\n      const summaries = await listTaskSummaries(10);\n      if (!summaries.length) {\n        await ctx.reply('No tasks found.');\n      } else {\n        const lines = summaries.map((t) => `• ${t.id} — ${t.status}${t.intent ? ` — ${t.intent}` : ''}`);\n        await ctx.reply(`Tasks:\\n${lines.join('\\n')}`);\n      }\n      return;\n    }\n\n    if (classification.intent === 'HELP') {\n      await ctx.reply(\n        `I can help you create phone tasks, check task status, and chat.\\nTry:\\nOpen YouTube\\nSearch for AI news\\nCheck tasks\\nTeach me YouTube search`\n      );\n      return;\n    }\n\n    if (classification.intent === 'TASK') {\n      const steps = await generateTaskSteps(text);\n\n      if (!validateSteps(steps)) {\n        await ctx.reply('I could not build a safe task for that request.');\n        return;\n      }\n\n      const taskId = nanoid(8);\n      const task = {\n        task_id: taskId,\n        status: 'pending',\n        intent: text,\n        type: 'automation',\n        created_at: new Date().toISOString(),\n        steps,\n        source: 'telegram',\n        planner_version: 'v10',\n      };\n\n      const taskUrl = await createTask(taskId, { ...task, file_url: `${GITHUB_API}/${TASKS_PATH}/${taskId}.json` });\n      await writeCurrentTask({\n        task_id: taskId,\n        type: 'automation',\n        status: 'pending',\n        intent: text,\n        file_url: taskUrl,\n        created_at: task.created_at,\n        source: 'telegram',\n      });\n\n      await ctx.reply(\n        `Task queued: ${taskId}\\nSteps: ${steps.length}\\nPreview:\\n${JSON.stringify(steps.slice(0, 4), null, 2)}`\n      );\n      return;\n    }\n\n    const response = await generateChatResponse(text);\n    await ctx.reply(response);\n  } catch (e) {\n    console.error(e);\n    const response = await generateChatResponse(text);\n    await ctx.reply(response);\n  }\n}\n\nbot.hears(/^\\/(start|help|cmd|status|tasks|teach|stopteach|offteach)\\b/i, handleSlashCommand);\nbot.on('text', handleNaturalMessage);\n\nbot.catch((err) => {\n  console.error('BOT ERROR:', err);\n});\n\napp.get('/health', async (_, res) => {\n  res.json({\n    status: 'ok',\n    apps: Object.keys(APP_REGISTRY).length,\n    model: GROQ_MODEL,\n  });\n});\n\napp.listen(PORT, () => {\n  console.log(`DWAI main server listening on ${PORT}`);\n  bot.launch().then(() => {\n    console.log('Telegram bot launched');\n  }).catch((err) => {\n    console.error('Bot launch failed:', err);\n  });\n});\n\nprocess.on('SIGINT', () => {\n  bot.stop('SIGINT');\n  process.exit(0);\n});\n\nprocess.on('SIGTERM', () => {\n  bot.stop('SIGTERM');\n  process.exit(0);\n});",
+        "Reply to ChatGPT"
+      ],
+      "ts": "2026-04-07T12:13:42.282Z"
+    },
+    {
+      "package": "com.google.android.inputmethod.latin",
+      "activity": "",
+      "texts": [
+        "2.",
+        "Add /offteach alias if you want that shortcut",
+        "If you paste your current server.js, I can \ufffd\u2060return the fully corrected full file with this fix already merged.",
+        "Full server.js file now from last one we did",
+        "Thought for a couple of seconds",
+        "Javascript",
+        "Copy code",
+        "require('dotenv').config();\nconst express = require('express');\nconst { Telegraf } = require('telegraf');\nconst Groq = require('groq-sdk');\nconst https = require('https');\nconst { nanoid } = require('nanoid');\n\nconst app = express();\nconst PORT = process.env.PORT || 3000;\n\nconst GROQ_API_KEY = process.env.GROQ_API_KEY;\nconst TELEGRAM_BOT_TOKEN = process.env.TELEGRAM_BOT_TOKEN;\nconst GITHUB_TOKEN = process.env.GITHUB_TOKEN;\nconst GITHUB_REPO = process.env.GITHUB_REPO;\nconst GROQ_MODEL = process.env.GROQ_MODEL || 'qwen/qwen3-32b';\nconst GITHUB_BRANCH = process.env.GITHUB_BRANCH || 'main';\n\nif (!GROQ_API_KEY) throw new Error('GROQ_API_KEY required');\nif (!TELEGRAM_BOT_TOKEN) throw new Error('TELEGRAM_BOT_TOKEN required');\nif (!GITHUB_TOKEN || !GITHUB_REPO) throw new Error('GITHUB_TOKEN and GITHUB_REPO required');\n\nconst groq = new Groq({ apiKey: GROQ_API_KEY });\nconst bot = new Telegraf(TELEGRAM_BOT_TOKEN);\n\napp.use(express.json());\n\nconst GITHUB_API = `https://api.github.com/repos/${GITHUB_REPO}/contents`;\nconst TASKS_PATH = 'data/tasks';\nconst LOGS_PATH = 'data/logs';\nconst ROUTES_PATH = 'data/routes';\nconst CURRENT_TASK_PATH = 'data/current_task.json';\n\nconst APP_REGISTRY = {\n  youtube: { aliases: ['yt', 'you tube'], package: 'com.google.android.youtube' },\n  chrome: { aliases: ['browser', 'google chrome'], package: 'com.android.chrome' },\n  whatsapp: { aliases: ['whatsapp business'], package: 'com.whatsapp' },\n  calculator: { aliases: ['calc'], package: 'com.android.calculator2' },\n  camera: { aliases: [], package: 'com.android.camera2' },\n  photos: { aliases: ['gallery'], package: 'com.google.android.apps.photos' },\n  settings: { aliases: [], package: 'com.android.settings' },\n  phone: { aliases: ['dialer'], package: 'com.android.dialer' },\n  messages: { aliases: ['sms'], package: 'com.android.mms' },\n  gmail: { aliases: [], package: 'com.google.android.gm' },\n  maps: { aliases: ['google maps'], package: 'com.google.android.apps.maps' },\n  spotify: { aliases: [], package: 'com.spotify.music' },\n  facebook: { aliases: [], package: 'com.facebook.katana' },\n  instagram: { aliases: [], package: 'com.instagram.android' },\n  twitter: { aliases: ['x'], package: 'com.twitter.android' },\n  telegram: { aliases: [], package: 'org.telegram.messenger' },\n  signal: { aliases: [], package: 'org.thoughtcrime.securesms' },\n  discord: { aliases: [], package: 'com.discord' },\n  slack: { aliases: [], package: 'com.Slack' },\n  zoom: { aliases: [], package: 'us.zoom.videomeetings' },\n};\n\nconst ALLOWED_ACTIONS = new Set([\n  'launch_app',\n  'click',\n  'type',\n  'press',\n  'wait',\n  'toast',\n  'swipe',\n  'verify',\n  'open_url',\n]);\n\nfunction ghHeaders() {\n  return {\n    Authorization: `Bearer ${GITHUB_TOKEN}`,\n    'Content-Type': 'application/json',\n    'User-Agent': 'DWAI/1.0',\n    Accept: 'application/vnd.github+json',\n    'X-GitHub-Api-Version': '2022-11-28',\n  };\n}\n\nfunction githubRequest(method, url, body) {\n  return new Promise((resolve, reject) => {\n    const req = https.request(\n      url,\n      { method, headers: ghHeaders() },\n      (res) => {\n        let d = '';\n        res.on('data', (c) => {\n          d += c;\n        });\n        res.on('end', () => {\n          resolve({\n            ok: res.statusCode >= 200 && res.statusCode < 300,\n            statusCode: res.statusCode,\n            body: d,\n          });\n        });\n      }\n    );\n\n    req.on('error', reject);\n\n    if (body !== undefined && body !== null) {\n      req.write(typeof body === 'string' ? body : JSON.stringify(body));\n    }\n\n    req.end();\n  });\n}\n\nasync function ghGetJson(url) {\n  const res = await githubRequest('GET', url);\n  let json = null;\n  try {\n    json = res.body ? JSON.parse(res.body) : null;\n  } catch {\n    json = null;\n  }\n  return { ...res, json };\n}\n\nasync function ghPutJson(url, body) {\n  return githubRequest('PUT', url, body);\n}\n\nfunction escapeRegExp(str) {\n  return String(str).replace(/[.*+?^${}()|[\\]\\\\]/g, '\\\\$&');\n}\n\nfunction normalizeLaunchValue(value) {\n  if (value === undefined || value === null) return null;\n  const v = String(value).trim().toLowerCase();\n  if (!v) return null;\n\n  if (APP_REGISTRY[v]) return v;\n\n  for (const [canonical, info] of Object.entries(APP_REGISTRY)) {\n    if (info.package && info.package.toLowerCase() === v) return canonical;\n    if ((info.aliases || []).some((a) => a.toLowerCase() === v)) return canonical;\n  }\n\n  if (v.includes('.')) return v;\n  return null;\n}\n\nfunction findAppCanonical(text) {\n  const lower = String(text || '').toLowerCase();\n  const entries = Object.entries(APP_REGISTRY).sort((a, b) => b[0].length - a[0].length);\n\n  for (const [canonical, info] of entries) {\n    const patterns = [canonical, ...(info.aliases || [])];\n    for (const p of patterns) {\n      const re = new RegExp(`\\\\b${escapeRegExp(p.toLowerCase())}\\\\b`, 'i');\n      if (re.test(lower)) return canonical;\n    }\n  }\n\n  return null;\n}\n\nfunction cleanQuery(q) {\n  return String(q || '')\n    .replace(/^[\"'`]+|[\"'`]+$/g, '')\n    .replace(/^[\\s:,-]*(a|an|the)\\s+/i, '')\n    .replace(/\\s+/g, ' ')\n    .trim();\n}\n\nfunction extractSearchQuery(text) {\n  const input = String(text || '').trim();\n\n  const patterns = [\n    /search(?:\\s+for)?\\s+(.+)$/i,\n    /find(?:\\s+me)?\\s+(.+)$/i,\n    /look(?:\\s+for)?\\s+(.+)$/i,\n    /browse(?:\\s+for)?\\s+(.+)$/i,\n    /play\\s+(.+)$/i,\n    /watch\\s+(.+)$/i,\n  ];\n\n  for (const re of patterns) {\n    const m = input.match(re);\n    if (m && m[1]) {\n      const q = cleanQuery(m[1]);\n      if (q) return q;\n    }\n  }\n\n  return null;\n}\n\nfunction quickIntent(message) {\n  const t = String(message || '').trim().toLowerCase();\n  if (!t) return { intent: 'CHAT' };\n\n  if (/^(hi|hello|hey|yo|good morning|good afternoon|good evening)\\b/.test(t)) {\n    return { intent: 'CHAT' };\n  }\n  if (/\\b(help|commands?)\\b/.test(t)) return { intent: 'HELP' };\n  if (/\\b(status|task status|check task|tasks?|queue)\\b/.test(t)) return { intent: 'STATUS' };\n\n  if (/(open|launch|search|find|look for|go to|start|watch|play|type|click|send|scroll)/.test(t)) {\n    return { intent: 'TASK' };\n  }\n\n  return null;\n}\n\nfunction buildAppHintsText() {\n  return Object.keys(APP_REGISTRY).join(', ');\n}\n\nfunction isStepValid(step) {\n  if (!step || typeof step !== 'object') return false;\n  if (!step.action || !ALLOWED_ACTIONS.has(step.action)) return false;\n\n  switch (step.action) {\n    case 'launch_app':\n      return typeof step.value === 'string' && step.value.trim().length > 0;\n    case 'click':\n      return Boolean(\n        step.text ||\n          step.contains ||\n          step.desc ||\n          (typeof step.x === 'number' && typeof step.y === 'number')\n      );\n    case 'type':\n      return typeof step.text === 'string' && step.text.trim().length > 0;\n    case 'press':\n      return ['enter', 'back', 'home', 'menu'].includes(String(step.key || '').toLowerCase());\n    case 'wait':\n      return Number(step.ms) >= 0;\n    case 'toast':\n      return true;\n    case 'swipe':\n      return (\n        typeof step.x1 === 'number' &&\n        typeof step.y1 === 'number' &&\n        typeof step.x2 === 'number' &&\n        typeof step.y2 === 'number'\n      );\n    case 'verify':\n      return true;\n    case 'open_url':\n      return typeof step.value === 'string' && step.value.trim().length > 0;\n    default:\n      return false;\n  }\n}\n\nfunction sanitizeSteps(rawSteps) {\n  if (!Array.isArray(rawSteps)) return [];\n\n  const out = [];\n  for (let i = 0; i < rawSteps.length; i++) {\n    const original = rawSteps[i];\n    if (!original || typeof original !== 'object' || !original.action) continue;\n    if (!ALLOWED_ACTIONS.has(original.action)) continue;\n\n    const step = JSON.parse(JSON.stringify(original));\n\n    if (step.action === 'launch_app') {\n      const normalized = normalizeLaunchValue(step.value);\n      if (!normalized) continue;\n      step.value = normalized;\n    }\n\n    if (step.action === 'wait') {\n      const ms = Number(step.ms);\n      step.ms = Number.isFinite(ms) && ms >= 0 ? ms : 1000;\n    }\n\n    if (step.action === 'type') {\n      step.text = String(step.text || step.value || '').trim();\n      if (!step.text) continue;\n    }\n\n    if (step.action === 'press') {\n      step.key = String(step.key || '').toLowerCase();\n      if (!['enter', 'back', 'home', 'menu'].includes(step.key)) continue;\n    }\n\n    if (step.action === 'verify') {\n      if (!step.contains && !step.text && !step.desc && !step.package) continue;\n    }\n\n    if (!isStepValid(step)) continue;\n\n    out.push(step);\n\n    if (step.action === 'launch_app') {\n      const next = rawSteps[i + 1];\n      if (!next || next.action !== 'wait') {\n        out.push({ action: 'wait', ms: 4000 });\n      }\n    }\n  }\n\n  return out.slice(0, 20);\n}\n\nfunction buildTemplateSteps(userText) {\n  const text = String(userText || '');\n  const lower = text.toLowerCase();\n\n  const app = findAppCanonical(lower);\n  const query = extractSearchQuery(text);\n  const wantsSearch = /\\b(search|find|look for|browse)\\b/.test(lower);\n  const wantsFirstResult = /\\b(first|first one|watch|video|result|open the first)\\b/.test(lower);\n  const wantsLaunch = /\\b(open|launch|start|go to)\\b/.test(lower);\n\n  if (app && wantsLaunch && !wantsSearch) {\n    return sanitizeSteps([\n      { action: 'launch_app', value: app },\n      { action: 'wait', ms: 4000 },\n      { action: 'verify', package: app },\n    ]);\n  }\n\n  if (wantsSearch) {\n    const targetApp = app === 'youtube' ? 'youtube' : 'chrome';\n    const clickStep =\n      targetApp === 'youtube'\n        ? {\n            action: 'click',\n            text: 'Search',\n            contains: 'Search',\n            desc: 'Search',\n            fallbacks: [{ action: 'click', x: 650, y: 120 }],\n          }\n        : {\n            action: 'click',\n            text: 'Search or type URL',\n            contains: 'Search',\n            desc: 'Search',\n            fallbacks: [{ action: 'click', x: 650, y: 120 }],\n          };\n\n    const steps = [\n      { action: 'launch_app', value: targetApp },\n      { action: 'wait', ms: 4000 },\n      clickStep,\n      { action: 'wait', ms: 1000 },\n      { action: 'type', text: query || cleanQuery(text) || text },\n      { action: 'press', key: 'enter' },\n      { action: 'wait', ms: 4000 },\n    ];\n\n    if (targetApp === 'youtube' && wantsFirstResult) {\n      steps.push({\n        action: 'click',\n        contains: 'views',\n        desc: 'video',\n        x: 360,\n        y: 560,\n      });\n      steps.push({ action: 'wait', ms: 4000 });\n    }\n\n    return sanitizeSteps(steps);\n  }\n\n  if (app) {\n    return sanitizeSteps([\n      { action: 'launch_app', value: app },\n      { action: 'wait', ms: 4000 },\n      { action: 'verify', package: app },\n    ]);\n  }\n\n  return null;\n}\n\nfunction extractJsonArray(text) {\n  const raw = String(text || '').trim();\n  const start = raw.indexOf('[');\n  const end = raw.lastIndexOf(']');\n  if (start === -1 || end === -1 || end < start) return null;\n\n  try {\n    return JSON.parse(raw.slice(start, end + 1));\n  } catch {\n    return null;\n  }\n}\n\nfunction extractJsonObject(text) {\n  const raw = String(text || '').trim();\n  const start = raw.indexOf('{');\n  const end = raw.lastIndexOf('}');\n  if (start === -1 || end === -1 || end < start) return null;\n\n  try {\n    return JSON.parse(raw.slice(start, end + 1));\n  } catch {\n    return null;\n  }\n}\n\nasync function classifyIntent(userMessage) {\n  const quick = quickIntent(userMessage);\n  if (quick) return quick;\n\n  const prompt = `Classify this user message and decide what to do.\n\nUser: \"${userMessage}\"\n\nReturn ONLY JSON with this shape:\n{\n  \"intent\": \"TASK|CHAT|STATUS|HELP\",\n  \"action\": \"launch_app|click|type|search|none|respond\",\n  \"target\": \"app name or search query or none\",\n  \"response\": \"short response if CHAT or HELP\"\n}\n\nRules:\n- If the user wants phone automation, intent must be TASK.\n- If the user is just talking, intent must be CHAT.\n- If they want to check tasks/status, intent must be STATUS.\n- If they want help, intent must be HELP.\n- No markdown.\n- No extra text.`;\n\n  try {\n    const res = await groq.chat.completions.create({\n      model: GROQ_MODEL,\n      messages: [\n        { role: 'system', content: 'You are DWAI Intent Classifier. Output ONLY JSON.' },\n        { role: 'user', content: prompt },\n      ],\n      temperature: 0.1,\n      max_tokens: 250,\n    });\n\n    const content = res.choices?.[0]?.message?.content?.trim() || '';\n    const parsed = extractJsonObject(content);\n    if (parsed && parsed.intent) return parsed;\n  } catch {\n    // ignore\n  }\n\n  return { intent: 'CHAT', action: 'respond', target: null, response: \"I'm here. What would you like to do?\" };\n}\n\nasync function generateTaskSteps(userText) {\n  const template = buildTemplateSteps(userText);\n  if (template && template.length) return template;\n\n  const prompt = `Convert this user request into a JSON array of Android automation steps.\n\nUser request:\n\"${userText}\"\n\nApp labels you may use in launch_app.value:\n${buildAppHintsText()}\n\nAllowed actions:\n- launch_app\n- click\n- type\n- press\n- wait\n- toast\n- swipe\n- verify\n- open_url\n\nRules:\n- Output ONLY a JSON array.\n- Do NOT output package names.\n- Prefer selectors (text, contains, desc) over coordinates.\n- ALWAYS add a wait after launching an app.\n- Keep the sequence short and practical.\n- If a safe plan is not possible, return [].\n\nExamples:\n[\n  {\"action\":\"launch_app\",\"value\":\"chrome\"},\n  {\"action\":\"wait\",\"ms\":4000},\n  {\"action\":\"click\",\"contains\":\"Search\",\"desc\":\"Search\"},\n  {\"action\":\"wait\",\"ms\":1000},\n  {\"action\":\"type\",\"text\":\"AI news\"},\n  {\"action\":\"press\",\"key\":\"enter\"},\n  {\"action\":\"wait\",\"ms\":4000}\n]`;\n\n  try {\n    const res = await groq.chat.completions.create({\n      model: GROQ_MODEL,\n      messages: [\n        { role: 'system', content: 'You are DWAI Task Planner. Output ONLY JSON array.' },\n        { role: 'user', content: prompt },\n      ],\n      temperature: 0.1,\n      max_tokens: 900,\n    });\n\n    const content = res.choices?.[0]?.message?.content?.trim() || '';\n    const parsed = extractJsonArray(content);\n    if (!parsed) return [];\n\n    return sanitizeSteps(parsed);\n  } catch {\n    return [];\n  }\n}\n\nfunction validateSteps(steps) {\n  if (!Array.isArray(steps)) return false;\n  if (steps.length === 0 || steps.length > 20) return false;\n\n  for (const s of steps) {\n    if (!isStepValid(s)) return false;\n    if (s.action === 'launch_app') {\n      const normalized = normalizeLaunchValue(s.value);\n      if (!normalized) return false;\n    }\n  }\n\n  return true;\n}\n\nasync function generateChatResponse(userMessage) {\n  const prompt = `You are DWAI, a helpful assistant that can chat and help control a phone.\n\nUser: \"${userMessage}\"\n\nRespond naturally and briefly.`;\n\n  try {\n    const res = await groq.chat.completions.create({\n      model: GROQ_MODEL,\n      messages: [\n        { role: 'system', content: prompt },\n        { role: 'user', content: userMessage },\n      ],\n      temperature: 0.6,\n      max_tokens: 500,\n    });\n\n    return res.choices?.[0]?.message?.content?.trim() || \"I'm here. What would you like to do?\";\n  } catch {\n    return \"I'm here. What would you like to do?\";\n  }\n}\n\nasync function createTask(taskId, taskData) {\n  const taskPath = `${TASKS_PATH}/${taskId}.json`;\n  const taskUrl = `${GITHUB_API}/${taskPath}`;\n  const contentBase64 = Buffer.from(JSON.stringify(taskData, null, 2)).toString('base64');\n\n  const result = await ghPutJson(taskUrl, {\n    message: `Task ${taskId}`,\n    content: contentBase64,\n    branch: GITHUB_BRANCH,\n  });\n\n  if (!result.ok) {\n    throw new Error(`GitHub create task failed: ${result.statusCode} ${result.body}`);\n  }\n\n  return taskUrl;\n}\n\nasync function writeCurrentTask(pointer) {\n  const url = `${GITHUB_API}/${CURRENT_TASK_PATH}`;\n  const contentBase64 = Buffer.from(JSON.stringify(pointer, null, 2)).toString('base64');\n\n  const existing = await ghGetJson(url);\n\n  const payload = {\n    message: `current task ${pointer.task_id}`,\n    content: contentBase64,\n    branch: GITHUB_BRANCH,\n  };\n\n  if (existing.ok && existing.json && existing.json.sha) {\n    payload.sha = existing.json.sha;\n  }\n\n  const result = await ghPutJson(url, payload);\n\n  if (!result.ok) {\n    throw new Error(`GitHub current_task write failed: ${result.statusCode} ${result.body}`);\n  }\n\n  return result;\n}\n\nasync function getTaskFileById(taskId) {\n  const fileUrl = `${GITHUB_API}/${TASKS_PATH}/${taskId}.json`;\n  const res = await ghGetJson(fileUrl);\n\n  if (!res.ok || !res.json || !res.json.content) {\n    throw new Error(`Task not found: ${taskId}`);\n  }\n\n  const task = JSON.parse(Buffer.from(res.json.content, 'base64').toString('utf8'));\n  return { file: res.json, task, fileUrl };\n}\n\nasync function listTaskSummaries(limit = 15) {\n  const folder = await ghGetJson(`${GITHUB_API}/${TASKS_PATH}`);\n  if (!folder.ok || !Array.isArray(folder.json)) return [];\n\n  const files = folder.json\n    .filter((f) => f.type === 'file' && f.name !== '.gitkeep' && !f.name.endsWith('_log.json'))\n    .slice(0, limit);\n\n  const out = [];\n  for (const file of files) {\n    try {\n      const taskBundle = await getTaskFileById(file.name.replace('.json', ''));\n      const task = taskBundle.task;\n      out.push({\n        id: task.task_id || file.name.replace('.json', ''),\n        status: task.status || 'unknown',\n        intent: task.intent || '',\n      });\n    } catch {\n      out.push({\n        id: file.name.replace('.json', ''),\n        status: 'unknown',\n        intent: '',\n      });\n    }\n  }\n\n  return out;\n}\n\nasync function createTeachTask(goalText) {\n  const parts = String(goalText || '').trim().split(/\\s+/).filter(Boolean);\n  const appGuess = parts[0] ? findAppCanonical(parts[0]) : null;\n\n  const taskId = `teach_${nanoid(8)}`;\n  const task = {\n    task_id: taskId,\n    type: 'teach_start',\n    status: 'pending',\n    intent: goalText || 'teach route',\n    app: appGuess,\n    goal: goalText || 'teach route',\n    created_at: new Date().toISOString(),\n    steps: [],\n    source: 'telegram',\n    planner_version: 'v10',\n  };\n\n  const taskUrl = await createTask(taskId, { ...task, file_url: `${GITHUB_API}/${TASKS_PATH}/${taskId}.json` });\n  await writeCurrentTask({\n    task_id: taskId,\n    type: 'teach_start',\n    status: 'pending',\n    intent: task.intent,\n    app: task.app || null,\n    goal: task.goal,\n    file_url: taskUrl,\n    created_at: task.created_at,\n    source: 'telegram',\n  });\n\n  return taskId;\n}\n\nasync function createStopTeachTask(goalText) {\n  const taskId = `stopteach_${nanoid(8)}`;\n  const task = {\n    task_id: taskId,\n    type: 'teach_stop',\n    status: 'pending',\n    intent: goalText || 'stop teach',\n    goal: goalText || 'teach route',\n    created_at: new Date().toISOString(),\n    steps: [],\n    source: 'telegram',\n    planner_version: 'v10',\n  };\n\n  const taskUrl = await createTask(taskId, { ...task, file_url: `${GITHUB_API}/${TASKS_PATH}/${taskId}.json` });\n  await writeCurrentTask({\n    task_id: taskId,\n    type: 'teach_stop',\n    status: 'pending',\n    intent: task.intent,\n    goal: task.goal,\n    file_url: taskUrl,\n    created_at: task.created_at,\n    source: 'telegram',\n  });\n\n  return taskId;\n}\n\nasync function replyTyping(ctx) {\n  try {\n    await ctx.sendChatAction('typing');\n  } catch {\n    // ignore\n  }\n}\n\nasync function handleSlashCommand(ctx) {\n  const text = ctx.message?.text || '';\n  const parts = text.trim().split(/\\s+/);\n  const cmd = (parts[0] || '').replace(/^\\/+/, '').split('@')[0].toLowerCase();\n  const argText = parts.slice(1).join(' ').trim();\n\n  await replyTyping(ctx);\n\n  if (cmd === 'start') {\n    const apps = Object.keys(APP_REGISTRY).slice(0, 8).join(', ');\n    await ctx.reply(\n      `DWAI Mobile Agent\\n\\nI can queue phone tasks from natural language.\\n\\nExamples:\\nOpen YouTube\\nSearch for AI news\\nOpen Chrome and search for a new bicycle\\n\\nUse /teach <goal> to record a route.\\nUse /stopteach <goal> to stop recording.\\nUse /offteach as an alias for /stopteach.\\n\\nAvailable apps: ${apps}...`\n    );\n    return;\n  }\n\n  if (cmd === 'help') {\n    await ctx.reply(\n      `Commands:\\n/start\\n/help\\n/cmd <task>\\n/teach <goal>\\n/stopteach <goal>\\n/offteach <goal>\\n/status <task_id>\\n/tasks\\n\\nYou can also just type naturally and I will decide whether it is a task or normal chat.`\n    );\n    return;\n  }\n\n  if (cmd === 'teach') {\n    if (!argText) {\n      await ctx.reply('Usage: /teach youtube search');\n      return;\n    }\n\n    try {\n      const taskId = await createTeachTask(argText);\n      await ctx.reply(`Teach mode queued: ${taskId}\\nGoal: ${argText}`);\n    } catch (e) {\n      await ctx.reply(`Failed to queue teach task: ${e.message}`);\n    }\n    return;\n  }\n\n  if (cmd === 'stopteach' || cmd === 'offteach') {\n    if (!argText) {\n      await ctx.reply('Usage: /stopteach youtube search');\n      return;\n    }\n\n    try {\n      const taskId = await createStopTeachTask(argText);\n      await ctx.reply(`Stop-teach queued: ${taskId}\\nGoal: ${argText}`);\n    } catch (e) {\n      await ctx.reply(`Failed to queue stop-teach task: ${e.message}`);\n    }\n    return;\n  }\n\n  if (cmd === 'cmd') {\n    if (!argText) {\n      await ctx.reply('Usage: /cmd open YouTube');\n      return;\n    }\n\n    await ctx.reply('Task planning started...');\n    const steps = await generateTaskSteps(argText);\n\n    if (!validateSteps(steps)) {\n      await ctx.reply('Could not build a safe task for that request.');\n      return;\n    }\n\n    const taskId = nanoid(8);\n    const task = {\n      task_id: taskId,\n      status: 'pending',\n      intent: argText,\n      type: 'automation',\n      created_at: new Date().toISOString(),\n      steps,\n      source: 'telegram',\n      planner_version: 'v10',\n    };\n\n    try {\n      const taskUrl = await createTask(taskId, { ...task, file_url: `${GITHUB_API}/${TASKS_PATH}/${taskId}.json` });\n      await writeCurrentTask({\n        task_id: taskId,\n        type: 'automation',\n        status: 'pending',\n        intent: argText,\n        file_url: taskUrl,\n        created_at: task.created_at,\n        source: 'telegram',\n      });\n\n      await ctx.reply(\n        `Task queued: ${taskId}\\nSteps: ${steps.length}\\nPreview:\\n${JSON.stringify(steps.slice(0, 4), null, 2)}`\n      );\n    } catch (e) {\n      await ctx.reply(`Failed to save task: ${e.message}`);\n    }\n\n    return;\n  }\n\n  if (cmd === 'status') {\n    if (!argText) {\n      await ctx.reply('Usage: /status <task_id>');\n      return;\n    }\n\n    try {\n      const bundle = await getTaskFileById(argText);\n      const task = bundle.task;\n      const icon = task.status === 'completed' ? '✅' : task.status === 'failed' ? '❌' : '⏳';\n      await ctx.reply(\n        `${icon} ${task.task_id}\\nStatus: ${task.status}\\nCreated: ${task.created_at || 'unknown'}\\n${task.error ? `Error: ${task.error}` : ''}`\n      );\n    } catch {\n      await ctx.reply(`Task not found: ${argText}`);\n    }\n\n    return;\n  }\n\n  if (cmd === 'tasks') {\n    try {\n      const summaries = await listTaskSummaries(15);\n      if (!summaries.length) {\n        await ctx.reply('No tasks found.');\n        return;\n      }\n\n      const lines = summaries.map((t) => `• ${t.id} — ${t.status}${t.intent ? ` — ${t.intent}` : ''}`);\n      await ctx.reply(`Tasks:\\n${lines.join('\\n')}`);\n    } catch {\n      await ctx.reply('Could not fetch tasks.');\n    }\n\n    return;\n  }\n\n  await ctx.reply('Unknown command. Try /help');\n}\n\nasync function handleNaturalMessage(ctx) {\n  const text = ctx.message?.text;\n  if (!text || text.startsWith('/')) return;\n\n  await replyTyping(ctx);\n\n  try {\n    const classification = await classifyIntent(text);\n\n    if (classification.intent === 'STATUS') {\n      const summaries = await listTaskSummaries(10);\n      if (!summaries.length) {\n        await ctx.reply('No tasks found.');\n      } else {\n        const lines = summaries.map((t) => `• ${t.id} — ${t.status}${t.intent ? ` — ${t.intent}` : ''}`);\n        await ctx.reply(`Tasks:\\n${lines.join('\\n')}`);\n      }\n      return;\n    }\n\n    if (classification.intent === 'HELP') {\n      await ctx.reply(\n        `I can help you create phone tasks, check task status, and chat.\\nTry:\\nOpen YouTube\\nSearch for AI news\\nCheck tasks\\nTeach me YouTube search`\n      );\n      return;\n    }\n\n    if (classification.intent === 'TASK') {\n      const steps = await generateTaskSteps(text);\n\n      if (!validateSteps(steps)) {\n        await ctx.reply('I could not build a safe task for that request.');\n        return;\n      }\n\n      const taskId = nanoid(8);\n      const task = {\n        task_id: taskId,\n        status: 'pending',\n        intent: text,\n        type: 'automation',\n        created_at: new Date().toISOString(),\n        steps,\n        source: 'telegram',\n        planner_version: 'v10',\n      };\n\n      const taskUrl = await createTask(taskId, { ...task, file_url: `${GITHUB_API}/${TASKS_PATH}/${taskId}.json` });\n      await writeCurrentTask({\n        task_id: taskId,\n        type: 'automation',\n        status: 'pending',\n        intent: text,\n        file_url: taskUrl,\n        created_at: task.created_at,\n        source: 'telegram',\n      });\n\n      await ctx.reply(\n        `Task queued: ${taskId}\\nSteps: ${steps.length}\\nPreview:\\n${JSON.stringify(steps.slice(0, 4), null, 2)}`\n      );\n      return;\n    }\n\n    const response = await generateChatResponse(text);\n    await ctx.reply(response);\n  } catch (e) {\n    console.error(e);\n    const response = await generateChatResponse(text);\n    await ctx.reply(response);\n  }\n}\n\nbot.hears(/^\\/(start|help|cmd|status|tasks|teach|stopteach|offteach)\\b/i, handleSlashCommand);\nbot.on('text', handleNaturalMessage);\n\nbot.catch((err) => {\n  console.error('BOT ERROR:', err);\n});\n\napp.get('/health', async (_, res) => {\n  res.json({\n    status: 'ok',\n    apps: Object.keys(APP_REGISTRY).length,\n    model: GROQ_MODEL,\n  });\n});\n\napp.listen(PORT, () => {\n  console.log(`DWAI main server listening on ${PORT}`);\n  bot.launch().then(() => {\n    console.log('Telegram bot launched');\n  }).catch((err) => {\n    console.error('Bot launch failed:', err);\n  });\n});\n\nprocess.on('SIGINT', () => {\n  bot.stop('SIGINT');\n  process.exit(0);\n});\n\nprocess.on('SIGTERM', () => {\n  bot.stop('SIGTERM');\n  process.exit(0);\n});",
+        "Reply to ChatGPT"
+      ],
+      "ts": "2026-04-07T12:14:01.099Z"
+    },
+    {
+      "package": "com.vivo.upslide",
+      "activity": "com.vivo.upslide.recents.RecentsActivity",
+      "texts": [
+        "GitHub",
+        "Telegram",
+        "ChatGPT",
+        "YouTube",
+        "Settings",
+        "Autox.js v6",
+        "Close all"
+      ],
+      "ts": "2026-04-07T12:14:06.058Z"
+    },
+    {
+      "package": "com.vivo.upslide",
+      "activity": "android.widget.FrameLayout",
+      "texts": [
+        ".github",
+        "backend",
+        "data",
+        "phone",
+        ".gitignore",
+        "ARCHITECTURE.md",
+        "BUILD_PLAN.md",
+        "README.md",
+        "render.yaml",
+        "Files"
+      ],
+      "ts": "2026-04-07T12:14:08.438Z"
+    },
+    {
+      "package": "com.vivo.upslide",
+      "activity": "android.widget.FrameLayout",
+      "texts": [
+        ".env.example",
+        "package.json",
+        "server.js",
+        "backend"
+      ],
+      "ts": "2026-04-07T12:14:11.137Z"
+    },
+    {
+      "package": "com.vivo.upslide",
+      "activity": "android.widget.FrameLayout",
+      "texts": [
+        "backend/server.js"
+      ],
+      "ts": "2026-04-07T12:14:13.693Z"
+    },
+    {
+      "package": "com.github.android",
+      "activity": "com.github.android.fileeditor.FileEditorActivity",
+      "texts": [
+        "server.js",
+        "Edit file",
+        "COMMIT CHANGES"
+      ],
+      "ts": "2026-04-07T12:14:16.573Z"
+    },
+    {
+      "package": "com.google.android.inputmethod.latin",
+      "activity": "",
+      "texts": [
+        "backend/server.js",
+        "​  ​const​ ​wantsSearch​ ​=​ ​/​\\b​(​s​e​a​r​c​h​|​f​i​n​d​|​l​o​o​k​ ​f​o​r​|​b​r​o​w​s​e​)​\\b​/​.​test​(​lower​)​;",
+        "340",
+        "​      ​{​ ​action​: ​'wait'​,​ ​ms​: ​1000​ ​}​,",
+        "366",
+        "​      ​{​ ​action​: ​'launch_app'​,​ ​value​: ​targetApp​ ​}​,",
+        "437",
+        "419",
+        "​- No extra text.`​;",
+        "442"
+      ],
+      "ts": "2026-04-07T12:14:28.257Z"
+    },
+    {
+      "package": "com.google.android.inputmethod.latin",
+      "activity": "",
+      "texts": [
+        "backend/server.js",
+        "916",
+        "​    ​apps​: ​Object​.​keys​(​APP_REGISTRY​)​.​length​,",
+        "917",
+        "​    ​model​: ​GROQ_MODEL​,",
+        "918",
+        "​  ​}​)​;",
+        "919",
+        "​}​)​;",
+        "920"
+      ],
+      "ts": "2026-04-07T12:14:31.344Z"
+    },
+    {
+      "package": "com.github.android",
+      "activity": "android.widget.FrameLayout",
+      "texts": [
+        "Edit file",
+        "Show History"
+      ],
+      "ts": "2026-04-07T12:14:34.093Z"
+    },
+    {
+      "package": "com.github.android",
+      "activity": "com.github.android.fileeditor.FileEditorActivity",
+      "texts": [
+        "server.js",
+        "Edit file",
+        "COMMIT CHANGES"
+      ],
+      "ts": "2026-04-07T12:14:37.021Z"
+    },
+    {
+      "package": "com.google.android.inputmethod.latin",
+      "activity": "android.inputmethodservice.SoftInputWindow",
+      "texts": [
+        "server.js",
+        "Edit file",
+        "COMMIT CHANGES"
+      ],
+      "ts": "2026-04-07T12:14:42.848Z"
+    },
+    {
+      "package": "com.github.android",
+      "activity": "android.view.ViewGroup",
+      "texts": [
+        "Commit changes",
+        "Add an optional commit description",
+        "COMMIT"
+      ],
+      "ts": "2026-04-07T12:14:45.714Z"
+    },
+    {
+      "package": "com.github.android",
+      "activity": "android.view.View",
+      "texts": [
+        "Commit changes",
+        "Add an optional commit description",
+        "COMMIT"
+      ],
+      "ts": "2026-04-07T12:14:48.499Z"
+    },
+    {
+      "package": "com.google.android.inputmethod.latin",
+      "activity": "",
+      "texts": [
+        "backend/server.js",
+        "1",
+        "​require​(​'dotenv'​)​.​config​(​)​;",
+        "2",
+        "​const​ ​express​ ​=​ ​require​(​'express'​)​;",
+        "3",
+        "​const​ ​{​ Telegraf ​}​ ​=​ ​require​(​'telegraf'​)​;",
+        "4",
+        "​const​ ​Groq​ ​=​ ​require​(​'groq-sdk'​)​;",
+        "5"
+      ],
+      "ts": "2026-04-07T12:14:54.639Z"
+    },
+    {
+      "package": "com.google.android.inputmethod.latin",
+      "activity": "",
+      "texts": [
+        "backend/server.js",
+        "​    ​return​ ​res​.​choices​?.​[​0​]​?.​message​?.​content​?.​trim​(​)​ ​||​ ​\"I'm here. What would you like to do?\"​;",
+        "​    ​return​ ​\"I'm here. What would you like to do?\"​;",
+        "575",
+        "595",
+        "592",
+        "​    ​throw​ ​new​ ​Error​(​`Task not found: ​${​taskId​}​`​)​;",
+        "597",
+        "​}",
+        "591"
+      ],
+      "ts": "2026-04-07T12:14:58.535Z"
+    },
+    {
+      "package": "com.google.android.inputmethod.latin",
+      "activity": "",
+      "texts": [
+        "backend/server.js",
+        "922",
+        "​  ​res​.​json​(​{",
+        "923",
+        "​    ​status​: ​'ok'​,",
+        "924",
+        "​    ​apps​: ​Object​.​keys​(​APP_REGISTRY​)​.​length​,",
+        "925",
+        "​    ​model​: ​GROQ_MODEL​,",
+        "595"
+      ],
+      "ts": "2026-04-07T12:15:01.916Z"
+    },
+    {
+      "package": "com.vivo.upslide",
+      "activity": "com.vivo.upslide.recents.RecentsActivity",
+      "texts": [
+        "Telegram",
+        "ChatGPT",
+        "Autox.js v6",
+        "Settings",
+        "YouTube",
+        "GitHub",
+        "Close all"
+      ],
+      "ts": "2026-04-07T12:15:04.649Z"
+    },
+    {
+      "package": "com.vivo.upslide",
+      "activity": "com.vivo.upslide.recents.RecentsActivity",
+      "texts": [
+        "Autox.js v6",
+        "Chrome",
+        "Settings",
+        "YouTube",
+        "Play Store",
+        "WhatsApp Business",
+        "Notes",
+        "Close all"
+      ],
+      "ts": "2026-04-07T12:15:10.129Z"
+    },
+    {
+      "package": "com.android.chrome",
+      "activity": "org.chromium.chrome.browser.ChromeTabbedActivity",
+      "texts": [
+        "",
+        "Applications",
+        "",
+        "Create application",
+        "",
+        "Resources",
+        "",
+        "Billing",
+        "",
+        "Notifications"
+      ],
+      "ts": "2026-04-07T12:15:13.436Z"
+    },
+    {
+      "package": "com.android.chrome",
+      "activity": "org.chromium.chrome.browser.ChromeTabbedActivity",
+      "texts": [
+        "Connection lost",
+        "Reload"
+      ],
+      "ts": "2026-04-07T12:15:16.170Z"
+    },
+    {
+      "package": "com.android.chrome",
+      "activity": "org.chromium.chrome.browser.ChromeTabbedActivity",
+      "texts": [],
+      "ts": "2026-04-07T12:15:20.269Z"
+    },
+    {
+      "package": "com.android.chrome",
+      "activity": "org.chromium.chrome.browser.ChromeTabbedActivity",
+      "texts": [
+        "",
+        "Applications",
+        "",
+        "Create application",
+        "",
+        "Resources",
+        "",
+        "Billing",
+        "",
+        "Notifications"
+      ],
+      "ts": "2026-04-07T12:15:29.349Z"
+    },
+    {
+      "package": "com.vivo.upslide",
+      "activity": "android.widget.FrameLayout",
+      "texts": [
+        "",
+        "Applications",
+        "",
+        "Create application",
+        "",
+        "Resources",
+        "",
+        "Billing",
+        "",
+        "Notifications"
+      ],
+      "ts": "2026-04-07T12:15:56.126Z"
+    },
+    {
+      "package": "com.google.android.inputmethod.latin",
+      "activity": "",
+      "texts": [
+        "[....I']",
+        "",
+        "Applications",
+        "",
+        "Create application",
+        "",
+        "Resources",
+        "",
+        "Billing",
+        ""
+      ],
+      "ts": "2026-04-07T12:16:00.914Z"
+    },
+    {
+      "package": "com.google.android.inputmethod.latin",
+      "activity": "",
+      "texts": [
+        "",
+        "Applications",
+        "",
+        "Create application",
+        "",
+        "Resources",
+        "",
+        "Billing",
+        "",
+        "Notifications"
+      ],
+      "ts": "2026-04-07T12:16:04.087Z"
+    },
+    {
+      "package": "com.google.android.inputmethod.latin",
+      "activity": "",
+      "texts": [
+        "[=>....]",
+        "",
+        "Applications",
+        "",
+        "Create application",
+        "",
+        "Resources",
+        "",
+        "Billing",
+        ""
+      ],
+      "ts": "2026-04-07T12:16:18.391Z"
+    },
+    {
+      "package": "com.google.android.inputmethod.latin",
+      "activity": "",
+      "texts": [
+        "[..<=>.]",
+        "",
+        "Applications",
+        "",
+        "Create application",
+        "",
+        "Resources",
+        "",
+        "Billing",
+        ""
+      ],
+      "ts": "2026-04-07T12:16:21.211Z"
+    },
+    {
+      "package": "com.google.android.inputmethod.latin",
+      "activity": "",
+      "texts": [
+        "",
+        "Applications",
+        "",
+        "Create application",
+        "",
+        "Resources",
+        "",
+        "Billing",
+        "",
+        "Notifications"
+      ],
+      "ts": "2026-04-07T12:16:26.172Z"
+    },
+    {
+      "package": "com.vivo.upslide",
+      "activity": "com.vivo.upslide.recents.RecentsActivity",
+      "texts": [
+        "GitHub",
+        "Chrome",
+        "ChatGPT",
+        "Telegram",
+        "YouTube",
+        "Settings",
+        "Autox.js v6"
+      ],
+      "ts": "2026-04-07T12:16:29.573Z"
+    },
+    {
+      "package": "org.telegram.messenger",
+      "activity": "org.telegram.ui.LaunchActivity",
+      "texts": [
+        "Reply",
+        "Forward",
+        "AutoPhone",
+        "bot"
+      ],
+      "ts": "2026-04-07T12:16:32.540Z"
+    },
+    {
+      "package": "org.telegram.messenger",
+      "activity": "org.telegram.ui.LaunchActivity",
+      "texts": [
+        "AutoPhone",
+        "bot",
+        "Text copied to clipboard"
+      ],
+      "ts": "2026-04-07T12:16:35.551Z"
+    },
+    {
+      "package": "org.telegram.messenger",
+      "activity": "org.telegram.ui.LaunchActivity",
+      "texts": [
+        "AutoPhone",
+        "bot"
+      ],
+      "ts": "2026-04-07T12:16:38.545Z"
+    },
+    {
+      "package": "org.telegram.messenger",
+      "activity": "org.telegram.ui.LaunchActivity",
+      "texts": [
+        "AutoPhone",
+        "typing",
+        "Text copied to clipboard"
+      ],
+      "ts": "2026-04-07T12:16:41.383Z"
+    },
+    {
+      "package": "org.telegram.messenger",
+      "activity": "org.telegram.ui.LaunchActivity",
+      "texts": [
+        "AutoPhone",
+        "bot"
+      ],
+      "ts": "2026-04-07T12:16:44.095Z"
+    },
+    {
+      "package": "newer.galaxya.launcher",
+      "activity": "com.galaxy_a.launcher.Launcher",
+      "texts": [
+        "VN",
+        "Theme",
+        "Chrome",
+        "System Folder",
+        "YouTube",
+        "A Settings",
+        "Effect",
+        "redeem_hymns",
+        "Gmail",
+        "QR & Barcode Scanner"
+      ],
+      "ts": "2026-04-07T12:16:47.922Z"
+    },
+    {
+      "package": "com.google.android.youtube",
+      "activity": "com.google.android.apps.youtube.app.watchwhile.MainActivity",
+      "texts": [],
+      "ts": "2026-04-07T12:16:57.279Z"
+    },
+    {
+      "package": "com.google.android.youtube",
+      "activity": "com.google.android.apps.youtube.app.watchwhile.MainActivity",
+      "texts": [
+        "ssearch",
+        "thekingsmediaofficial",
+        "thekingmediaofficial",
+        "satellitefmnyc7369",
+        "aivideostube",
+        "auto.js",
+        "host laravel free",
+        "openclaw",
+        "thekingsmedia studios",
+        "thekings media studios"
+      ],
+      "ts": "2026-04-07T12:17:01.879Z"
+    },
+    {
+      "package": "com.google.android.inputmethod.latin",
+      "activity": "",
+      "texts": [
+        "search",
+        "Home",
+        "Shorts",
+        "Subscriptions",
+        "You"
+      ],
+      "ts": "2026-04-07T12:17:04.760Z"
+    },
+    {
+      "package": "com.vivo.upslide",
+      "activity": "com.vivo.upslide.recents.RecentsActivity",
+      "texts": [
+        "Telegram",
+        "GitHub",
+        "ChatGPT",
+        "Chrome",
+        "YouTube",
+        "Close all"
+      ],
+      "ts": "2026-04-07T12:17:10.263Z"
+    },
+    {
+      "package": "com.vivo.upslide",
+      "activity": "com.vivo.upslide.recents.RecentsActivity",
+      "texts": [
+        "AutoPhone",
+        "bot"
+      ],
+      "ts": "2026-04-07T12:17:13.799Z"
+    },
+    {
+      "package": "com.google.android.inputmethod.latin",
+      "activity": "",
+      "texts": [
+        "AutoPhone",
+        "bot"
+      ],
+      "ts": "2026-04-07T12:17:16.625Z"
+    },
+    {
+      "package": "com.android.systemui",
+      "activity": "android.widget.FrameLayout",
+      "texts": [
+        "1:17",
+        "Tue    7 Apr  PM",
+        "#Lions: Pride Life# Discover the Hidden Wo...   More",
+        "Use facial recognition or draw pattern",
+        "5.80",
+        "KB/s"
+      ],
+      "ts": "2026-04-07T12:17:19.495Z"
+    },
+    {
+      "package": "com.android.systemui",
+      "activity": "android.widget.FrameLayout",
+      "texts": [
+        "1:17",
+        "Tue    7 Apr  PM",
+        "#Lions: Pride Life# Discover the Hidden Wo...   More",
+        "No face detected",
+        "1.80",
+        "KB/s"
+      ],
+      "ts": "2026-04-07T12:17:22.492Z"
+    },
+    {
+      "package": "org.telegram.messenger",
+      "activity": "org.telegram.ui.LaunchActivity",
+      "texts": [
+        "1:17",
+        "Tue    7 Apr  PM",
+        "#Velvet Coffee Moment# Frothy milk and fra...   More",
+        "Use facial recognition or draw pattern",
+        "2.30",
+        "KB/s"
+      ],
+      "ts": "2026-04-07T12:17:28.209Z"
+    },
+    {
+      "package": "org.telegram.messenger",
+      "activity": "org.telegram.ui.LaunchActivity",
+      "texts": [
+        "1:17",
+        "Tue    7 Apr  PM",
+        "#Velvet Coffee Moment# Frothy milk and fra...   More",
+        "No face detected",
+        "2.30",
+        "KB/s"
+      ],
+      "ts": "2026-04-07T12:17:31.136Z"
+    },
+    {
+      "package": "org.telegram.messenger",
+      "activity": "org.telegram.ui.LaunchActivity",
+      "texts": [
+        "1:17",
+        "1.60",
+        "KB/s"
+      ],
+      "ts": "2026-04-07T12:17:37.413Z"
+    },
+    {
+      "package": "org.telegram.messenger",
+      "activity": "org.telegram.ui.LaunchActivity",
+      "texts": [
+        "AutoPhone",
+        "bot"
+      ],
+      "ts": "2026-04-07T12:17:41.581Z"
+    }
+  ],
+  "touches": [],
+  "notes": "Route memory captured from teach mode."
+}
