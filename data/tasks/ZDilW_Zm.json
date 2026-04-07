@@ -1,0 +1,17 @@
+{
+  "task_id": "ZDilW_Zm",
+  "status": "pending",
+  "intent": "Open com.community.oneroom",
+  "type": "automation",
+  "created_at": "2026-04-07T00:57:28.439Z",
+  "steps": [
+    {
+      "action": "launch_app",
+      "value": "com.community.oneroom"
+    },
+    {
+      "action": "wait",
+      "ms": 2000
+    }
+  ]
+}
