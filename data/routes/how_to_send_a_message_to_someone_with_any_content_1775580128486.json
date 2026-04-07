@@ -1,0 +1,241 @@
+{
+  "route_id": "teach_wNTg_yTl",
+  "goal": "how to send a message to someone with any content",
+  "app": null,
+  "started_at": "2026-04-07T16:40:52.842Z",
+  "finished_at": "2026-04-07T16:42:08.486Z",
+  "snapshots": [
+    {
+      "package": "com.whatsapp.w4b",
+      "activity": "com.whatsapp.home.ui.HomeActivity",
+      "texts": [
+        "Device storage is full",
+        "You won't be able to use WhatsApp unless you free up space. Manage storage",
+        "Dad",
+        "4/2/26",
+        "Young Man",
+        "TEENS KINGDOM MANDATE",
+        "Yesterday",
+        "+234 916 519 6790:",
+        "Thank you sir God bless you sir",
+        "Papa T"
+      ],
+      "ts": "2026-04-07T16:40:58.588Z"
+    },
+    {
+      "package": "com.whatsapp.w4b",
+      "activity": "com.whatsapp.home.ui.HomeActivity",
+      "texts": [],
+      "ts": "2026-04-07T16:41:02.504Z"
+    },
+    {
+      "package": "com.whatsapp.w4b",
+      "activity": "com.whatsapp.home.ui.HomeActivity",
+      "texts": [
+        "CHATS",
+        "Femi",
+        "3/24/26",
+        "Ok",
+        "CONTACTS",
+        "Femi Transport",
+        "INVITE TO WHATSAPP"
+      ],
+      "ts": "2026-04-07T16:41:04.885Z"
+    },
+    {
+      "package": "com.whatsapp.w4b",
+      "activity": "com.whatsapp.Conversation",
+      "texts": [
+        "Femi",
+        "Business Account",
+        "Missed group call",
+        "3 invited",
+        "8:10\u202fAM",
+        "Missed voice call",
+        "Tap to call back",
+        "8:12\u202fAM",
+        "March 22, 2026",
+        "Good evening"
+      ],
+      "ts": "2026-04-07T16:41:07.254Z"
+    },
+    {
+      "package": "com.whatsapp.w4b",
+      "activity": "com.whatsapp.Conversation",
+      "texts": [
+        "Femi",
+        "Business Account",
+        "V",
+        "12:28\u202fAM",
+        "Lol",
+        "1:09\u202fAM",
+        "F",
+        "7:29\u202fAM",
+        "2 unread messages",
+        "March 24, 2026"
+      ],
+      "ts": "2026-04-07T16:41:09.668Z"
+    },
+    {
+      "package": "com.whatsapp.w4b",
+      "activity": "com.whatsapp.Conversation",
+      "texts": [
+        "Femi",
+        "last seen today at 4:09\u202fPM",
+        "V",
+        "12:28\u202fAM",
+        "Lol",
+        "1:09\u202fAM",
+        "F",
+        "7:29\u202fAM",
+        "2 unread messages",
+        "March 24, 2026"
+      ],
+      "ts": "2026-04-07T16:41:12.082Z"
+    },
+    {
+      "package": "com.whatsapp.w4b",
+      "activity": "com.whatsapp.Conversation",
+      "texts": [
+        "Femi",
+        "last seen today at 4:09\u202fPM",
+        "Lol",
+        "1:09\u202fAM",
+        "F",
+        "7:29\u202fAM",
+        "March 24, 2026",
+        "mfm pecesetiers mega region (@mfmalaperemegaregion1) • Instagram profile",
+        "2 Followers, 202 Following, 3 Posts - See Instagram photos and videos from mfm pecesetiers mega region (@mfmalaperemegaregion1)",
+        "instagram.com"
+      ],
+      "ts": "2026-04-07T16:41:26.660Z"
+    },
+    {
+      "package": "com.vivo.upslide",
+      "activity": "com.vivo.upslide.recents.RecentsActivity",
+      "texts": [
+        "GitHub",
+        "Grok",
+        "Telegram",
+        "WhatsApp Business"
+      ],
+      "ts": "2026-04-07T16:41:29.018Z"
+    },
+    {
+      "package": "com.google.android.inputmethod.latin",
+      "activity": "",
+      "texts": [
+        "Grok",
+        "Telegram",
+        "GitHub",
+        "Chrome",
+        "WhatsApp Business",
+        "ChatGPT",
+        "Close all"
+      ],
+      "ts": "2026-04-07T16:41:31.368Z"
+    },
+    {
+      "package": "org.telegram.messenger",
+      "activity": "org.telegram.ui.LaunchActivity",
+      "texts": [
+        "AutoPhone",
+        "bot"
+      ],
+      "ts": "2026-04-07T16:41:33.904Z"
+    },
+    {
+      "package": "org.telegram.messenger",
+      "activity": "org.telegram.ui.LaunchActivity",
+      "texts": [
+        "AutoPhone",
+        "bot",
+        "/cmd",
+        "Creates new tasks"
+      ],
+      "ts": "2026-04-07T16:41:36.369Z"
+    },
+    {
+      "package": "org.telegram.messenger",
+      "activity": "org.telegram.ui.LaunchActivity",
+      "texts": [
+        "AutoPhone",
+        "bot"
+      ],
+      "ts": "2026-04-07T16:41:38.714Z"
+    },
+    {
+      "package": "com.whatsapp.w4b",
+      "activity": "com.whatsapp.notification.ui.PopupNotification",
+      "texts": [
+        "Femi",
+        "1 of 89",
+        "Thank you for contacting onitv television channels &. robinsplace television channel! Please let us know how we can help you.ronisplace television channel ronisplaceradio station",
+        "Hi bro"
+      ],
+      "ts": "2026-04-07T16:41:43.665Z"
+    },
+    {
+      "package": "com.whatsapp.w4b",
+      "activity": "com.whatsapp.notification.ui.PopupNotification",
+      "texts": [
+        "AutoPhone",
+        "bot"
+      ],
+      "ts": "2026-04-07T16:41:46.102Z"
+    },
+    {
+      "package": "org.telegram.messenger",
+      "activity": "org.telegram.ui.LaunchActivity",
+      "texts": [
+        "Femi",
+        "last seen today at 4:09\u202fPM",
+        "1 of 89",
+        "Thank you for contacting onitv television channels &. robinsplace television channel! Please let us know how we can help you.ronisplace television channel ronisplaceradio station",
+        "Hi bro"
+      ],
+      "ts": "2026-04-07T16:41:48.728Z"
+    },
+    {
+      "package": "org.telegram.messenger",
+      "activity": "org.telegram.ui.LaunchActivity",
+      "texts": [
+        "AutoPhone",
+        "bot"
+      ],
+      "ts": "2026-04-07T16:41:51.054Z"
+    },
+    {
+      "package": "org.telegram.messenger",
+      "activity": "org.telegram.ui.LaunchActivity",
+      "texts": [
+        "Reply",
+        "Forward",
+        "AutoPhone",
+        "bot"
+      ],
+      "ts": "2026-04-07T16:41:55.738Z"
+    },
+    {
+      "package": "org.telegram.messenger",
+      "activity": "org.telegram.ui.LaunchActivity",
+      "texts": [
+        "AutoPhone",
+        "bot",
+        "Text copied to clipboard"
+      ],
+      "ts": "2026-04-07T16:41:58.085Z"
+    },
+    {
+      "package": "org.telegram.messenger",
+      "activity": "org.telegram.ui.LaunchActivity",
+      "texts": [
+        "AutoPhone",
+        "bot"
+      ],
+      "ts": "2026-04-07T16:42:00.437Z"
+    }
+  ],
+  "touches": [],
+  "notes": "Route memory captured from teach mode."
+}
