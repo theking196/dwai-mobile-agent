@@ -1,0 +1,17 @@
+{
+  "task_id": "13vZadK7",
+  "status": "pending",
+  "intent": "go to gallery",
+  "type": "automation",
+  "created_at": "2026-04-07T00:36:28.212Z",
+  "steps": [
+    {
+      "action": "launch_app",
+      "value": "com.android.gallery3d"
+    },
+    {
+      "action": "wait",
+      "ms": 2000
+    }
+  ]
+}
