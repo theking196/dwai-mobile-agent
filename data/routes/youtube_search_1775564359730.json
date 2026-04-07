@@ -1,0 +1,28 @@
+{
+  "route_id": "teach_iNfZ587X",
+  "goal": "youtube search",
+  "app": "youtube",
+  "started_at": "2026-04-07T12:19:07.709Z",
+  "finished_at": "2026-04-07T12:19:19.729Z",
+  "snapshots": [
+    {
+      "package": "com.github.android",
+      "activity": "com.github.android.repository.files.RepositoryFilesActivity",
+      "texts": [
+        "data/routes/youtube_search_1775564276991.json",
+        "1872",
+        "​      ​\"activity\"​: ​\"​org.telegram.ui.LaunchActivity​\"​,",
+        "1873",
+        "​      ​\"texts\"​: [",
+        "1874",
+        "​        ​\"​1:17​\"​,",
+        "1875",
+        "​        ​\"​1.60​\"​,",
+        "1876"
+      ],
+      "ts": "2026-04-07T12:19:15.664Z"
+    }
+  ],
+  "touches": [],
+  "notes": "Route memory captured from teach mode."
+}
