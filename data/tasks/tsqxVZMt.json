@@ -1,6 +1,6 @@
 {
   "task_id": "tsqxVZMt",
-  "status": "pending",
+  "status": "executing",
   "intent": "Open WhatsApp",
   "type": "automation",
   "created_at": "2026-04-07T07:59:10.406Z",
@@ -15,5 +15,7 @@
     }
   ],
   "source": "telegram",
-  "planner_version": "v9"
+  "planner_version": "v9",
+  "started_at": "2026-04-07T08:01:37.670Z",
+  "worker_id": "phone-vivo 1906-720x1544"
 }
