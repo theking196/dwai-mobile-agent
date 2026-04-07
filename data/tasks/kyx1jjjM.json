@@ -1,6 +1,6 @@
 {
   "task_id": "kyx1jjjM",
-  "status": "pending",
+  "status": "executing",
   "intent": "open Chrome and search for the word RCCG live in Camp and choose the one that is from YouTube show me the steps you take",
   "type": "automation",
   "created_at": "2026-04-07T07:47:57.984Z",
@@ -37,5 +37,7 @@
     }
   ],
   "source": "telegram",
-  "planner_version": "v9"
+  "planner_version": "v9",
+  "started_at": "2026-04-07T07:50:17.838Z",
+  "worker_id": "phone-vivo 1906-720x1544"
 }
