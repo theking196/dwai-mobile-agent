@@ -1,14 +1,16 @@
-// DWAI Mobile Agent v10
-// - Reads current_task first for speed
-// - Falls back to tasks folder
-// - No delete after completion
-// - Stop on failure
-// - Teach mode recording
-// - Route memory saving
-// - App discovery + app resolution
-// - Selector-first execution
-// - Verified launch
-// - No overlapping polling
+// DWAI Mobile Agent v11
+// Matches the latest server:
+// - uses current_task.json first for speed
+// - falls back to tasks folder
+// - no delete after completion
+// - claim task before running
+// - stop on failure
+// - teach start / teach stop
+// - route memory saving
+// - app discovery + app resolution
+// - selector-first execution
+// - verified launch
+// - no overlapping polling
 
 var GITHUB_TOKEN = "PUT_A_NEW_TOKEN_HERE";
 var REPO_OWNER = "theking196";
@@ -385,6 +387,28 @@ function saveRoute(goal, routeData) {
     }
 }
 
+function upsertCurrentPointer(pointer) {
+    var url = BASE_URL + CURRENT_TASK_PATH;
+    var existing = ghGetJson(url);
+
+    var payload = {
+        message: "current task " + (pointer.task_id || "unknown"),
+        content: b64Encode(JSON.stringify(pointer, null, 2)),
+        branch: BRANCH
+    };
+
+    if (existing.ok && existing.json && existing.json.sha) {
+        payload.sha = existing.json.sha;
+    }
+
+    var res = ghPutJson(url, payload);
+    if (!res.ok) {
+        throw new Error("GitHub current_task write failed: " + res.statusCode + " | " + res.body);
+    }
+
+    return res;
+}
+
 // =====================================================
 // DEVICE STATE
 // =====================================================
@@ -534,7 +558,27 @@ function tryStartTouchObserver() {
     }
 }
 
-function finalizeTeachSession(task, fileUrl, sha) {
+function clearCurrentPointer() {
+    var payload = {
+        task_id: null,
+        type: "none",
+        status: "idle",
+        intent: "",
+        goal: "",
+        app: null,
+        file_url: null,
+        created_at: new Date().toISOString(),
+        source: "agent"
+    };
+
+    try {
+        upsertCurrentPointer(payload);
+    } catch (e) {
+        log("clearCurrentPointer error: " + e);
+    }
+}
+
+function finalizeTeachSession() {
     if (!TEACH_SESSION) return;
 
     var routeData = {
@@ -555,7 +599,44 @@ function finalizeTeachSession(task, fileUrl, sha) {
     TEACH_LAST_FP = "";
     TEACH_SNAPS = [];
     TEACH_TOUCHES = [];
+    clearCurrentPointer();
     log("Teach session finalized");
+}
+
+function processTeachTick() {
+    var pointer = getCurrentPointer();
+
+    if (pointer && pointer.type === "teach_stop" && pointer.status === "pending") {
+        var stopBundle = pointer.file_url ? getTask(pointer.file_url) : null;
+        if (stopBundle) {
+            try {
+                var stopTask = stopBundle.task;
+                var stopSha = stopBundle.file.sha;
+
+                stopTask.status = "executing";
+                stopTask.started_at = new Date().toISOString();
+                stopTask.worker_id = WORKER_ID;
+                saveTask(pointer.file_url, stopSha, stopTask, "executing");
+
+                // stop immediately before any more snapshots
+                TEACH_MODE = false;
+                finalizeTeachSession();
+
+                stopTask.status = "completed";
+                stopTask.finished_at = new Date().toISOString();
+                var newSha = saveTask(pointer.file_url, stopSha, stopTask, "completed");
+                writeLog(stopTask.task_id, "completed", null);
+                log("Teach stop completed");
+            } catch (e) {
+                log("Teach stop error: " + e);
+            }
+        }
+        return;
+    }
+
+    if (!TEACH_MODE) return;
+
+    recordTeachSnapshot();
 }
 
 // =====================================================
@@ -598,6 +679,26 @@ function launchAppSafe(nameOrPackage) {
 // =====================================================
 // STEP EXECUTION
 // =====================================================
+
+function applyFallbacks(step) {
+    if (!step || !step.fallbacks || !Array.isArray(step.fallbacks)) return false;
+
+    for (var i = 0; i < step.fallbacks.length; i++) {
+        var fb = step.fallbacks[i];
+        try {
+            if (fb.action === "click") {
+                if (clickSmart(fb)) return true;
+            } else if (fb.action === "wait") {
+                waitMs(Number(fb.ms || 1000));
+                return true;
+            }
+        } catch (e) {
+            log("Fallback error: " + e);
+        }
+    }
+
+    return false;
+}
 
 function clickSmart(step) {
     log("Click step: " + JSON.stringify(step));
@@ -645,6 +746,8 @@ function clickSmart(step) {
             click(step.x, step.y);
             return true;
         }
+
+        if (applyFallbacks(step)) return true;
     } catch (e) {
         log("clickSmart error: " + e);
     }
@@ -805,86 +908,99 @@ function execWithRetry(step) {
 }
 
 // =====================================================
-// TASK LOOP
+// TASK PROCESSING
 // =====================================================
 
 var isProcessing = false;
 var currentTaskId = null;
 var lastTaskId = null;
 
-function processTeachModeIfActive() {
-    if (!TEACH_MODE) return;
+function claimTask(bundle, pointerRef) {
+    var task = bundle.task;
+    var taskFileUrl = bundle.fileUrl;
+    var fileSha = bundle.file.sha;
 
-    recordTeachSnapshot();
+    task.status = "executing";
+    task.started_at = new Date().toISOString();
+    task.worker_id = WORKER_ID;
 
-    var current = getCurrentPointer();
-    if (current && current.type === 'teach_stop' && current.status === 'pending') {
-        var stopBundle = current.file_url ? getTask(current.file_url) : null;
-        if (stopBundle) {
-            try {
-                var stopTask = stopBundle.task;
-                var stopSha = stopBundle.file.sha;
+    var newSha = saveTask(taskFileUrl, fileSha, task, "executing");
 
-                stopTask.status = "executing";
-                stopTask.started_at = new Date().toISOString();
-                saveTask(current.file_url, stopSha, stopTask, "executing");
-
-                finalizeTeachSession(stopTask, current.file_url, stopSha);
-
-                stopTask.status = "completed";
-                stopTask.finished_at = new Date().toISOString();
-                var newSha = saveTask(current.file_url, stopSha, stopTask, "completed");
-                writeLog(stopTask.task_id, "completed", null);
-                log("Teach stop completed");
-            } catch (e) {
-                log("Teach stop error: " + e);
-            }
-        }
-    }
-}
-
-function processOneTask() {
-    if (isProcessing) {
-        log("Already processing");
-        return;
-    }
-
-    if (TEACH_MODE) {
-        processTeachModeIfActive();
-        return;
-    }
-
-    var pointer = getCurrentPointer();
-    if (pointer && pointer.task_id && pointer.status === 'pending' && pointer.file_url) {
-        var bundle = getTask(pointer.file_url);
-        if (bundle && bundle.task && bundle.task.status === 'pending') {
-            runTaskBundle(bundle);
-            return;
+    if (pointerRef) {
+        pointerRef.status = "executing";
+        pointerRef.started_at = new Date().toISOString();
+        pointerRef.worker_id = WORKER_ID;
+        try {
+            upsertCurrentPointer(pointerRef);
+        } catch (e) {
+            log("pointer claim update failed: " + e);
         }
     }
 
-    var files = getTaskList();
-    for (var i = 0; i < files.length; i++) {
-        var f = files[i];
-        if (!f || !f.name) continue;
-        if (f.type !== "file") continue;
-        if (f.name === ".gitkeep") continue;
-        if (f.name.indexOf("_log") !== -1) continue;
-
-        var bundle = getTask(f.url);
-        if (!bundle) continue;
-
-        if (bundle.task.status !== "pending") continue;
-        runTaskBundle(bundle);
-        return;
-    }
+    return newSha;
 }
 
-function runTaskBundle(bundle) {
+function finishTask(bundle, sha, task, status, errorMsg, pointerRef) {
+    task.status = status;
+    task.finished_at = new Date().toISOString();
+    if (errorMsg) task.error = errorMsg;
+
+    var newSha = saveTask(bundle.fileUrl, sha, task, status);
+
+    if (pointerRef) {
+        pointerRef.status = status;
+        pointerRef.finished_at = new Date().toISOString();
+        pointerRef.error = errorMsg || null;
+        pointerRef.worker_id = WORKER_ID;
+        try {
+            upsertCurrentPointer(pointerRef);
+        } catch (e) {
+            log("pointer finish update failed: " + e);
+        }
+    }
+
+    writeLog(task.task_id, status, errorMsg || null);
+    lastTaskId = task.task_id;
+
+    return newSha;
+}
+
+function runTeachStart(bundle, pointerRef) {
+    var task = bundle.task;
+    var sha = claimTask(bundle, pointerRef);
+
+    waitForUnlock();
+
+    startTeachSession(task);
+
+    task.status = "completed";
+    task.finished_at = new Date().toISOString();
+
+    finishTask(bundle, sha, task, "completed", null, pointerRef);
+    log("Teach start completed: " + task.task_id);
+}
+
+function runTeachStop(bundle, pointerRef) {
+    var task = bundle.task;
+    var sha = claimTask(bundle, pointerRef);
+
+    waitForUnlock();
+
+    TEACH_MODE = false;
+    finalizeTeachSession();
+
+    task.status = "completed";
+    task.finished_at = new Date().toISOString();
+
+    finishTask(bundle, sha, task, "completed", null, pointerRef);
+    log("Teach stop completed: " + task.task_id);
+}
+
+function runAutomationTask(bundle, pointerRef) {
     var task = bundle.task;
 
     if (!task || !task.task_id) return;
-    if (task.task_id === lastTaskId && task.status !== 'pending') {
+    if (task.task_id === lastTaskId && task.status !== "pending") {
         log("Skipping already handled task: " + task.task_id);
         return;
     }
@@ -898,25 +1014,9 @@ function runTaskBundle(bundle) {
     var sha = null;
 
     try {
-        task.status = "executing";
-        task.started_at = new Date().toISOString();
-        task.worker_id = WORKER_ID;
-
-        sha = saveTask(bundle.file.url, bundle.file.sha, task, "executing");
+        sha = claimTask(bundle, pointerRef);
 
         waitForUnlock();
-
-        if (task.type === "teach_start") {
-            startTeachSession(task);
-            task.status = "completed";
-            task.finished_at = new Date().toISOString();
-            sha = saveTask(bundle.file.url, sha, task, "completed");
-            writeLog(currentTaskId, "completed", null);
-            lastTaskId = currentTaskId;
-            isProcessing = false;
-            currentTaskId = null;
-            return;
-        }
 
         var success = true;
         var errorMsg = "";
@@ -935,31 +1035,19 @@ function runTaskBundle(bundle) {
             waitMs(500);
         }
 
-        task.status = success ? "completed" : "failed";
-        task.finished_at = new Date().toISOString();
-        if (!success) {
-            task.error = errorMsg;
+        if (success) {
+            finishTask(bundle, sha, task, "completed", null, pointerRef);
+            log("Task " + currentTaskId + " finished: completed");
+        } else {
+            finishTask(bundle, sha, task, "failed", errorMsg, pointerRef);
+            log("Task " + currentTaskId + " finished: failed");
         }
-
-        saveTask(bundle.file.url, sha, task, task.status);
-        writeLog(currentTaskId, task.status, task.error || null);
-
-        log("Task " + currentTaskId + " finished: " + task.status);
-        lastTaskId = currentTaskId;
     } catch (e) {
         log("Task error: " + e);
 
         try {
-            if (task) {
-                task.status = "failed";
-                task.finished_at = new Date().toISOString();
-                task.error = String(e);
-
-                if (sha) {
-                    saveTask(bundle.file.url, sha, task, "failed");
-                }
-
-                writeLog(currentTaskId, "failed", task.error);
+            if (task && sha) {
+                finishTask(bundle, sha, task, "failed", String(e), pointerRef);
             }
         } catch (inner) {
             log("Finalization error: " + inner);
@@ -969,6 +1057,71 @@ function runTaskBundle(bundle) {
     isProcessing = false;
     currentTaskId = null;
 }
+
+function processTeachTickOnly() {
+    processTeachTick();
+}
+
+function processOneTask() {
+    if (isProcessing) {
+        log("Already processing");
+        return;
+    }
+
+    // Teach mode gets priority and does not run normal tasks until it is stopped.
+    if (TEACH_MODE) {
+        processTeachTickOnly();
+        return;
+    }
+
+    var pointer = getCurrentPointer();
+    if (pointer && pointer.status === "pending" && pointer.file_url) {
+        var pb = getTask(pointer.file_url);
+        if (pb && pb.task) {
+            if (pb.task.type === "teach_start") {
+                runTeachStart(pb, pointer);
+                return;
+            }
+            if (pb.task.type === "teach_stop") {
+                runTeachStop(pb, pointer);
+                return;
+            }
+            runAutomationTask(pb, pointer);
+            return;
+        }
+    }
+
+    var files = getTaskList();
+    for (var i = 0; i < files.length; i++) {
+        var f = files[i];
+        if (!f || !f.name) continue;
+        if (f.type !== "file") continue;
+        if (f.name === ".gitkeep") continue;
+        if (f.name.indexOf("_log") !== -1) continue;
+
+        var bundle = getTask(f.url);
+        if (!bundle) continue;
+
+        if (bundle.task.status !== "pending") continue;
+
+        if (bundle.task.type === "teach_start") {
+            runTeachStart(bundle, null);
+            return;
+        }
+
+        if (bundle.task.type === "teach_stop") {
+            runTeachStop(bundle, null);
+            return;
+        }
+
+        runAutomationTask(bundle, null);
+        return;
+    }
+}
+
+// =====================================================
+// STARTUP
+// =====================================================
 
 buildInstalledAppsMap();
 tryStartTouchObserver();
