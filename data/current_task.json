@@ -1,11 +1,9 @@
 {
-  "task_id": "KcBW8ef_",
+  "task_id": "UpNTddFZ",
   "type": "automation",
-  "status": "executing",
-  "intent": "Open Com.whatsapp.w4b use the package name",
-  "file_url": "https://api.github.com/repos/theking196/dwai-mobile-agent/contents/data/tasks/KcBW8ef_.json",
-  "created_at": "2026-04-07T18:09:54.931Z",
-  "source": "telegram",
-  "started_at": "2026-04-07T18:10:37.596Z",
-  "worker_id": "phone-vivo 1906-720x1544"
+  "status": "pending",
+  "intent": "Facebook lite",
+  "file_url": "https://api.github.com/repos/theking196/dwai-mobile-agent/contents/data/tasks/UpNTddFZ.json",
+  "created_at": "2026-04-07T18:10:51.620Z",
+  "source": "telegram"
 }
