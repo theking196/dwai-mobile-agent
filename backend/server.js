@@ -42,7 +42,7 @@ function ghPut(url, body) {
 
 const GITHUB_API = `https://api.github.com/repos/${GITHUB_REPO}/contents`;
 
-function createTask(taskId, data, taskType = 'automation', intent = '') {
+function createTask(taskId, data) {
   const path = `data/tasks/${taskId}.json`;
   const contentBase64 = Buffer.from(JSON.stringify(data, null, 2)).toString('base64');
   const url = `${GITHUB_API}/${path}`;
@@ -53,7 +53,39 @@ function createTask(taskId, data, taskType = 'automation', intent = '') {
   });
 }
 
-// ❗ VALIDATION - Validate every step
+// VALID APP LIST - Only these packages are allowed
+const VALID_APPS = {
+  "youtube": "com.google.android.youtube",
+  "chrome": "com.android.chrome",
+  "google chrome": "com.android.chrome",
+  "browser": "com.android.chrome",
+  "whatsapp": "com.whatsapp",
+  "calculator": "com.android.calculator2",
+  "camera": "com.android.camera2",
+  "photos": "com.google.android.apps.photos",
+  "gallery": "com.android.gallery3d",
+  "settings": "com.android.settings",
+  "phone": "com.android.dialer",
+  "messages": "com.android.mms",
+  "gmail": "com.google.android.gm",
+  "maps": "com.google.android.apps.maps",
+  "spotify": "com.spotify.music",
+  "facebook": "com.facebook.katana",
+  "instagram": "com.instagram.android",
+  "twitter": "com.twitter.android",
+  "telegram": "org.telegram.messenger",
+  "signal": "org.thoughtcrime.securesms",
+  "discord": "com.discord",
+  "slack": "com.Slack",
+  "zoom": "us.zoom.videomeetings"
+};
+
+function resolveAppName(text) {
+  text = text.toLowerCase().trim();
+  return VALID_APPS[text] || null;
+}
+
+// VALIDATION - Strict step validation
 function validateSteps(steps) {
   if (!Array.isArray(steps)) return { valid: false, error: 'Not an array' };
   
@@ -72,70 +104,61 @@ function validateSteps(steps) {
     if (s.action === 'wait' && !s.ms) return { valid: false, error: `Step ${i}: wait needs ms` };
   }
   
-  // Max steps check
   if (steps.length > 20) return { valid: false, error: 'Too many steps (max 20)' };
   
   return { valid: true };
 }
 
-// ❗ IMPROVED PROMPT - Stricter output format
+// IMPROVED PLANNER - With app resolution
 async function generatePlan(userText) {
-  const prompt = `You are DWAI Mobile Agent - a STRICT mobile automation planner.
+  const prompt = `You are DWAI Mobile Agent Planner - STRICT JSON output only.
 
-OUTPUT STRICT JSON ONLY - no text, no explanation.
+TASK: Convert user command to executable steps.
 
-Format:
-{
-  "steps": [...],
-  "reasoning": "short explanation",
-  "confidence": 0-1
-}
+CRITICAL RULES:
+1. Use ONLY these verified app packages - DO NOT guess:
+${Object.entries(VALID_APPS).map(([k,v]) => `- "${k}" -> ${v}`).join('\n')}
 
-RULES:
-- NEVER return plain text
-- ALWAYS include wait after UI actions (1000-5000ms)
-- ALWAYS prefer selectors (contains, desc) over coordinates
-- DO NOT hallucinate UI elements
-- Keep steps under 20
-- For click: use "contains" or "desc" first, x/y as fallback
-- For launch_app: use known package names
+2. Always use verified package names from above list
+3. If app not in list, use description and let executor resolve
+4. Prefer selectors (contains, desc) over coordinates
+5. Always add wait after launch_app (2000-4000ms)
+6. Always add wait after type (1000-2000ms)
+7. Max 15 steps
 
 VALID ACTIONS:
-- {"action":"launch_app","value":"package_name"}
-- {"action":"click","contains":"text"} or {"action":"click","x":540,"y":300}
-- {"action":"type","text":"string"}
+- {"action":"launch_app","value":"PACKAGE_NAME"}
+- {"action":"click","contains":"TEXT"} or {"action":"click","x":540,"y":300}
+- {"action":"type","text":"STRING"}
 - {"action":"press","key":"enter|back|home"}
 - {"action":"wait","ms":3000}
-- {"action":"toast","text":"message"}
+- {"action":"toast","text":"MESSAGE"}
 
-COMMON APPS:
-- YouTube: com.google.android.youtube
-- Chrome: com.android.chrome
-- WhatsApp: com.whatsapp
+User command: "${userText}"
 
-User task: "${userText}"`;
+Output ONLY JSON array. Example:
+[{"action":"launch_app","value":"com.google.android.youtube"},{"action":"wait","ms":4000},{"action":"click","contains":"Search"},{"action":"wait","ms":2000},{"action":"type","text":"AI news"},{"action":"press","key":"enter"},{"action":"wait","ms":5000}]`;
 
   const res = await groq.chat.completions.create({
     model: 'llama-3.3-70b-versatile',
     messages: [
-      { role: 'system', content: 'You are DWAI Mobile Agent. Output ONLY valid JSON with "steps" array.' },
+      { role: 'system', content: 'You are DWAI Planner. Output ONLY valid JSON array of steps.' },
       { role: 'user', content: prompt }
     ],
-    temperature: 0.1, // Lower temp for more precise output
+    temperature: 0.1,
     max_tokens: 1500
   });
 
   const raw = res.choices[0].message.content.trim();
   
-  // Try to parse as full JSON first
+  // Try full JSON parse first
   try {
     const parsed = JSON.parse(raw);
-    if (parsed.steps && Array.isArray(parsed.steps)) {
-      return parsed.steps;
-    }
+    if (parsed.steps && Array.isArray(parsed.steps)) return parsed.steps;
+    if (Array.isArray(parsed)) return parsed;
   } catch (e) {}
   
-  // Fallback: extract array from text
+  // Extract array
   const jsonStart = raw.search('[');
   const jsonEnd = raw.lastIndexOf(']') + 1;
   if (jsonStart === -1) return [];
@@ -144,7 +167,7 @@ User task: "${userText}"`;
 }
 
 bot.command('start', async (ctx) => {
-  await ctx.reply('DWAI Mobile Agent v2 – your phone, controlled by AI.\n\nCommands:\n/cmd <text> – plan & queue a task\n/status <task_id> – check a task\n/tasks – list pending tasks\n\nExample:\n/cmd Open YouTube and search for AI');
+  await ctx.reply('DWAI Mobile Agent v8\n\nCommands:\n/cmd <task> - Plan & queue\n/status <id> - Check task\n/tasks - List pending\n\nApps: ' + Object.keys(VALID_APPS).slice(0, 5).join(', ') + '...');
 });
 
 bot.command('cmd', async (ctx) => {
@@ -154,30 +177,27 @@ bot.command('cmd', async (ctx) => {
   await ctx.reply('🤔 Planning...');
   const steps = await generatePlan(text);
   
-  // ❗ VALIDATION - Check steps before creating task
   const validation = validateSteps(steps);
   if (!validation.valid) {
-    return ctx.reply(`❌ Invalid plan: ${validation.error}\nTry again with a simpler task.`);
+    return ctx.reply('❌ Invalid plan: ' + validation.error);
   }
   
   const taskId = nanoid(8);
-  
-  // ❗ ADDED: task type and intent
   const task = { 
     task_id: taskId, 
     status: 'pending', 
-    intent: text,  // Store original intent
-    type: 'automation',  // Task type
+    intent: text,
+    type: 'automation',
     created_at: new Date().toISOString(), 
     steps 
   };
   
   try {
     await createTask(taskId, task);
-    await ctx.reply(`✅ Task queued!\n\nID: ${taskId}\nSteps: ${steps.length}\nIntent: ${text}\n\nPreview:\n${JSON.stringify(steps.slice(0, 3), null, 2)}${steps.length > 3 ? '\n...' : ''}`);
+    await ctx.reply(`✅ Task ${taskId}\n\nSteps: ${steps.length}\n${steps.map((s, i) => `${i+1}. ${s.action}`).join('\n')}`);
   } catch (e) {
     console.error(e);
-    await ctx.reply('❌ Failed to save task. Check GitHub config.');
+    await ctx.reply('❌ Failed to save task');
   }
 });
 
@@ -195,13 +215,10 @@ bot.command('status', async (ctx) => {
     });
     const content = Buffer.from(res.content, 'base64').toString();
     const task = JSON.parse(content);
-    
-    // Better status display
-    let statusIcon = task.status === 'completed' ? '✅' : task.status === 'failed' ? '❌' : '⏳';
-    await ctx.reply(`${statusIcon} Task ${taskId}\n\nStatus: ${task.status}\nIntent: ${task.intent || 'N/A'}\nType: ${task.type || 'automation'}\nCreated: ${task.created_at}\nSteps: ${task.steps.length}\n${task.completed_at ? 'Completed: ' + task.completed_at : ''}\n${task.error ? 'Error: ' + task.error : ''}`);
+    const icon = task.status === 'completed' ? '✅' : task.status === 'failed' ? '❌' : '⏳';
+    await ctx.reply(`${icon} ${taskId}\n\nStatus: ${task.status}\nIntent: ${task.intent || 'N/A'}\nSteps: ${task.steps.length}\n${task.error ? '\nError: ' + task.error : ''}`);
   } catch (e) {
-    console.error(e);
-    await ctx.reply('❌ Task not found.');
+    await ctx.reply('❌ Task not found');
   }
 });
 
@@ -216,24 +233,17 @@ bot.command('tasks', async (ctx) => {
       }).on('error', reject);
     });
     const files = res.filter(f => f.name !== '.gitkeep');
-    if (!files.length) return ctx.reply('📭 No pending tasks.');
-    await ctx.reply(`📋 Pending tasks (${files.length}):\n\n${files.map(f => f.name.replace('.json', '')).join('\n')}`);
+    if (!files.length) return ctx.reply('📭 No pending tasks');
+    await ctx.reply(`📋 ${files.length} tasks:\n\n${files.map(f => f.name.replace('.json', '')).join('\n')}`);
   } catch (e) {
-    await ctx.reply('❌ Could not fetch tasks.');
+    await ctx.reply('❌ Error fetching tasks');
   }
-});
-
-// ❗ FEEDBACK LOOP - Log endpoint (for future AutoX integration)
-app.post('/log', express.json(), (req, res) => {
-  const { task_id, status, result, error } = req.body;
-  console.log(`[LOG] ${task_id}: ${status} - ${error || result || ''}`);
-  res.json({ received: true });
 });
 
 app.get('/health', (_, res) => res.json({ status: 'ok' }));
 
 app.listen(PORT, () => {
-  console.log(`Server listening on ${PORT}`);
+  console.log(`Server on ${PORT}`);
   bot.launch();
 });
 
