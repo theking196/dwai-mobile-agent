@@ -1,0 +1,13 @@
+{
+  "task_id": "teach_EfwuqsLS",
+  "type": "teach_start",
+  "status": "pending",
+  "intent": "youtube search",
+  "app": "youtube",
+  "goal": "youtube search",
+  "created_at": "2026-04-07T12:11:32.151Z",
+  "steps": [],
+  "source": "telegram",
+  "planner_version": "v10",
+  "file_url": "https://api.github.com/repos/theking196/dwai-mobile-agent/contents/data/tasks/teach_EfwuqsLS.json"
+}
