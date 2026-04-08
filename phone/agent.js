@@ -1,11 +1,17 @@
-// DWAI Mobile Agent v2.0 - ROOT-FREE VERSION
+// DWAI Mobile Agent v2.0 - ROOT-FREE VERSION (FIXED)
 // Features: /do (fast), /live (watch+adapt), /teach (record), route matching, queue fix
 // NO ROOT REQUIRED - Works on all devices
 
-var GITHUB_TOKEN = ""; // REPLACE THIS
-var REPO_OWNER = "theking196";     // REPLACE THIS  
-var REPO_NAME = "dwai-mobile-agent";       // REPLACE THIS
+// ============================================
+// CONFIGURATION - UPDATE THESE!
+// ============================================
+var GITHUB_TOKEN = "ghp_YOUR_TOKEN_HERE"; // ← REPLACE WITH YOUR GITHUB TOKEN
+var REPO_OWNER = "theking196";            // Your GitHub username
+var REPO_NAME = "dwai-mobile-agent";      // Your repo name
 
+// ============================================
+// PATHS & CONSTANTS
+// ============================================
 var TASKS_PATH = "data/tasks";
 var LOGS_PATH = "data/logs";
 var ROUTES_PATH = "data/routes";
@@ -416,15 +422,6 @@ function currentAppIs(pkg) {
   }
 }
 
-function waitForPackage(pkg, timeoutMs) {
-  var start = new Date().getTime();
-  while (new Date().getTime() - start < timeoutMs) {
-    if (currentAppIs(pkg)) return true;
-    waitMs(300);
-  }
-  return false;
-}
-
 function currentScreenFingerprint() {
   var pkg = "";
   var act = "";
@@ -456,7 +453,6 @@ function currentScreenFingerprint() {
 // ============================================
 // TOUCH OBSERVER (for teach mode)
 // ============================================
-
 function tryStartTouchObserver() {
   try {
     if (touchObserver) return;
@@ -482,7 +478,7 @@ function tryStartTouchObserver() {
       }
     });
 
-    let roots = [];
+    var roots = [];
     try {
       roots = (typeof windows === "object" && windows.getDecorView)
         ? [windows.getDecorView()]
@@ -493,7 +489,7 @@ function tryStartTouchObserver() {
         root.setOnTouchListener(touchObserver);
       }
     });
-    log("Touch observer ACTUALLY initialized on root(s).");
+    log("Touch observer initialized.");
   } catch (e) {
     log("Touch observer unavailable: " + e);
   }
@@ -657,7 +653,7 @@ function observeAndVerify(expectedState) {
     }
     
     if (expectedState.text && current.texts) {
-      var found = current.texts.some(t => t.indexOf(expectedState.text) !== -1);
+      var found = current.texts.some(function(t) { return t.indexOf(expectedState.text) !== -1; });
       if (!found) {
         return { ok: false, reason: "text_not_found", current: current };
       }
@@ -670,10 +666,9 @@ function observeAndVerify(expectedState) {
 }
 
 // ============================================
-// ROOT-FREE ACTION EXECUTION
+// ROOT-FREE ACTION EXECUTION (FIXED)
 // ============================================
 
-// ROOT-FREE: Uses only AutoX.js built-in functions
 function launchAppSafe(nameOrPackage) {
   var target = normalizeLaunchTarget(nameOrPackage);
   if (!target) return null;
@@ -682,11 +677,10 @@ function launchAppSafe(nameOrPackage) {
   
   for (var attempt = 0; attempt < 3; attempt++) {
     try {
-      // Method 1: Use AutoX.js built-in launchPackage (NEVER requires root)
+      // Method 1: Use AutoX.js built-in launchPackage
       app.launchPackage(target);
       waitMs(2000);
       
-      // Verify launch succeeded
       if (currentAppIs(target)) {
         log("Launch success: " + target);
         return target;
@@ -748,6 +742,15 @@ function clickSmart(step) {
       }
     }
     
+    // Try descContains
+    if (step.descContains) {
+      var dc = descContains(step.descContains).findOne(1000);
+      if (dc && dc.clickable()) {
+        dc.click();
+        return true;
+      }
+    }
+    
     // Fallback to coordinates
     if (typeof step.x === "number" && typeof step.y === "number") {
       click(step.x, step.y);
@@ -785,7 +788,9 @@ function typeText(value) {
   }
 }
 
-// ROOT-FREE: Replaces all shell-based key events with built-in functions
+// ============================================
+// FIXED: press key handler for Chrome compatibility
+// ============================================
 function execStep(step) {
   if (!step || !step.action) {
     throw new Error("Invalid step");
@@ -810,41 +815,72 @@ function execStep(step) {
     case "press":
       var key = String(step.key || "").toLowerCase();
       
-      // ROOT-FREE: Use built-in AutoX.js functions instead of shell
       if (key === "enter") {
-        // Try to find and click "Go", "Search", or "Send" button
-        var enterBtn = text("Go").findOne(500) || 
-                      desc("Search").findOne(500) || 
-                      text("Search").findOne(500) ||
-                      desc("Send").findOne(500) ||
-                      text("Send").findOne(500);
+        // FIX: Chrome-compatible enter key simulation
+        // Try multiple methods to submit/enter
+        
+        // Method 1: Look for common submit buttons
+        var enterBtn = text("Go").findOne(300) || 
+                      desc("Go").findOne(300) ||
+                      text("Search").findOne(300) || 
+                      desc("Search").findOne(300) ||
+                      text("Send").findOne(300) ||
+                      desc("Send").findOne(300) ||
+                      descContains("Search").findOne(300) ||
+                      descContains("Navigate").findOne(300);
+                      
         if (enterBtn && enterBtn.clickable()) {
           enterBtn.click();
+          log("Pressed enter via button: " + (enterBtn.text() || enterBtn.desc()));
           waitMs(500);
           return true;
         }
-        // If no button found, keyboard should submit on some apps
-        log("No enter button found, continuing...");
+        
+        // Method 2: For Chrome - click on address bar to submit
+        // Find the EditText (address bar) and click it to trigger submit
+        var addressBar = className("android.widget.EditText").findOne(300);
+        if (addressBar) {
+          // Click at the right side of address bar (where arrow/go icon usually is)
+          var bounds = addressBar.bounds();
+          // Click on the right side of the field where the "go" arrow would be
+          click(bounds.right - 50, bounds.centerY());
+          log("Pressed enter via address bar right-click at " + (bounds.right - 50) + "," + bounds.centerY());
+          waitMs(500);
+          return true;
+        }
+        
+        // Method 3: Click bottom-right of screen (keyboard enter area)
+        var screenW = device.width;
+        var screenH = device.height;
+        click(screenW - 100, screenH - 150);
+        log("Pressed enter via bottom-screen click");
+        waitMs(500);
         return true;
       }
       else if (key === "back") {
-        back();  // Built-in AutoX.js function - NO ROOT NEEDED
+        back();
         return true;
       }
       else if (key === "home") {
-        home();  // Built-in AutoX.js function - NO ROOT NEEDED
+        home();
         return true;
       }
       else if (key === "menu") {
-        // Try to find menu button or use recents
         var menuBtn = desc("More options").findOne(500) || 
                       className("android.widget.ImageView").desc("More options").findOne(500);
         if (menuBtn && menuBtn.clickable()) {
           menuBtn.click();
           return true;
         }
-        // Fallback: use recents as approximation
-        recents();
+        // Fallback: try to use recents if available
+        try {
+          if (typeof recents === 'function') {
+            recents();
+            return true;
+          }
+        } catch(e) {}
+        // Last resort: press back (sometimes opens menu in some apps)
+        back();
         return true;
       }
       else {
@@ -880,6 +916,17 @@ function execStep(step) {
       return true;
       
     case "observe":
+      // Actually perform observation if expected state provided
+      if (step.expected_package || step.expected_text) {
+        var obs = observeAndVerify({
+          package: step.expected_package,
+          text: step.expected_text
+        });
+        if (!obs.ok) {
+          log("Observation warning: " + obs.reason);
+          // Don't throw error, just warn - let live mode handle adaptation
+        }
+      }
       return true;
       
     default:
@@ -1103,7 +1150,7 @@ function runLiveTask(bundle, pointerRef) {
             log("LiveMode: Attempting adaptation (re-execute last step)...");
             adaptationCount++;
             waitMs(2000);
-            let ok = false;
+            var ok = false;
             try {
               ok = execWithRetry(task.steps[Math.max(0, j-1)] || step);
             } catch(e) {}
@@ -1312,7 +1359,7 @@ while (true) {
   
   if (processedTaskIds.size > 1000) {
     var toRemove = Array.from(processedTaskIds).slice(0, 500);
-    toRemove.forEach(id => processedTaskIds.delete(id));
+    toRemove.forEach(function(id) { processedTaskIds.delete(id); });
     log("Cleaned up processed task cache");
   }
   
