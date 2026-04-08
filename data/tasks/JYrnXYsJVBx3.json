@@ -1,0 +1,55 @@
+{
+  "task_id": "JYrnXYsJVBx3",
+  "type": "automation",
+  "status": "pending",
+  "intent": "LIVE",
+  "mode": "live",
+  "goal": "Open Google maps and in the maps app search for Nigeria",
+  "steps": [
+    {
+      "action": "launch_app",
+      "value": "maps"
+    },
+    {
+      "action": "observe",
+      "purpose": "verify_state",
+      "on_mismatch": "replan",
+      "timeout": 5000
+    },
+    {
+      "action": "wait",
+      "ms": 4000
+    },
+    {
+      "action": "click",
+      "contains": "Search",
+      "desc": "Search"
+    },
+    {
+      "action": "observe",
+      "purpose": "verify_state",
+      "on_mismatch": "replan",
+      "timeout": 5000
+    },
+    {
+      "action": "wait",
+      "ms": 1000
+    },
+    {
+      "action": "type",
+      "text": "Nigeria"
+    },
+    {
+      "action": "press",
+      "key": "enter"
+    },
+    {
+      "action": "wait",
+      "ms": 4000
+    }
+  ],
+  "route_matched": null,
+  "slot_values": {},
+  "created_at": "2026-04-08T20:11:11.691Z",
+  "validate_steps": true
+}
