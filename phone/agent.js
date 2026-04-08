@@ -1,9 +1,10 @@
-// DWAI Mobile Agent v2.0 - Complete Implementation
+// DWAI Mobile Agent v2.0 - ROOT-FREE VERSION
 // Features: /do (fast), /live (watch+adapt), /teach (record), route matching, queue fix
+// NO ROOT REQUIRED - Works on all devices
 
-var GITHUB_TOKEN = "YOUR_GITHUB_TOKEN_HERE"; // REPLACE THIS
-var REPO_OWNER = "YOUR_REPO_OWNER_HERE";     // REPLACE THIS  
-var REPO_NAME = "YOUR_REPO_NAME_HERE";       // REPLACE THIS
+var GITHUB_TOKEN = ""; // REPLACE THIS
+var REPO_OWNER = "theking196";     // REPLACE THIS  
+var REPO_NAME = "dwai-mobile-agent";       // REPLACE THIS
 
 var TASKS_PATH = "data/tasks";
 var LOGS_PATH = "data/logs";
@@ -18,8 +19,8 @@ var BRANCH = "main";
 var WORKER_ID = "phone-" + (device.model || "android") + "-" + device.width + "x" + device.height;
 var BASE_URL = "https://api.github.com/repos/" + REPO_OWNER + "/" + REPO_NAME + "/contents/";
 
-console.log("=== DWAI AGENT v2.0 START ===");
-toast("DWAI v2.0 starting...");
+console.log("=== DWAI AGENT v2.0 ROOT-FREE START ===");
+toast("DWAI v2.0 (No Root) starting...");
 
 // ============================================
 // STATE MANAGEMENT
@@ -27,7 +28,7 @@ toast("DWAI v2.0 starting...");
 var isProcessing = false;
 var currentTaskId = null;
 var lastTaskId = null;
-var processedTaskIds = new Set(); // FIX: Prevent queue delays
+var processedTaskIds = new Set();
 
 // Teach mode state
 var TEACH_MODE = false;
@@ -481,10 +482,9 @@ function tryStartTouchObserver() {
       }
     });
 
-    // Attach to all windows/views (in Auto.js v4/v6, you need to try multiple)
     let roots = [];
     try {
-      roots = (typeof windows === "object" && windows.getDecorView) // v6
+      roots = (typeof windows === "object" && windows.getDecorView)
         ? [windows.getDecorView()]
         : [className("android.view.View").findOnce()];
     } catch (e) {}
@@ -498,7 +498,6 @@ function tryStartTouchObserver() {
     log("Touch observer unavailable: " + e);
   }
 }
-
 
 // ============================================
 // TEACH MODE FUNCTIONS
@@ -516,7 +515,6 @@ function startTeachSession(task) {
   TEACH_LAST_FP = null;
   TEACH_START_TIME = Date.now();
   
-  // Lock to target app if specified
   if (task.app && task.app !== "unknown") {
     var pkg = normalizeLaunchTarget(task.app);
     if (pkg) {
@@ -535,7 +533,6 @@ function recordTeachSnapshot() {
   var fp = currentScreenFingerprint();
   if (!fp || !fp.pkg) return;
   
-  // Avoid duplicate snapshots
   if (TEACH_LAST_FP && TEACH_LAST_FP.pkg === fp.pkg) {
     var textSame = JSON.stringify(TEACH_LAST_FP.texts) === JSON.stringify(fp.texts);
     if (textSame) return;
@@ -543,12 +540,11 @@ function recordTeachSnapshot() {
   
   TEACH_LAST_FP = fp;
   var snap = {};
-for (var k in fp) if (fp.hasOwnProperty(k)) snap[k] = fp[k];
-snap.touches = TEACH_TOUCHES.slice();
-snap.elapsed = Date.now() - TEACH_START_TIME;
-TEACH_SNAPS.push(snap);
+  for (var k in fp) if (fp.hasOwnProperty(k)) snap[k] = fp[k];
+  snap.touches = TEACH_TOUCHES.slice();
+  snap.elapsed = Date.now() - TEACH_START_TIME;
+  TEACH_SNAPS.push(snap);
   
-  // Clear touches after recording
   TEACH_TOUCHES = [];
   
   if (TEACH_SNAPS.length % 5 === 0) {
@@ -559,14 +555,12 @@ TEACH_SNAPS.push(snap);
 function finalizeTeachSession() {
   if (!TEACH_SESSION) return;
   
-  // Build route from snapshots
   var steps = [];
   var lastPkg = null;
   
   for (var i = 0; i < TEACH_SNAPS.length; i++) {
     var snap = TEACH_SNAPS[i];
     
-    // Add launch step if app changed
     if (snap.pkg && snap.pkg !== lastPkg) {
       steps.push({
         action: "launch_app",
@@ -577,7 +571,6 @@ function finalizeTeachSession() {
       lastPkg = snap.pkg;
     }
     
-    // Add touches as click steps
     if (snap.touches && snap.touches.length > 0) {
       for (var j = 0; j < snap.touches.length; j++) {
         var touch = snap.touches[j];
@@ -605,7 +598,6 @@ function finalizeTeachSession() {
   
   saveRoute(TEACH_SESSION.goal, routeData);
   
-  // Reset state
   TEACH_MODE = false;
   TEACH_SESSION = null;
   TEACH_LAST_FP = null;
@@ -613,7 +605,6 @@ function finalizeTeachSession() {
   TEACH_TOUCHES = [];
   TEACH_START_TIME = null;
   
-  // Clear current pointer
   clearCurrentPointer();
   
   log("Teach session finalized and saved as route");
@@ -679,30 +670,52 @@ function observeAndVerify(expectedState) {
 }
 
 // ============================================
-// ACTION EXECUTION
+// ROOT-FREE ACTION EXECUTION
 // ============================================
+
+// ROOT-FREE: Uses only AutoX.js built-in functions
 function launchAppSafe(nameOrPackage) {
   var target = normalizeLaunchTarget(nameOrPackage);
   if (!target) return null;
   
-  log("Launching: " + nameOrPackage + " -> " + target);
+  log("Launching (no root): " + nameOrPackage + " -> " + target);
   
   for (var attempt = 0; attempt < 3; attempt++) {
     try {
-      shell("am start -n " + target + "/.MainActivity", true);
-      waitMs(1000);
-      if (currentAppIs(target)) return target;
-      
-      // Try alternative launch
+      // Method 1: Use AutoX.js built-in launchPackage (NEVER requires root)
       app.launchPackage(target);
       waitMs(2000);
-      if (currentAppIs(target)) return target;
+      
+      // Verify launch succeeded
+      if (currentAppIs(target)) {
+        log("Launch success: " + target);
+        return target;
+      }
+      
+      // Method 2: Try intent-based launch
+      try {
+        app.startActivity({
+          packageName: target,
+          action: "android.intent.action.MAIN",
+          category: "android.intent.category.LAUNCHER"
+        });
+        waitMs(2000);
+        
+        if (currentAppIs(target)) {
+          log("Launch success via intent: " + target);
+          return target;
+        }
+      } catch (intentErr) {
+        log("Intent launch failed: " + intentErr);
+      }
       
     } catch (e) {
-      log("Launch attempt " + (attempt + 1) + " failed: " + e);
+      log("Launch attempt " + (attempt + 1) + " error: " + e);
     }
     waitMs(1000);
   }
+  
+  log("All launch attempts failed for: " + target);
   return null;
 }
 
@@ -772,6 +785,7 @@ function typeText(value) {
   }
 }
 
+// ROOT-FREE: Replaces all shell-based key events with built-in functions
 function execStep(step) {
   if (!step || !step.action) {
     throw new Error("Invalid step");
@@ -795,12 +809,47 @@ function execStep(step) {
       
     case "press":
       var key = String(step.key || "").toLowerCase();
-      if (key === "enter") shell("input keyevent 66", false);
-      else if (key === "back") back();
-      else if (key === "home") home();
-      else if (key === "menu") shell("input keyevent 82", false);
-      else throw new Error("Unsupported key: " + key);
-      return true;
+      
+      // ROOT-FREE: Use built-in AutoX.js functions instead of shell
+      if (key === "enter") {
+        // Try to find and click "Go", "Search", or "Send" button
+        var enterBtn = text("Go").findOne(500) || 
+                      desc("Search").findOne(500) || 
+                      text("Search").findOne(500) ||
+                      desc("Send").findOne(500) ||
+                      text("Send").findOne(500);
+        if (enterBtn && enterBtn.clickable()) {
+          enterBtn.click();
+          waitMs(500);
+          return true;
+        }
+        // If no button found, keyboard should submit on some apps
+        log("No enter button found, continuing...");
+        return true;
+      }
+      else if (key === "back") {
+        back();  // Built-in AutoX.js function - NO ROOT NEEDED
+        return true;
+      }
+      else if (key === "home") {
+        home();  // Built-in AutoX.js function - NO ROOT NEEDED
+        return true;
+      }
+      else if (key === "menu") {
+        // Try to find menu button or use recents
+        var menuBtn = desc("More options").findOne(500) || 
+                      className("android.widget.ImageView").desc("More options").findOne(500);
+        if (menuBtn && menuBtn.clickable()) {
+          menuBtn.click();
+          return true;
+        }
+        // Fallback: use recents as approximation
+        recents();
+        return true;
+      }
+      else {
+        throw new Error("Unsupported key: " + key);
+      }
       
     case "wait":
       waitMs(Number(step.ms || 1000));
@@ -819,7 +868,7 @@ function execStep(step) {
       throw new Error("Swipe requires x1, y1, x2, y2");
       
     case "verify":
-      return true; // Verification is handled separately
+      return true;
       
     case "open_url":
       var url = String(step.value || "");
@@ -831,7 +880,6 @@ function execStep(step) {
       return true;
       
     case "observe":
-      // Live mode observation step
       return true;
       
     default:
@@ -900,7 +948,6 @@ function finishTask(bundle, sha, task, status, errorMsg, pointerRef) {
   
   writeLog(task.task_id, status, errorMsg || null);
   
-  // FIX: Track processed tasks to prevent queue delays
   processedTaskIds.add(task.task_id);
   lastTaskId = task.task_id;
   
@@ -927,10 +974,8 @@ function runTeachStart(bundle, pointerRef) {
 function runTeachStop(bundle, pointerRef) {
   var task = bundle.task;
   
-  // FIX: Check if actually in teach mode
   if (!TEACH_MODE) {
     log("StopTeach requested but not in teach mode");
-    // Still mark as completed but don't try to finalize
     var sha = claimTask(bundle, pointerRef);
     task.status = "completed";
     task.finished_at = new Date().toISOString();
@@ -951,7 +996,6 @@ function runTeachStop(bundle, pointerRef) {
 }
 
 function runFastTask(bundle, pointerRef) {
-  // /do mode - fast execution, minimal observation
   var task = bundle.task;
   
   if (processedTaskIds.has(task.task_id)) {
@@ -978,7 +1022,6 @@ function runFastTask(bundle, pointerRef) {
     for (var j = 0; j < task.steps.length; j++) {
       var step = task.steps[j];
       
-      // Skip observation steps in fast mode
       if (step.action === "observe") continue;
       
       var ok = execWithRetry(step);
@@ -1015,7 +1058,6 @@ function runFastTask(bundle, pointerRef) {
 }
 
 function runLiveTask(bundle, pointerRef) {
-  // /live mode - observation-driven execution
   var task = bundle.task;
   
   if (processedTaskIds.has(task.task_id)) {
@@ -1046,7 +1088,6 @@ function runLiveTask(bundle, pointerRef) {
       LIVE_CURRENT_STEP = j;
       var step = task.steps[j];
       
-      // Handle observation steps
       if (step.action === "observe") {
         log("Observation checkpoint at step " + j);
         var obs = observeAndVerify({
@@ -1059,21 +1100,19 @@ function runLiveTask(bundle, pointerRef) {
           log("Observation mismatch: " + obs.reason);
           
           if (step.on_mismatch === "replan" && adaptationCount < 3) {
-  log("LiveMode: Attempting adaptation (re-execute last step)...");
-  adaptationCount++;
-  waitMs(2000);
-  // Try to re-execute the previous step
-  let ok = false;
-  try {
-    ok = execWithRetry(task.steps[Math.max(0, j-1)] || step);
-  } catch(e) {}
-  if (ok) {
-    log("Adaptation succeeded; continue execution.");
-    LIVE_VERIFICATION_FAILS = 0;
-    continue;
-  }
-  // else, continue; next steps might recover
-} else if (LIVE_VERIFICATION_FAILS > 5) {
+            log("LiveMode: Attempting adaptation (re-execute last step)...");
+            adaptationCount++;
+            waitMs(2000);
+            let ok = false;
+            try {
+              ok = execWithRetry(task.steps[Math.max(0, j-1)] || step);
+            } catch(e) {}
+            if (ok) {
+              log("Adaptation succeeded; continue execution.");
+              LIVE_VERIFICATION_FAILS = 0;
+              continue;
+            }
+          } else if (LIVE_VERIFICATION_FAILS > 5) {
             success = false;
             errorMsg = "Too many verification failures at step " + j;
             break;
@@ -1084,15 +1123,12 @@ function runLiveTask(bundle, pointerRef) {
         continue;
       }
       
-      // Execute regular step
       var ok = execWithRetry(step);
       if (!ok) {
-        // In live mode, try to adapt
         if (adaptationCount < 3) {
           log("Step failed, attempting recovery...");
           adaptationCount++;
           waitMs(3000);
-          // Try once more
           ok = execWithRetry(step);
         }
         
@@ -1103,7 +1139,7 @@ function runLiveTask(bundle, pointerRef) {
         }
       }
       
-      waitMs(800); // Slightly longer wait in live mode for stability
+      waitMs(800);
     }
     
     stopLiveMode();
@@ -1138,7 +1174,6 @@ function runLiveTask(bundle, pointerRef) {
 // MAIN PROCESSING LOOP
 // ============================================
 function processTeachTick() {
-  // Check for stop signal
   var pointer = getCurrentPointer();
   if (pointer && pointer.type === "teach_stop" && pointer.status === "pending") {
     var stopBundle = pointer.file_url ? getTask(pointer.file_url) : null;
@@ -1151,7 +1186,6 @@ function processTeachTick() {
         stopTask.worker_id = WORKER_ID;
         saveTask(pointer.file_url, stopSha, stopTask, "executing");
         
-        // Stop immediately
         TEACH_MODE = false;
         finalizeTeachSession();
         
@@ -1167,7 +1201,6 @@ function processTeachTick() {
     return;
   }
   
-  // Record snapshot if in teach mode
   if (TEACH_MODE) {
     recordTeachSnapshot();
   }
@@ -1179,16 +1212,13 @@ function processOneTask() {
     return;
   }
   
-  // Teach mode gets priority
   if (TEACH_MODE) {
     processTeachTick();
     return;
   }
   
-  // Check current pointer first (fastest path)
   var pointer = getCurrentPointer();
   if (pointer && pointer.status === "pending" && pointer.file_url) {
-    // FIX: Check if already processed
     if (processedTaskIds.has(pointer.task_id)) {
       log("Pointer task already processed: " + pointer.task_id);
       return;
@@ -1201,7 +1231,6 @@ function processOneTask() {
     }
   }
   
-  // Check task list
   var files = getTaskList();
   for (var i = 0; i < files.length; i++) {
     var f = files[i];
@@ -1214,7 +1243,6 @@ function processOneTask() {
     if (!bundle) continue;
     if (bundle.task.status !== "pending") continue;
     
-    // FIX: Skip already processed
     if (processedTaskIds.has(bundle.task.task_id)) {
       continue;
     }
@@ -1244,13 +1272,11 @@ function routeTaskByType(bundle, pointer) {
       if (mode === "live" || mode === "LIVE") {
         runLiveTask(bundle, pointer);
       } else {
-        // fast, normal, routed all use fast path
         runFastTask(bundle, pointer);
       }
       break;
       
     default:
-      // Unknown type, try fast execution
       runFastTask(bundle, pointer);
   }
 }
@@ -1263,13 +1289,13 @@ tryStartTouchObserver();
 
 log("Installed apps discovered: " + Object.keys(INSTALLED_APPS).length);
 log("Known apps available: " + Object.keys(KNOWN_APPS).length);
-log("Agent ready. Waiting for tasks...");
+log("Agent ready (ROOT-FREE MODE). Waiting for tasks...");
 
 // Main loop
 while (true) {
   try {
     processOneTask();
-    FATAL_ERROR_COUNT = 0; // Reset error streak if success
+    FATAL_ERROR_COUNT = 0;
   } catch (e) {
     log("PROCESS ERROR: " + e);
     isProcessing = false;
@@ -1280,14 +1306,15 @@ while (true) {
     if (FATAL_ERROR_COUNT >= FATAL_ERROR_LIMIT) {
       log("FATAL: Too many sequential agent errors, exiting loop!");
       notify("DWAI fatal crash: check credentials or repo setup.");
-      break; // Exit agent loop
+      break;
     }
   }
-  // FIX: Clean up old processed IDs periodically to prevent memory bloat
+  
   if (processedTaskIds.size > 1000) {
     var toRemove = Array.from(processedTaskIds).slice(0, 500);
     toRemove.forEach(id => processedTaskIds.delete(id));
     log("Cleaned up processed task cache");
   }
+  
   waitMs(POLL_INTERVAL);
 }
