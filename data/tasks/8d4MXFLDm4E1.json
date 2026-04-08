@@ -1,7 +1,7 @@
 {
   "task_id": "8d4MXFLDm4E1",
   "type": "automation",
-  "status": "executing",
+  "status": "completed",
   "intent": "DO",
   "mode": "fast",
   "goal": "open chrome and go to google.com/search?q=dog",
@@ -49,5 +49,6 @@
   "created_at": "2026-04-08T12:26:03.591Z",
   "validate_steps": true,
   "started_at": "2026-04-08T12:26:15.770Z",
-  "worker_id": "phone-vivo 1906-720x1544"
+  "worker_id": "phone-vivo 1906-720x1544",
+  "finished_at": "2026-04-08T12:26:42.625Z"
 }
