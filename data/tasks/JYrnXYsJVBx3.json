@@ -1,7 +1,7 @@
 {
   "task_id": "JYrnXYsJVBx3",
   "type": "automation",
-  "status": "executing",
+  "status": "failed",
   "intent": "LIVE",
   "mode": "live",
   "goal": "Open Google maps and in the maps app search for Nigeria",
@@ -53,5 +53,7 @@
   "created_at": "2026-04-08T20:11:11.691Z",
   "validate_steps": true,
   "started_at": "2026-04-08T20:11:21.345Z",
-  "worker_id": "phone-vivo 1906-720x1544"
+  "worker_id": "phone-vivo 1906-720x1544",
+  "finished_at": "2026-04-08T20:12:33.524Z",
+  "error": "Step 4 (click) failed after retry"
 }
