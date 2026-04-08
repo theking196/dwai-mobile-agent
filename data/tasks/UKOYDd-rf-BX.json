@@ -1,7 +1,7 @@
 {
   "task_id": "UKOYDd-rf-BX",
   "type": "automation",
-  "status": "executing",
+  "status": "completed",
   "intent": "TASK",
   "mode": "normal",
   "goal": "Update chstgpy on my phone",
@@ -24,5 +24,6 @@
   "created_at": "2026-04-08T15:01:25.215Z",
   "validate_steps": true,
   "started_at": "2026-04-08T15:01:35.007Z",
-  "worker_id": "phone-vivo 1906-720x1544"
+  "worker_id": "phone-vivo 1906-720x1544",
+  "finished_at": "2026-04-08T15:01:46.301Z"
 }
