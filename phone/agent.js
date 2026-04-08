@@ -10,6 +10,9 @@ var LOGS_PATH = "data/logs";
 var ROUTES_PATH = "data/routes";
 var CURRENT_TASK_PATH = "data/current_task.json";
 
+var FATAL_ERROR_COUNT = 0;
+var FATAL_ERROR_LIMIT = 15;  
+
 var POLL_INTERVAL = 2000;
 var BRANCH = "main";
 var WORKER_ID = "phone-" + (device.model || "android") + "-" + device.width + "x" + device.height;
@@ -452,12 +455,10 @@ function currentScreenFingerprint() {
 // ============================================
 // TOUCH OBSERVER (for teach mode)
 // ============================================
+
 function tryStartTouchObserver() {
   try {
     if (touchObserver) return;
-    var root = className("android.view.View").findOnce();
-    if (!root) return;
-    
     touchObserver = new android.view.View.OnTouchListener({
       onTouch: function(view, event) {
         if (!TEACH_MODE) return false;
@@ -479,14 +480,25 @@ function tryStartTouchObserver() {
         return false;
       }
     });
-    
-    // Apply to root view if possible
-    var window = context.getSystemService(context.WINDOW_SERVICE);
-    log("Touch observer initialized");
+
+    // Attach to all windows/views (in Auto.js v4/v6, you need to try multiple)
+    let roots = [];
+    try {
+      roots = (typeof windows === "object" && windows.getDecorView) // v6
+        ? [windows.getDecorView()]
+        : [className("android.view.View").findOnce()];
+    } catch (e) {}
+    roots.forEach(function(root) {
+      if (root && root.setOnTouchListener) {
+        root.setOnTouchListener(touchObserver);
+      }
+    });
+    log("Touch observer ACTUALLY initialized on root(s).");
   } catch (e) {
     log("Touch observer unavailable: " + e);
   }
 }
+
 
 // ============================================
 // TEACH MODE FUNCTIONS
@@ -1047,11 +1059,21 @@ function runLiveTask(bundle, pointerRef) {
           log("Observation mismatch: " + obs.reason);
           
           if (step.on_mismatch === "replan" && adaptationCount < 3) {
-            log("Attempting adaptation...");
-            adaptationCount++;
-            waitMs(2000);
-            // Continue anyway, next steps might recover
-          } else if (LIVE_VERIFICATION_FAILS > 5) {
+  log("LiveMode: Attempting adaptation (re-execute last step)...");
+  adaptationCount++;
+  waitMs(2000);
+  // Try to re-execute the previous step
+  let ok = false;
+  try {
+    ok = execWithRetry(task.steps[Math.max(0, j-1)] || step);
+  } catch(e) {}
+  if (ok) {
+    log("Adaptation succeeded; continue execution.");
+    LIVE_VERIFICATION_FAILS = 0;
+    continue;
+  }
+  // else, continue; next steps might recover
+} else if (LIVE_VERIFICATION_FAILS > 5) {
             success = false;
             errorMsg = "Too many verification failures at step " + j;
             break;
@@ -1247,20 +1269,25 @@ log("Agent ready. Waiting for tasks...");
 while (true) {
   try {
     processOneTask();
+    FATAL_ERROR_COUNT = 0; // Reset error streak if success
   } catch (e) {
     log("PROCESS ERROR: " + e);
     isProcessing = false;
     currentTaskId = null;
     TEACH_MODE = false;
     LIVE_MODE = false;
+    FATAL_ERROR_COUNT++;
+    if (FATAL_ERROR_COUNT >= FATAL_ERROR_LIMIT) {
+      log("FATAL: Too many sequential agent errors, exiting loop!");
+      notify("DWAI fatal crash: check credentials or repo setup.");
+      break; // Exit agent loop
+    }
   }
-  
   // FIX: Clean up old processed IDs periodically to prevent memory bloat
   if (processedTaskIds.size > 1000) {
     var toRemove = Array.from(processedTaskIds).slice(0, 500);
     toRemove.forEach(id => processedTaskIds.delete(id));
     log("Cleaned up processed task cache");
   }
-  
   waitMs(POLL_INTERVAL);
 }
