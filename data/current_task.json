@@ -1,8 +1,10 @@
 {
   "task_id": "vG3hP3dFudR4",
   "type": "automation",
-  "status": "pending",
+  "status": "executing",
   "file_url": "https://api.github.com/repos/theking196/dwai-mobile-agent/contents/data/tasks/vG3hP3dFudR4.json",
   "mode": "normal",
-  "created_at": "2026-04-08T12:12:08.299Z"
+  "created_at": "2026-04-08T12:12:08.299Z",
+  "started_at": "2026-04-08T12:12:08.444Z",
+  "worker_id": "phone-vivo 1906-720x1544"
 }
