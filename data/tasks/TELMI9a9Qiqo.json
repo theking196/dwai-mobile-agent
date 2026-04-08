@@ -1,7 +1,7 @@
 {
   "task_id": "TELMI9a9Qiqo",
   "type": "automation",
-  "status": "executing",
+  "status": "failed",
   "intent": "LIVE",
   "mode": "live",
   "goal": "go to Facebook lite",
@@ -30,5 +30,7 @@
   "created_at": "2026-04-08T12:36:44.874Z",
   "validate_steps": true,
   "started_at": "2026-04-08T12:36:50.459Z",
-  "worker_id": "phone-vivo 1906-720x1544"
+  "worker_id": "phone-vivo 1906-720x1544",
+  "finished_at": "2026-04-08T12:38:32.345Z",
+  "error": "Step 1 (launch_app) failed after retry"
 }
