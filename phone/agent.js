@@ -111,19 +111,23 @@ function buildInstalledAppsMap() {
   }
 }
 
+// FIX #2: STRICTER APP RESOLUTION TO PREVENT FALSE POSITIVES (LIKE GALLERY)
 function resolveApp(appName) {
-  if (!appName) return null;
+  if (!appName || appName.length < 2) return null; // Ignore very short/empty names
   var name = String(appName).toLowerCase().trim();
-  if (!name) return null;
+  
+  // 1. Exact match first
   if (KNOWN_APPS[name]) return KNOWN_APPS[name];
   if (INSTALLED_APPS[name]) return INSTALLED_APPS[name];
+  
+  // 2. Strict start-of-word match
   for (var key in KNOWN_APPS) {
-    if (name.indexOf(key) !== -1) {
+    if (key.indexOf(name) === 0 || name.indexOf(key) === 0) {
       return KNOWN_APPS[key];
     }
   }
   for (var k in INSTALLED_APPS) {
-    if (k.indexOf(name) !== -1) {
+    if (k.indexOf(name) === 0 || name.indexOf(k) === 0) {
       return INSTALLED_APPS[k];
     }
   }
@@ -666,7 +670,7 @@ function observeAndVerify(expectedState) {
 }
 
 // ============================================
-// ROOT-FREE ACTION EXECUTION (FIXED)
+// ROOT-FREE ACTION EXECUTION
 // ============================================
 
 function launchAppSafe(nameOrPackage) {
@@ -789,7 +793,7 @@ function typeText(value) {
 }
 
 // ============================================
-// FIXED: press key handler for Chrome compatibility
+// press key handler for Chrome compatibility
 // ============================================
 function execStep(step) {
   if (!step || !step.action) {
@@ -816,7 +820,7 @@ function execStep(step) {
       var key = String(step.key || "").toLowerCase();
       
       if (key === "enter") {
-        // FIX: Chrome-compatible enter key simulation
+        // Chrome-compatible enter key simulation
         // Try multiple methods to submit/enter
         
         // Method 1: Look for common submit buttons
@@ -837,12 +841,9 @@ function execStep(step) {
         }
         
         // Method 2: For Chrome - click on address bar to submit
-        // Find the EditText (address bar) and click it to trigger submit
         var addressBar = className("android.widget.EditText").findOne(300);
         if (addressBar) {
-          // Click at the right side of address bar (where arrow/go icon usually is)
           var bounds = addressBar.bounds();
-          // Click on the right side of the field where the "go" arrow would be
           click(bounds.right - 50, bounds.centerY());
           log("Pressed enter via address bar right-click at " + (bounds.right - 50) + "," + bounds.centerY());
           waitMs(500);
@@ -872,14 +873,12 @@ function execStep(step) {
           menuBtn.click();
           return true;
         }
-        // Fallback: try to use recents if available
         try {
           if (typeof recents === 'function') {
             recents();
             return true;
           }
         } catch(e) {}
-        // Last resort: press back (sometimes opens menu in some apps)
         back();
         return true;
       }
@@ -916,7 +915,6 @@ function execStep(step) {
       return true;
       
     case "observe":
-      // Actually perform observation if expected state provided
       if (step.expected_package || step.expected_text) {
         var obs = observeAndVerify({
           package: step.expected_package,
@@ -924,7 +922,6 @@ function execStep(step) {
         });
         if (!obs.ok) {
           log("Observation warning: " + obs.reason);
-          // Don't throw error, just warn - let live mode handle adaptation
         }
       }
       return true;
