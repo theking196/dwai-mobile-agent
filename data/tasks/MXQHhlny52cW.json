@@ -1,7 +1,7 @@
 {
   "task_id": "MXQHhlny52cW",
   "type": "automation",
-  "status": "executing",
+  "status": "completed",
   "intent": "LIVE",
   "mode": "live",
   "goal": "go to settings and set auto lock screen to the highest",
@@ -30,5 +30,6 @@
   "created_at": "2026-04-08T12:30:13.122Z",
   "validate_steps": true,
   "started_at": "2026-04-08T12:30:27.145Z",
-  "worker_id": "phone-vivo 1906-720x1544"
+  "worker_id": "phone-vivo 1906-720x1544",
+  "finished_at": "2026-04-08T12:30:42.703Z"
 }
