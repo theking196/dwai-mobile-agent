@@ -1,0 +1,24 @@
+{
+  "task_id": "21Qce1hJ",
+  "status": "pending",
+  "intent": "Open YouTube plus",
+  "type": "automation",
+  "created_at": "2026-04-08T07:15:06.248Z",
+  "steps": [
+    {
+      "action": "launch_app",
+      "value": "youtube"
+    },
+    {
+      "action": "wait",
+      "ms": 4000
+    },
+    {
+      "action": "verify",
+      "package": "youtube"
+    }
+  ],
+  "source": "telegram",
+  "planner_version": "v11",
+  "file_url": "https://api.github.com/repos/theking196/dwai-mobile-agent/contents/data/tasks/21Qce1hJ.json"
+}
