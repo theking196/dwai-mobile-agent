@@ -1,7 +1,7 @@
 {
   "task_id": "JYrnXYsJVBx3",
   "type": "automation",
-  "status": "pending",
+  "status": "executing",
   "intent": "LIVE",
   "mode": "live",
   "goal": "Open Google maps and in the maps app search for Nigeria",
@@ -51,5 +51,7 @@
   "route_matched": null,
   "slot_values": {},
   "created_at": "2026-04-08T20:11:11.691Z",
-  "validate_steps": true
+  "validate_steps": true,
+  "started_at": "2026-04-08T20:11:21.345Z",
+  "worker_id": "phone-vivo 1906-720x1544"
 }
