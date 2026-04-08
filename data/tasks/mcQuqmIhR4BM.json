@@ -1,0 +1,63 @@
+{
+  "task_id": "mcQuqmIhR4BM",
+  "type": "automation",
+  "status": "pending",
+  "intent": "LIVE",
+  "mode": "live",
+  "goal": "open YouTube and search power rangers then submit it",
+  "steps": [
+    {
+      "action": "launch_app",
+      "value": "youtube"
+    },
+    {
+      "action": "observe",
+      "purpose": "verify_state",
+      "on_mismatch": "replan",
+      "timeout": 5000
+    },
+    {
+      "action": "wait",
+      "ms": 4000
+    },
+    {
+      "action": "click",
+      "text": "Search",
+      "contains": "Search",
+      "desc": "Search",
+      "fallbacks": [
+        {
+          "action": "click",
+          "x": 650,
+          "y": 120
+        }
+      ]
+    },
+    {
+      "action": "observe",
+      "purpose": "verify_state",
+      "on_mismatch": "replan",
+      "timeout": 5000
+    },
+    {
+      "action": "wait",
+      "ms": 1000
+    },
+    {
+      "action": "type",
+      "text": "power rangers then submit it"
+    },
+    {
+      "action": "press",
+      "key": "enter"
+    },
+    {
+      "action": "wait",
+      "ms": 4000
+    }
+  ],
+  "route_matched": null,
+  "slot_values": {},
+  "created_at": "2026-04-08T14:44:08.714Z",
+  "validate_steps": true
+}
