@@ -1,10 +1,12 @@
 {
   "task_id": "4j3WrzlTY7RC",
   "type": "automation",
-  "status": "executing",
+  "status": "failed",
   "file_url": "https://api.github.com/repos/theking196/dwai-mobile-agent/contents/data/tasks/4j3WrzlTY7RC.json",
   "mode": "fast",
   "created_at": "2026-04-08T11:53:14.938Z",
   "started_at": "2026-04-08T11:53:29.850Z",
-  "worker_id": "phone-vivo 1906-720x1544"
+  "worker_id": "phone-vivo 1906-720x1544",
+  "finished_at": "2026-04-08T11:53:42.931Z",
+  "error": "Step 1 (launch_app) failed"
 }
