@@ -1,11 +1,13 @@
 {
   "task_id": "stop_eaO_dn62",
   "type": "teach_stop",
-  "status": "pending",
+  "status": "executing",
   "intent": "STOPTEACH",
   "goal": "how to search on YouTube",
   "app": "youtube",
   "parent_task_id": "teach_8Nt292S8",
   "created_at": "2026-04-08T12:44:43.573Z",
-  "user_id": 7345542163
+  "user_id": 7345542163,
+  "started_at": "2026-04-08T12:44:43.498Z",
+  "worker_id": "phone-vivo 1906-720x1544"
 }
