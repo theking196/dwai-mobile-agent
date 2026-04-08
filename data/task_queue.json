@@ -1,12 +1,8 @@
 {
-  "queue": [
-    {
-      "task_id": "0o9rm4-EnLI4",
-      "priority": 5,
-      "created_at": 1775684449044,
-      "retries": 0
-    }
-  ],
-  "processing": null,
+  "queue": [],
+  "processing": {
+    "task_id": "0o9rm4-EnLI4",
+    "started_at": 1775684448529
+  },
   "last_updated": 1775683862410
 }
