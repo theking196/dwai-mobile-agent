@@ -1,0 +1,51 @@
+{
+  "task_id": "jDiFkh-V8YNm",
+  "type": "automation",
+  "status": "pending",
+  "intent": "TASK",
+  "mode": "normal",
+  "goal": "Oprn chrome and search for lagos night",
+  "steps": [
+    {
+      "action": "launch_app",
+      "value": "chrome"
+    },
+    {
+      "action": "wait",
+      "ms": 4000
+    },
+    {
+      "action": "click",
+      "text": "Search or type URL",
+      "contains": "Search",
+      "desc": "Search",
+      "fallbacks": [
+        {
+          "action": "click",
+          "x": 650,
+          "y": 120
+        }
+      ]
+    },
+    {
+      "action": "wait",
+      "ms": 1000
+    },
+    {
+      "action": "type",
+      "text": "lagos night"
+    },
+    {
+      "action": "press",
+      "key": "enter"
+    },
+    {
+      "action": "wait",
+      "ms": 4000
+    }
+  ],
+  "route_matched": null,
+  "slot_values": {},
+  "created_at": "2026-04-08T14:56:38.315Z",
+  "validate_steps": true
+}
