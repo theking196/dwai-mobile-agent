@@ -1,7 +1,7 @@
 {
   "task_id": "jDiFkh-V8YNm",
   "type": "automation",
-  "status": "executing",
+  "status": "completed",
   "intent": "TASK",
   "mode": "normal",
   "goal": "Oprn chrome and search for lagos night",
@@ -49,5 +49,6 @@
   "created_at": "2026-04-08T14:56:38.315Z",
   "validate_steps": true,
   "started_at": "2026-04-08T14:57:02.254Z",
-  "worker_id": "phone-vivo 1906-720x1544"
+  "worker_id": "phone-vivo 1906-720x1544",
+  "finished_at": "2026-04-08T14:57:41.200Z"
 }
