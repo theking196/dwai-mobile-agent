@@ -1,7 +1,8 @@
 {
-  "task_id": "jMch8giKUU9X",
-  "status": "completed",
-  "updated_at": "2026-04-08T21:38:45.996Z",
-  "error": null,
-  "worker_id": "phone-vivo 1906-720x1544"
+  "task_id": "0o9rm4-EnLI4",
+  "type": "automation",
+  "status": "pending",
+  "file_url": "https://api.github.com/repos/theking196/dwai-mobile-agent/contents/data/tasks/0o9rm4-EnLI4.json",
+  "mode": "normal",
+  "created_at": "2026-04-08T21:40:49.668Z"
 }
