@@ -1,7 +1,7 @@
 {
   "task_id": "WqE3F4Ym0Pxa",
   "type": "automation",
-  "status": "pending",
+  "status": "executing",
   "intent": "LIVE",
   "mode": "live",
   "goal": "search and submit Oba on YouTube",
@@ -71,5 +71,7 @@
   "route_matched": null,
   "slot_values": {},
   "created_at": "2026-04-08T12:59:17.420Z",
-  "validate_steps": true
+  "validate_steps": true,
+  "started_at": "2026-04-08T12:59:19.192Z",
+  "worker_id": "phone-vivo 1906-720x1544"
 }
