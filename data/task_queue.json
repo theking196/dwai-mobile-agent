@@ -1,12 +1,8 @@
 {
-  "queue": [
-    {
-      "task_id": "wWdHWeziAlxJ",
-      "priority": 5,
-      "created_at": 1775683999833,
-      "retries": 0
-    }
-  ],
-  "processing": null,
+  "queue": [],
+  "processing": {
+    "task_id": "wWdHWeziAlxJ",
+    "started_at": 1775684000833
+  },
   "last_updated": 1775683862410
 }
