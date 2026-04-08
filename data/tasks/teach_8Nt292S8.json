@@ -1,12 +1,13 @@
 {
   "task_id": "teach_8Nt292S8",
   "type": "teach_start",
-  "status": "executing",
+  "status": "completed",
   "intent": "TEACH",
   "goal": "how to search on YouTube",
   "app": "youtube",
   "created_at": "2026-04-08T12:43:27.401Z",
   "user_id": 7345542163,
   "started_at": "2026-04-08T12:43:27.266Z",
-  "worker_id": "phone-vivo 1906-720x1544"
+  "worker_id": "phone-vivo 1906-720x1544",
+  "finished_at": "2026-04-08T12:43:33.926Z"
 }
