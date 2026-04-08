@@ -1,10 +1,8 @@
 {
-  "task_id": "C70R2aLocF1E",
+  "task_id": "mcQuqmIhR4BM",
   "type": "automation",
-  "status": "executing",
-  "file_url": "https://api.github.com/repos/theking196/dwai-mobile-agent/contents/data/tasks/C70R2aLocF1E.json",
+  "status": "pending",
+  "file_url": "https://api.github.com/repos/theking196/dwai-mobile-agent/contents/data/tasks/mcQuqmIhR4BM.json",
   "mode": "live",
-  "created_at": "2026-04-08T14:37:04.175Z",
-  "started_at": "2026-04-08T14:37:33.504Z",
-  "worker_id": "phone-vivo 1906-720x1544"
+  "created_at": "2026-04-08T14:44:09.248Z"
 }
