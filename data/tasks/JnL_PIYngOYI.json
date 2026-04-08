@@ -1,7 +1,7 @@
 {
   "task_id": "JnL_PIYngOYI",
   "type": "automation",
-  "status": "executing",
+  "status": "completed",
   "intent": "TASK",
   "mode": "normal",
   "goal": "open Chrome",
@@ -24,5 +24,6 @@
   "created_at": "2026-04-08T14:55:03.058Z",
   "validate_steps": true,
   "started_at": "2026-04-08T14:55:24.006Z",
-  "worker_id": "phone-vivo 1906-720x1544"
+  "worker_id": "phone-vivo 1906-720x1544",
+  "finished_at": "2026-04-08T14:55:39.159Z"
 }
