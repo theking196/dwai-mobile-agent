@@ -590,22 +590,74 @@ async function generateLiveSteps(userText) {
 }
 
 
-async function generateChatResponse(userMessage) {
-  const prompt = `You are DWAI, a helpful assistant that can chat and help control a phone.
-User: "${userMessage}"
-Respond naturally and briefly.`;
+// ============================================
+// CHAT RESPONSE - FIXED TO PREVENT THINKING LEAK
+// ============================================
+function cleanAiResponse(text) {
+  // Remove thinking patterns and internal monologue
+  let cleaned = text;
   
+  // Remove common thinking patterns
+  const thinkingPatterns = [
+    /^(Okay|Alright|So|Hmm|Let me think|I should|I need to|I will|I can|If you|Maybe|Perhaps|Wait|Oh|Ah)[,\s]+/i,
+    /(the user said|user said|they said|he said|she said)[\s\S]*?/i,
+    /(I should respond|I should say|I should reply|I should answer)[\s\S]*?/i,
+    /(responding with|I'll say|I'll respond|I'll reply)[\s\S]*?/i,
+    /(here is my response|my response is|this is my response)[:\\s]*/i,
+    /(thinking|reasoning|analysis)[:\\s]*/i,
+  ];
+  
+  for (const pattern of thinkingPatterns) {
+    cleaned = cleaned.replace(pattern, '');
+  }
+  
+  // Remove multi-line thinking blocks
+  cleaned = cleaned.replace(/^(Okay|Alright|So|Hmm)[\\s\\S]*?(\\n\\n|\\n[A-Z])/i, '$2');
+  
+  return cleaned.trim();
+}
+
+
+async function generateChatResponse(userMessage) {
+  const systemPrompt = `You are DWAI, a helpful phone automation assistant.
+
+CRITICAL RULES:
+1. Respond naturally and briefly to the user
+2. NEVER show your thinking process, reasoning, or analysis
+3. NEVER start with "Okay", "Alright", "So", "Hmm", or similar filler words
+4. NEVER explain what you're doing or how you're interpreting the message
+5. Just give the direct, natural response immediately
+6. Be friendly but concise - 1-2 sentences max
+
+Examples of GOOD responses:
+- "Hello! How can I help you today?"
+- "I can help with that. What would you like to automate?"
+- "Sure! Opening Chrome now."
+
+Examples of BAD responses (NEVER DO THESE):
+- "Okay, the user said hi. I should respond warmly..."
+- "Hmm, let me think about how to help with this..."
+- "So you want me to open Chrome. I will do that now."
+
+Remember: Just the response, no thinking.`;
+
   try {
     const res = await groq.chat.completions.create({
       model: GROQ_MODEL,
       messages: [
-        { role: 'system', content: prompt },
+        { role: 'system', content: systemPrompt },
         { role: 'user', content: userMessage },
       ],
-      temperature: 0.6,
-      max_tokens: 500,
+      temperature: 0.7,
+      max_tokens: 150,
     });
-    return res.choices?.[0]?.message?.content?.trim() || "I'm here. What would you like to do?";
+    
+    let response = res.choices?.[0]?.message?.content?.trim() || "I'm here. What would you like to do?";
+    
+    // Clean any leaked thinking
+    response = cleanAiResponse(response);
+    
+    return response;
   } catch {
     return "I'm here. What would you like to do?";
   }
