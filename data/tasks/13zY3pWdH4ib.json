@@ -1,7 +1,7 @@
 {
   "task_id": "13zY3pWdH4ib",
   "type": "automation",
-  "status": "executing",
+  "status": "failed",
   "intent": "LIVE",
   "mode": "live",
   "goal": "Look out is on my screen right now then open note pad or my notes app and type it in",
@@ -11,5 +11,7 @@
   "created_at": "2026-04-08T13:04:24.469Z",
   "validate_steps": true,
   "started_at": "2026-04-08T13:04:28.865Z",
-  "worker_id": "phone-vivo 1906-720x1544"
+  "worker_id": "phone-vivo 1906-720x1544",
+  "finished_at": "2026-04-08T13:04:30.523Z",
+  "error": "Error: Task has no steps"
 }
