@@ -1,7 +1,7 @@
 {
   "task_id": "xYjpudrhGbI4",
   "type": "automation",
-  "status": "executing",
+  "status": "failed",
   "intent": "DO",
   "mode": "fast",
   "goal": "open chrome and search for \"weather today\"",
@@ -49,5 +49,7 @@
   "created_at": "2026-04-08T10:30:32.669Z",
   "validate_steps": true,
   "started_at": "2026-04-08T10:30:36.301Z",
-  "worker_id": "phone-vivo 1906-720x1544"
+  "worker_id": "phone-vivo 1906-720x1544",
+  "finished_at": "2026-04-08T10:30:49.426Z",
+  "error": "Step 1 (launch_app) failed"
 }
