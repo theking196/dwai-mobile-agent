@@ -1,7 +1,7 @@
 {
   "task_id": "NuY6BK5gdvC8",
   "type": "automation",
-  "status": "executing",
+  "status": "completed",
   "intent": "LIVE",
   "mode": "live",
   "goal": "search dog in chrome browser",
@@ -73,5 +73,6 @@
   "created_at": "2026-04-08T12:27:22.584Z",
   "validate_steps": true,
   "started_at": "2026-04-08T12:27:23.746Z",
-  "worker_id": "phone-vivo 1906-720x1544"
+  "worker_id": "phone-vivo 1906-720x1544",
+  "finished_at": "2026-04-08T12:27:49.338Z"
 }
