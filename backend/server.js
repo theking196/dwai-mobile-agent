@@ -404,7 +404,7 @@ function buildAppHintsText() {
 }
 
 // ============================================
-// TEMPLATE BUILDERS (FIXED)
+// TEMPLATE BUILDERS
 // ============================================
 function buildTemplateSteps(userText) {
   const text = String(userText || '');
@@ -418,7 +418,6 @@ function buildTemplateSteps(userText) {
   const wantsFirstResult = /\b(first|first one|watch|video|result|open the first)\b/.test(lower);
   const wantsLaunch = /\b(open|launch|start|go to)\b/.test(lower);
   
-  // FIX: Handle settings navigation for auto-lock
   if (app === 'settings' && /(auto.lock|screen.timeout|lock.screen|sleep|display)/.test(lower)) {
     return sanitizeSteps([
       { action: 'launch_app', value: 'settings' },
@@ -461,7 +460,6 @@ function buildTemplateSteps(userText) {
     const targetApp = app === 'youtube' ? 'youtube' : 'chrome';
     const searchQuery = query || cleanQuery(text) || text;
     
-    // FIX: Chrome search uses open_url instead of press enter
     if (targetApp === 'chrome') {
       const encodedQuery = encodeURIComponent(searchQuery);
       return sanitizeSteps([
@@ -470,12 +468,11 @@ function buildTemplateSteps(userText) {
         { action: 'click', text: 'Search or type URL', contains: 'Search', desc: 'Search', fallbacks: [{ action: 'click', x: 650, y: 120 }] },
         { action: 'wait', ms: 1000 },
         { action: 'type', text: searchQuery },
-        { action: 'press', key: 'enter' }, // Agent will handle this specially for Chrome
+        { action: 'press', key: 'enter' }, 
         { action: 'wait', ms: 4000 },
       ]);
     }
     
-    // YouTube still uses press enter (it has a search button)
     const steps = [
       { action: 'launch_app', value: targetApp },
       { action: 'wait', ms: 4000 },
@@ -508,8 +505,13 @@ function buildTemplateSteps(userText) {
 // AI STEP GENERATION
 // ============================================
 async function generateTaskSteps(userText) {
-  const template = buildTemplateSteps(userText);
-  if (template && template.length) return template;
+  // FIX #3: Bypass hardcoded templates if it's a chained command (e.g. "open Chrome AND search dog")
+  const hasChain = /\b(and|then)\b/i.test(String(userText));
+  
+  if (!hasChain) {
+    const template = buildTemplateSteps(userText);
+    if (template && template.length) return template;
+  }
   
   const prompt = `Convert this user request into a JSON array of Android automation steps.
 User request: "${userText}"
@@ -523,6 +525,7 @@ Rules:
 - Do NOT output package names.
 - Prefer selectors (text, contains, desc) over coordinates.
 - ALWAYS add a wait after launching an app.
+- Handle multi-step chained requests carefully (e.g., if they want to open Chrome AND search for something, sequence the steps logically).
 - Keep the sequence short and practical.
 - If a safe plan is not possible, return [].
 
@@ -556,14 +559,12 @@ Examples:
   }
 }
 
-// FIX: Reduced observation frequency for better performance
 async function generateLiveSteps(userText) {
   const baseSteps = await generateTaskSteps(userText);
   
   const liveSteps = [];
   for (let i = 0; i < baseSteps.length; i++) {
     liveSteps.push(baseSteps[i]);
-    // Only add observation after launch_app and significant actions, not every action
     if (['launch_app', 'click'].includes(baseSteps[i].action)) {
       liveSteps.push({ 
         action: 'observe', 
@@ -580,7 +581,12 @@ async function generateLiveSteps(userText) {
 // CHAT RESPONSE - FIXED TO PREVENT THINKING LEAK
 // ============================================
 function cleanAiResponse(text) {
-  let cleaned = text;
+  let cleaned = String(text || '');
+  
+  // FIX #1 & #5: Strip reasoning models' <think> tags, literal \n, and markdown asterisks
+  cleaned = cleaned.replace(/<think>[\s\S]*?<\/think>/gi, '');
+  cleaned = cleaned.replace(/\\n/g, '\n');
+  cleaned = cleaned.replace(/\*/g, '');
   
   const thinkingPatterns = [
     /^(Okay|Alright|So|Hmm|Let me think|I should|I need to|I will|I can|If you|Maybe|Perhaps|Wait|Oh|Ah)[,\s]+/i,
@@ -616,11 +622,6 @@ Examples of GOOD responses:
 - "I can help with that. What would you like to automate?"
 - "Sure! Opening Chrome now."
 
-Examples of BAD responses (NEVER DO THESE):
-- "Okay, the user said hi. I should respond warmly..."
-- "Hmm, let me think about how to help with this..."
-- "So you want me to open Chrome. I will do that now."
-
 Remember: Just the response, no thinking.`;
 
   try {
@@ -635,8 +636,6 @@ Remember: Just the response, no thinking.`;
     });
     
     let response = res.choices?.[0]?.message?.content?.trim() || "I'm here. What would you like to do?";
-    
-    // Clean any leaked thinking
     response = cleanAiResponse(response);
     
     return response;
@@ -1043,6 +1042,40 @@ async function createRegularTask(userText, intent, mode = 'normal') {
 }
 
 // ============================================
+// FIX #4: FEEDBACK POLLING SYSTEM
+// ============================================
+async function waitForTaskCompletion(taskId, ctx) {
+  let attempts = 0;
+  const maxAttempts = 15; // Wait up to 75 seconds
+
+  const interval = setInterval(async () => {
+    attempts++;
+    const logUrl = `${GITHUB_API}/${LOGS_PATH}/${taskId}_log.json`;
+    const res = await ghGetJson(logUrl);
+
+    if (res.ok && res.json && res.json.content) {
+      try {
+        const logData = JSON.parse(Buffer.from(res.json.content, 'base64').toString('utf8'));
+        const statusEmoji = (logData.status === 'completed' || logData.status === 'success') ? '✅' : '❌';
+        
+        // Strip markdown and raw text for safe Telegram sending
+        let cleanStatusText = `${statusEmoji} Task Update:\nStatus: ${logData.status}${logData.error ? '\nError: ' + logData.error : ''}`;
+        await ctx.reply(cleanStatusText);
+      } catch (e) {
+        console.error("Error parsing log payload", e);
+      }
+      clearInterval(interval);
+      return;
+    }
+
+    if (attempts >= maxAttempts) {
+      await ctx.reply("⚠️ Task timeout: No feedback received from device.");
+      clearInterval(interval);
+    }
+  }, 5000); // Check every 5 seconds
+}
+
+// ============================================
 // TELEGRAM HANDLERS
 // ============================================
 const userSessions = new Map();
@@ -1067,19 +1100,19 @@ Examples:
 bot.command('help', async (ctx) => {
   await ctx.reply(`📱 DWAI Commands:
 
-**Execution Modes:**
+Execution Modes:
 /do <task> - Fast execution (uses routes, minimal observation)
 /live <task> - Live mode (observes, verifies, adapts)
 
-**Teaching:**
+Teaching:
 /teach <goal> - Start recording your actions
 /stopteach - Stop and save as reusable route
 
-**Route Management:**
+Route Management:
 /route <task> - Execute using best matching route
 /status - View recent tasks and routes
 
-**Teaching Tips:**
+Teaching Tips:
 - Use {variable} syntax for dynamic values
 - Example: /teach search for {query} on youtube
 - The agent will learn to extract "query" from your commands`);
@@ -1092,21 +1125,21 @@ bot.command('status', async (ctx) => {
       listRouteSummaries(10),
     ]);
     
-    let msg = '📊 **Recent Tasks:**\\n';
+    let msg = '📊 Recent Tasks:\n';
     if (tasks.length === 0) {
-      msg += 'No recent tasks\\n';
+      msg += 'No recent tasks\n';
     } else {
       tasks.forEach(t => {
-        msg += `• ${t.id.substring(0, 8)}... - ${t.status} (${t.intent})\\n`;
+        msg += `• ${t.id.substring(0, 8)}... - ${t.status} (${t.intent})\n`;
       });
     }
     
-    msg += '\\n📚 **Learned Routes:**\\n';
+    msg += '\n📚 Learned Routes:\n';
     if (routes.length === 0) {
       msg += 'No routes learned yet. Use /teach to create one.';
     } else {
       routes.forEach(r => {
-        msg += `• ${r.goal || r.id.substring(0, 8)} (${r.app})\\n`;
+        msg += `• ${r.goal || r.id.substring(0, 8)} (${r.app})\n`;
       });
     }
     
@@ -1121,7 +1154,7 @@ bot.command('teach', async (ctx) => {
   const goal = ctx.message.text.replace(/^\/teach\s*/, '').trim();
   
   if (!goal) {
-    await ctx.reply('❌ Please specify what you want to teach. Example: `/teach search for {query} on youtube`');
+    await ctx.reply('❌ Please specify what you want to teach. Example: /teach search for {query} on youtube');
     return;
   }
   
@@ -1132,7 +1165,7 @@ bot.command('teach', async (ctx) => {
   
   try {
     const { taskId } = await startTeachSession(userId, goal);
-    await ctx.reply(`🎓 **Teach Mode Started**\\n\\nGoal: ${goal}\\nTask ID: ${taskId}\\n\\n1. The agent will lock to the target app\\n2. Perform the actions you want to record\\n3. Use /stopteach when done\\n\\nThe agent is now waiting for your actions...`);
+    await ctx.reply(`🎓 Teach Mode Started\n\nGoal: ${goal}\nTask ID: ${taskId}\n\n1. The agent will lock to the target app\n2. Perform the actions you want to record\n3. Use /stopteach when done\n\nThe agent is now waiting for your actions...`);
   } catch (e) {
     await ctx.reply('❌ Failed to start teach mode: ' + e.message);
   }
@@ -1147,7 +1180,7 @@ bot.command('stopteach', async (ctx) => {
       await ctx.reply('❌ ' + result.error);
       return;
     }
-    await ctx.reply(`✅ **Teach Mode Stopped**\\n\\nGoal: ${result.previousSession.goal}\\n\\nThe route has been saved. You can now use:\\n\\n/do ${result.previousSession.goal}\\n\\nOr with variations:\\n/live ${result.previousSession.goal.replace(/\{.*?\}/g, 'something')}`);
+    await ctx.reply(`✅ Teach Mode Stopped\n\nGoal: ${result.previousSession.goal}\n\nThe route has been saved. You can now use:\n\n/do ${result.previousSession.goal}\n\nOr with variations:\n/live ${result.previousSession.goal.replace(/\{.*?\}/g, 'something')}`);
   } catch (e) {
     await ctx.reply('❌ Error stopping teach mode: ' + e.message);
   }
@@ -1157,25 +1190,26 @@ bot.command('do', async (ctx) => {
   const taskText = ctx.message.text.replace(/^\/do\s*/, '').trim();
   
   if (!taskText) {
-    await ctx.reply('❌ Please specify a task. Example: `/do open chrome and search for news`');
+    await ctx.reply('❌ Please specify a task. Example: /do open chrome and search for news');
     return;
   }
   
   try {
     const { taskId, steps, routeMatched } = await createRegularTask(taskText, 'DO', 'fast');
     
-    let msg = `⚡ **Fast Execution**\\n\\nTask: ${taskText}\\nID: ${taskId}`;
+    let msg = `⚡ Fast Execution\n\nTask: ${taskText}\nID: ${taskId}`;
     if (routeMatched) {
-      msg += `\\n📚 Using route: ${routeMatched}`;
+      msg += `\n📚 Using route: ${routeMatched}`;
     }
-    msg += `\\n\\nSteps (${steps.length}):\\n`;
+    msg += `\n\nSteps (${steps.length}):\n`;
     steps.slice(0, 5).forEach((s, i) => {
-      msg += `${i + 1}. ${s.action}${s.value ? ': ' + s.value : ''}${s.text ? ': ' + s.text : ''}\\n`;
+      msg += `${i + 1}. ${s.action}${s.value ? ': ' + s.value : ''}${s.text ? ': ' + s.text : ''}\n`;
     });
-    if (steps.length > 5) msg += `... and ${steps.length - 5} more\\n`;
-    msg += '\\nExecuting now...';
+    if (steps.length > 5) msg += `... and ${steps.length - 5} more\n`;
+    msg += '\nExecuting now...';
     
     await ctx.reply(msg);
+    waitForTaskCompletion(taskId, ctx); // FIX #4 Trigger Polling
   } catch (e) {
     await ctx.reply('❌ Error creating task: ' + e.message);
   }
@@ -1185,25 +1219,26 @@ bot.command('live', async (ctx) => {
   const taskText = ctx.message.text.replace(/^\/live\s*/, '').trim();
   
   if (!taskText) {
-    await ctx.reply('❌ Please specify a task. Example: `/live search for shoes on amazon`');
+    await ctx.reply('❌ Please specify a task. Example: /live search for shoes on amazon');
     return;
   }
   
   try {
     const { taskId, steps, routeMatched } = await createRegularTask(taskText, 'LIVE', 'live');
     
-    let msg = `👁️ **Live Mode**\\n\\nTask: ${taskText}\\nID: ${taskId}`;
+    let msg = `👁️ Live Mode\n\nTask: ${taskText}\nID: ${taskId}`;
     if (routeMatched) {
-      msg += `\\n📚 Using route: ${routeMatched}`;
+      msg += `\n📚 Using route: ${routeMatched}`;
     }
-    msg += `\\n\\nThe agent will:\\n`;
-    msg += `• Execute each step\\n`;
-    msg += `• Observe screen state\\n`;
-    msg += `• Verify results\\n`;
-    msg += `• Adapt if needed\\n`;
-    msg += `\\nStarting now...`;
+    msg += `\n\nThe agent will:\n`;
+    msg += `• Execute each step\n`;
+    msg += `• Observe screen state\n`;
+    msg += `• Verify results\n`;
+    msg += `• Adapt if needed\n`;
+    msg += `\nStarting now...`;
     
     await ctx.reply(msg);
+    waitForTaskCompletion(taskId, ctx); // FIX #4 Trigger Polling
   } catch (e) {
     await ctx.reply('❌ Error creating live task: ' + e.message);
   }
@@ -1229,16 +1264,17 @@ bot.command('route', async (ctx) => {
     
     const { taskId } = await createRegularTask(taskText, 'ROUTE', 'routed');
     
-    let msg = `📚 **Route Match**\\n\\nRoute: ${matchedRoute.goal}\\nApp: ${matchedRoute.app}\\n\\n`;
+    let msg = `📚 Route Match\n\nRoute: ${matchedRoute.goal}\nApp: ${matchedRoute.app}\n\n`;
     if (Object.keys(slotValues).length > 0) {
-      msg += `Extracted values:\\n`;
+      msg += `Extracted values:\n`;
       for (const [k, v] of Object.entries(slotValues)) {
-        msg += `• ${k}: ${v}\\n`;
+        msg += `• ${k}: ${v}\n`;
       }
     }
-    msg += `\\nExecuting ${filledSteps.length} steps...`;
+    msg += `\nExecuting ${filledSteps.length} steps...`;
     
     await ctx.reply(msg);
+    waitForTaskCompletion(taskId, ctx); // FIX #4 Trigger Polling
   } catch (e) {
     await ctx.reply('❌ Error: ' + e.message);
   }
@@ -1275,7 +1311,8 @@ bot.on('text', async (ctx) => {
         
       case 'TASK':
         const { taskId, steps } = await createRegularTask(text, 'TASK', 'normal');
-        await ctx.reply(`🤖 I'll help with that.\\n\\nTask ID: ${taskId}\\nSteps: ${steps.length}\\n\\nExecuting...`);
+        await ctx.reply(`🤖 I'll help with that.\n\nTask ID: ${taskId}\nSteps: ${steps.length}\n\nExecuting...`);
+        waitForTaskCompletion(taskId, ctx); // FIX #4 Trigger Polling
         break;
         
       default:
