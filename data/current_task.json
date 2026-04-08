@@ -1,10 +1,12 @@
 {
   "task_id": "TnHvQWxBsyYW",
   "type": "automation",
-  "status": "executing",
+  "status": "failed",
   "file_url": "https://api.github.com/repos/theking196/dwai-mobile-agent/contents/data/tasks/TnHvQWxBsyYW.json",
   "mode": "live",
   "created_at": "2026-04-08T20:14:27.058Z",
   "started_at": "2026-04-08T20:14:36.733Z",
-  "worker_id": "phone-vivo 1906-720x1544"
+  "worker_id": "phone-vivo 1906-720x1544",
+  "finished_at": "2026-04-08T20:15:04.938Z",
+  "error": "Step 4 (click) failed after retry"
 }
