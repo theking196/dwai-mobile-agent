@@ -1,7 +1,7 @@
 {
   "task_id": "0o9rm4-EnLI4",
-  "status": "executing",
-  "updated_at": "2026-04-08T21:40:49.748Z",
-  "error": null,
+  "status": "failed",
+  "updated_at": "2026-04-08T21:40:58.850Z",
+  "error": "Error: Click failed",
   "worker_id": "phone-vivo 1906-720x1544"
 }
