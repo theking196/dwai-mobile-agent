@@ -1,6 +1,6 @@
 {
   "task_id": "yg-ZbFpU",
-  "status": "executing",
+  "status": "failed",
   "intent": "Open WhatsApp business not WhatsApp",
   "type": "automation",
   "created_at": "2026-04-07T18:05:51.746Z",
@@ -22,5 +22,7 @@
   "planner_version": "v11",
   "file_url": "https://api.github.com/repos/theking196/dwai-mobile-agent/contents/data/tasks/yg-ZbFpU.json",
   "started_at": "2026-04-08T07:31:24.173Z",
-  "worker_id": "phone-vivo 1906-720x1544"
+  "worker_id": "phone-vivo 1906-720x1544",
+  "finished_at": "2026-04-08T07:33:13.816Z",
+  "error": "Step 1 failed"
 }
