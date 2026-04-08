@@ -1,0 +1,63 @@
+{
+  "task_id": "HuFFBem1qLaY",
+  "type": "automation",
+  "status": "pending",
+  "intent": "TASK",
+  "mode": "normal",
+  "goal": "Open WhatsApp and send a hi message to Daddy",
+  "steps": [
+    {
+      "action": "launch_app",
+      "value": "whatsapp"
+    },
+    {
+      "action": "wait",
+      "ms": 4000
+    },
+    {
+      "action": "click",
+      "text": "Search",
+      "contains": "Search",
+      "desc": "Search",
+      "fallbacks": [
+        {
+          "action": "click",
+          "x": 650,
+          "y": 120
+        }
+      ]
+    },
+    {
+      "action": "wait",
+      "ms": 1000
+    },
+    {
+      "action": "type",
+      "text": "Daddy"
+    },
+    {
+      "action": "press",
+      "key": "enter"
+    },
+    {
+      "action": "wait",
+      "ms": 2500
+    },
+    {
+      "action": "type",
+      "text": "Open WhatsApp and send a hi message to Daddy"
+    },
+    {
+      "action": "press",
+      "key": "enter"
+    },
+    {
+      "action": "wait",
+      "ms": 2000
+    }
+  ],
+  "route_matched": null,
+  "slot_values": {},
+  "created_at": "2026-04-08T12:13:45.715Z",
+  "validate_steps": true
+}
