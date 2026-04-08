@@ -1,7 +1,7 @@
 {
   "task_id": "4j3WrzlTY7RC",
   "type": "automation",
-  "status": "executing",
+  "status": "failed",
   "intent": "DO",
   "mode": "fast",
   "goal": "open Chrome",
@@ -24,5 +24,7 @@
   "created_at": "2026-04-08T11:53:14.438Z",
   "validate_steps": true,
   "started_at": "2026-04-08T11:53:29.228Z",
-  "worker_id": "phone-vivo 1906-720x1544"
+  "worker_id": "phone-vivo 1906-720x1544",
+  "finished_at": "2026-04-08T11:53:42.249Z",
+  "error": "Step 1 (launch_app) failed"
 }
