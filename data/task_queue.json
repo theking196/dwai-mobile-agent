@@ -1,12 +1,8 @@
 {
-  "queue": [
-    {
-      "task_id": "RDvaTFdQH_Zm",
-      "priority": 5,
-      "created_at": 1775684746634,
-      "retries": 0
-    }
-  ],
-  "processing": null,
+  "queue": [],
+  "processing": {
+    "task_id": "RDvaTFdQH_Zm",
+    "started_at": 1775684748092
+  },
   "last_updated": 1775683862410
 }
