@@ -1,7 +1,7 @@
 {
   "task_id": "TnHvQWxBsyYW",
   "type": "automation",
-  "status": "executing",
+  "status": "failed",
   "intent": "LIVE",
   "mode": "live",
   "goal": "open Chrome and search power rangers then submit it",
@@ -52,5 +52,7 @@
   "created_at": "2026-04-08T20:14:26.496Z",
   "validate_steps": true,
   "started_at": "2026-04-08T20:14:35.966Z",
-  "worker_id": "phone-vivo 1906-720x1544"
+  "worker_id": "phone-vivo 1906-720x1544",
+  "finished_at": "2026-04-08T20:15:04.237Z",
+  "error": "Step 4 (click) failed after retry"
 }
