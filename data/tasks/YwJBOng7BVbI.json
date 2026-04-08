@@ -1,7 +1,7 @@
 {
   "task_id": "YwJBOng7BVbI",
   "type": "automation",
-  "status": "pending",
+  "status": "executing",
   "intent": "DO",
   "mode": "fast",
   "goal": "open chrome and search for \"weather today\"",
@@ -47,5 +47,7 @@
   "route_matched": null,
   "slot_values": {},
   "created_at": "2026-04-08T10:32:47.401Z",
-  "validate_steps": true
+  "validate_steps": true,
+  "started_at": "2026-04-08T10:32:52.939Z",
+  "worker_id": "phone-vivo 1906-720x1544"
 }
