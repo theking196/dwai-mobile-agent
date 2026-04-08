@@ -1,9 +1,9 @@
 {
-  "task_id": "UpNTddFZ",
+  "task_id": "znOr60zQ",
   "type": "automation",
   "status": "pending",
-  "intent": "Facebook lite",
-  "file_url": "https://api.github.com/repos/theking196/dwai-mobile-agent/contents/data/tasks/UpNTddFZ.json",
-  "created_at": "2026-04-07T18:10:51.620Z",
+  "intent": "Open YouTube",
+  "file_url": "https://api.github.com/repos/theking196/dwai-mobile-agent/contents/data/tasks/znOr60zQ.json",
+  "created_at": "2026-04-08T07:14:36.796Z",
   "source": "telegram"
 }
