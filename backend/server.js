@@ -5,8 +5,10 @@ const Groq = require('groq-sdk');
 const https = require('https');
 const { nanoid } = require('nanoid');
 
+
 const app = express();
 const PORT = process.env.PORT || 3000;
+
 
 const GROQ_API_KEY = process.env.GROQ_API_KEY;
 const TELEGRAM_BOT_TOKEN = process.env.TELEGRAM_BOT_TOKEN;
@@ -15,20 +17,25 @@ const GITHUB_REPO = process.env.GITHUB_REPO;
 const GROQ_MODEL = process.env.GROQ_MODEL || 'qwen/qwen3-32b';
 const GITHUB_BRANCH = process.env.GITHUB_BRANCH || 'main';
 
+
 if (!GROQ_API_KEY) throw new Error('GROQ_API_KEY required');
 if (!TELEGRAM_BOT_TOKEN) throw new Error('TELEGRAM_BOT_TOKEN required');
 if (!GITHUB_TOKEN || !GITHUB_REPO) throw new Error('GITHUB_TOKEN and GITHUB_REPO required');
 
+
 const groq = new Groq({ apiKey: GROQ_API_KEY });
 const bot = new Telegraf(TELEGRAM_BOT_TOKEN);
 
+
 app.use(express.json());
+
 
 const GITHUB_API = `https://api.github.com/repos/${GITHUB_REPO}/contents`;
 const TASKS_PATH = 'data/tasks';
 const LOGS_PATH = 'data/logs';
 const ROUTES_PATH = 'data/routes';
 const CURRENT_TASK_PATH = 'data/current_task.json';
+
 
 // ============================================
 // APP REGISTRY
@@ -56,14 +63,17 @@ const APP_REGISTRY = {
   zoom: { aliases: [], package: 'us.zoom.videomeetings' },
 };
 
+
 const ALLOWED_ACTIONS = new Set([
   'launch_app', 'click', 'type', 'press', 'wait', 'toast', 'swipe', 'verify', 'open_url', 'observe'
 ]);
+
 
 // ============================================
 // TEACH SESSION STATE (in-memory)
 // ============================================
 const activeTeachSessions = new Map(); // userId -> session data
+
 
 // ============================================
 // GITHUB HELPERS
@@ -77,6 +87,7 @@ function ghHeaders() {
     'X-GitHub-Api-Version': '2022-11-28',
   };
 }
+
 
 function githubRequest(method, url, body) {
   return new Promise((resolve, reject) => {
@@ -99,6 +110,7 @@ function githubRequest(method, url, body) {
   });
 }
 
+
 async function ghGetJson(url) {
   const res = await githubRequest('GET', url);
   let json = null;
@@ -106,16 +118,19 @@ async function ghGetJson(url) {
   return { ...res, json };
 }
 
+
 async function ghPutJson(url, body) {
   return githubRequest('PUT', url, body);
 }
+
 
 // ============================================
 // UTILITIES
 // ============================================
 function escapeRegExp(str) {
-  return String(str).replace(/[.*+?^${}()|[\\]\\\\]/g, '\\\\$&');
+  return String(str).replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
 }
+
 
 function normalizeLaunchValue(value) {
   if (value === undefined || value === null) return null;
@@ -130,36 +145,39 @@ function normalizeLaunchValue(value) {
   return null;
 }
 
+
 function findAppCanonical(text) {
   const lower = String(text || '').toLowerCase();
   const entries = Object.entries(APP_REGISTRY).sort((a, b) => b[0].length - a[0].length);
   for (const [canonical, info] of entries) {
     const patterns = [canonical, ...(info.aliases || [])];
     for (const p of patterns) {
-      const re = new RegExp(`\\\\b${escapeRegExp(p.toLowerCase())}\\\\b`, 'i');
+      const re = new RegExp(`\\b${escapeRegExp(p.toLowerCase())}\\b`, 'i');
       if (re.test(lower)) return canonical;
     }
   }
   return null;
 }
 
+
 function cleanQuery(q) {
   return String(q || '')
-    .replace(/^["'\`]+|["'\`]+$/g, '')
-    .replace(/^[\\s:,-]*(a|an|the)\\s+/i, '')
-    .replace(/\\s+/g, ' ')
+    .replace(/^["'`]+|["'`]+$/g, '')
+    .replace(/^[\s:,-]*(a|an|the)\s+/i, '')
+    .replace(/\s+/g, ' ')
     .trim();
 }
+
 
 function extractSearchQuery(text) {
   const input = String(text || '').trim();
   const patterns = [
-    /search(?:\\s+for)?\\s+(.+)$/i,
-    /find(?:\\s+me)?\\s+(.+)$/i,
-    /look(?:\\s+for)?\\s+(.+)$/i,
-    /browse(?:\\s+for)?\\s+(.+)$/i,
-    /play\\s+(.+)$/i,
-    /watch\\s+(.+)$/i,
+    /search(?:\s+for)?\s+(.+)$/i,
+    /find(?:\s+me)?\s+(.+)$/i,
+    /look(?:\s+for)?\s+(.+)$/i,
+    /browse(?:\s+for)?\s+(.+)$/i,
+    /play\s+(.+)$/i,
+    /watch\s+(.+)$/i,
   ];
   for (const re of patterns) {
     const m = input.match(re);
@@ -170,6 +188,7 @@ function extractSearchQuery(text) {
   }
   return null;
 }
+
 
 function extractMessageParts(text) {
   const input = String(text || '').trim();
@@ -188,6 +207,7 @@ function extractMessageParts(text) {
   }
   return null;
 }
+
 
 // ============================================
 // SLOT EXTRACTION FOR DYNAMIC TEACHING
@@ -241,6 +261,7 @@ function extractSlotsFromExample(goal, steps) {
   return { slots, templatedSteps };
 }
 
+
 function fillSlots(steps, slotValues) {
   return steps.map(step => {
     const newStep = { ...step };
@@ -257,6 +278,7 @@ function fillSlots(steps, slotValues) {
   });
 }
 
+
 // ============================================
 // INTENT CLASSIFICATION
 // ============================================
@@ -264,22 +286,23 @@ function quickIntent(message) {
   const t = String(message || '').trim().toLowerCase();
   if (!t) return { intent: 'CHAT' };
   
-  if (/^(hi|hello|hey|yo|good morning|good afternoon|good evening)\\b/.test(t)) {
+  if (/^(hi|hello|hey|yo|good morning|good afternoon|good evening)\b/.test(t)) {
     return { intent: 'CHAT' };
   }
-  if (/\\b(help|commands?)\\b/.test(t)) return { intent: 'HELP' };
-  if (/\\b(status|task status|check task|tasks?|queue|routes?)\\b/.test(t)) return { intent: 'STATUS' };
+  if (/\b(help|commands?)\b/.test(t)) return { intent: 'HELP' };
+  if (/\b(status|task status|check task|tasks?|queue|routes?)\b/.test(t)) return { intent: 'STATUS' };
   if (/^\/teach\b/.test(t)) return { intent: 'TEACH' };
-  if (/^\\/stopteach\\b/.test(t)) return { intent: 'STOPTEACH' };
-  if (/^\\/do\\b/.test(t)) return { intent: 'DO' };
-  if (/^\\/live\\b/.test(t)) return { intent: 'LIVE' };
-  if (/^\\/route\\b/.test(t)) return { intent: 'ROUTE' };
+  if (/^\/stopteach\b/.test(t)) return { intent: 'STOPTEACH' };
+  if (/^\/do\b/.test(t)) return { intent: 'DO' };
+  if (/^\/live\b/.test(t)) return { intent: 'LIVE' };
+  if (/^\/route\b/.test(t)) return { intent: 'ROUTE' };
   
   if (/(open|launch|search|find|look for|go to|start|watch|play|type|click|send|scroll)/.test(t)) {
     return { intent: 'TASK' };
   }
   return null;
 }
+
 
 async function classifyIntent(userMessage) {
   const quick = quickIntent(userMessage);
@@ -288,6 +311,7 @@ async function classifyIntent(userMessage) {
   const prompt = `Classify this user message and decide what to do.
 User: "${userMessage}"
 
+
 Return ONLY JSON with this shape:
 {
   "intent": "TASK|CHAT|STATUS|HELP|TEACH|STOPTEACH|DO|LIVE|ROUTE",
@@ -295,6 +319,7 @@ Return ONLY JSON with this shape:
   "target": "app name or search query or none",
   "response": "short response if CHAT or HELP"
 }
+
 
 # Rules:
 - If the user wants phone automation, intent must be TASK.
@@ -308,6 +333,7 @@ Return ONLY JSON with this shape:
 - If they want to use a route (/route), intent must be ROUTE.
 - No markdown.
 - No extra text.`;
+
 
   try {
     const res = await groq.chat.completions.create({
@@ -327,6 +353,7 @@ Return ONLY JSON with this shape:
   }
   return { intent: 'CHAT', action: 'respond', target: null, response: "I'm here. What would you like to do?" };
 }
+
 
 // ============================================
 // STEP VALIDATION & SANITIZATION
@@ -360,6 +387,7 @@ function isStepValid(step) {
       return false;
   }
 }
+
 
 function sanitizeSteps(rawSteps) {
   if (!Array.isArray(rawSteps)) return [];
@@ -401,9 +429,11 @@ function sanitizeSteps(rawSteps) {
   return out.slice(0, 20);
 }
 
+
 function buildAppHintsText() {
   return Object.keys(APP_REGISTRY).join(', ');
 }
+
 
 // ============================================
 // TEMPLATE BUILDERS
@@ -415,10 +445,10 @@ function buildTemplateSteps(userText) {
   const query = extractSearchQuery(text);
   const msgParts = extractMessageParts(text);
   
-  const wantsSearch = /\\b(search|find|look for|browse)\\b/.test(lower);
-  const wantsMessage = /\\b(send|message|text)\\b/.test(lower) && /\\bto\\b/.test(lower);
-  const wantsFirstResult = /\\b(first|first one|watch|video|result|open the first)\\b/.test(lower);
-  const wantsLaunch = /\\b(open|launch|start|go to)\\b/.test(lower);
+  const wantsSearch = /\b(search|find|look for|browse)\b/.test(lower);
+  const wantsMessage = /\b(send|message|text)\b/.test(lower) && /\bto\b/.test(lower);
+  const wantsFirstResult = /\b(first|first one|watch|video|result|open the first)\b/.test(lower);
+  const wantsLaunch = /\b(open|launch|start|go to)\b/.test(lower);
   
   if (app && wantsLaunch && !wantsSearch && !wantsMessage) {
     return sanitizeSteps([
@@ -429,7 +459,7 @@ function buildTemplateSteps(userText) {
   }
   
   if (wantsMessage) {
-    const contact = msgParts ? msgParts.contact : cleanQuery(text.replace(/^.*?to\\s+/i, '').replace(/\\s+say.*$/i, ''));
+    const contact = msgParts ? msgParts.contact : cleanQuery(text.replace(/^.*?to\s+/i, '').replace(/\s+say.*$/i, ''));
     const message = msgParts ? msgParts.message : cleanQuery(text);
     return sanitizeSteps([
       { action: 'launch_app', value: 'whatsapp' },
@@ -479,6 +509,7 @@ function buildTemplateSteps(userText) {
   return null;
 }
 
+
 // ============================================
 // AI STEP GENERATION
 // ============================================
@@ -489,9 +520,12 @@ async function generateTaskSteps(userText) {
   const prompt = `Convert this user request into a JSON array of Android automation steps.
 User request: "${userText}"
 
+
 App labels you may use in launch_app.value: ${buildAppHintsText()}
 
+
 Allowed actions: launch_app, click, type, press, wait, toast, swipe, verify, open_url
+
 
 Rules:
 - Output ONLY a JSON array.
@@ -500,6 +534,7 @@ Rules:
 - ALWAYS add a wait after launching an app.
 - Keep the sequence short and practical.
 - If a safe plan is not possible, return [].
+
 
 Examples:
 [
@@ -511,6 +546,7 @@ Examples:
   {"action":"press","key":"enter"},
   {"action":"wait","ms":4000}
 ]`;
+
 
   try {
     const res = await groq.chat.completions.create({
@@ -530,6 +566,7 @@ Examples:
     return [];
   }
 }
+
 
 async function generateLiveSteps(userText) {
   // Generate steps with observation checkpoints for live mode
@@ -552,6 +589,7 @@ async function generateLiveSteps(userText) {
   return liveSteps;
 }
 
+
 async function generateChatResponse(userMessage) {
   const prompt = `You are DWAI, a helpful assistant that can chat and help control a phone.
 User: "${userMessage}"
@@ -573,6 +611,7 @@ Respond naturally and briefly.`;
   }
 }
 
+
 // ============================================
 // JSON EXTRACTION
 // ============================================
@@ -588,6 +627,7 @@ function extractJsonArray(text) {
   }
 }
 
+
 function extractJsonObject(text) {
   const raw = String(text || '').trim();
   const start = raw.indexOf('{');
@@ -599,6 +639,7 @@ function extractJsonObject(text) {
     return null;
   }
 }
+
 
 function validateSteps(steps) {
   if (!Array.isArray(steps)) return false;
@@ -612,6 +653,7 @@ function validateSteps(steps) {
   }
   return true;
 }
+
 
 // ============================================
 // GITHUB OPERATIONS
@@ -632,6 +674,7 @@ async function createTask(taskId, taskData) {
   }
   return taskUrl;
 }
+
 
 async function writeCurrentTask(pointer) {
   const url = `${GITHUB_API}/${CURRENT_TASK_PATH}`;
@@ -655,6 +698,7 @@ async function writeCurrentTask(pointer) {
   return result;
 }
 
+
 async function getTaskFileById(taskId) {
   const fileUrl = `${GITHUB_API}/${TASKS_PATH}/${taskId}.json`;
   const res = await ghGetJson(fileUrl);
@@ -664,6 +708,7 @@ async function getTaskFileById(taskId) {
   const task = JSON.parse(Buffer.from(res.json.content, 'base64').toString('utf8'));
   return { file: res.json, task, fileUrl };
 }
+
 
 async function getRouteById(routeId) {
   const fileUrl = `${GITHUB_API}/${ROUTES_PATH}/${routeId}.json`;
@@ -675,6 +720,7 @@ async function getRouteById(routeId) {
     return null;
   }
 }
+
 
 async function saveRoute(routeId, routeData) {
   const fileUrl = `${GITHUB_API}/${ROUTES_PATH}/${routeId}.json`;
@@ -697,6 +743,7 @@ async function saveRoute(routeId, routeData) {
   }
   return result;
 }
+
 
 async function listTaskSummaries(limit = 15) {
   const folder = await ghGetJson(`${GITHUB_API}/${TASKS_PATH}`);
@@ -727,6 +774,7 @@ async function listTaskSummaries(limit = 15) {
   return out;
 }
 
+
 async function listRouteSummaries(limit = 15) {
   const folder = await ghGetJson(`${GITHUB_API}/${ROUTES_PATH}`);
   if (!folder.ok || !Array.isArray(folder.json)) return [];
@@ -756,6 +804,7 @@ async function listRouteSummaries(limit = 15) {
   return out;
 }
 
+
 // ============================================
 // ROUTE MATCHING ENGINE
 // ============================================
@@ -781,8 +830,8 @@ async function findMatchingRoute(userText) {
     else if (lowerText.includes(goalLower) || goalLower.includes(lowerText)) score = 80;
     // Word overlap
     else {
-      const textWords = lowerText.split(/\\s+/);
-      const goalWords = goalLower.split(/\\s+/);
+      const textWords = lowerText.split(/\s+/);
+      const goalWords = goalLower.split(/\s+/);
       const overlap = textWords.filter(w => goalWords.includes(w)).length;
       score = (overlap / Math.max(textWords.length, goalWords.length)) * 60;
     }
@@ -803,6 +852,7 @@ async function findMatchingRoute(userText) {
   return null;
 }
 
+
 async function extractSlotsFromUserInput(route, userText) {
   const slotValues = {};
   
@@ -814,8 +864,10 @@ Route goal template: "${route.goal}"
 Slots needed: ${route.slots.map(s => s.name).join(', ')}
 User input: "${userText}"
 
+
 Return ONLY JSON: {"slotName": "extracted value", ...}
 If a slot cannot be filled, omit it or use null.`;
+
 
   try {
     const res = await groq.chat.completions.create({
@@ -838,7 +890,7 @@ If a slot cannot be filled, omit it or use null.`;
     // Fallback: regex extraction
     for (const slot of route.slots) {
       if (slot.example) {
-        const pattern = new RegExp(slot.example.replace(/[.*+?^${}()|[\\]\\\\]/g, '\\\\$&'), 'i');
+        const pattern = new RegExp(slot.example.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'i');
         const match = userText.match(pattern);
         if (match) slotValues[slot.name] = match[0];
       }
@@ -847,6 +899,7 @@ If a slot cannot be filled, omit it or use null.`;
   
   return slotValues;
 }
+
 
 // ============================================
 // TEACH MODE HANDLERS
@@ -889,6 +942,7 @@ async function startTeachSession(userId, goal) {
   return { taskId, fileUrl };
 }
 
+
 async function stopTeachSession(userId) {
   const session = activeTeachSessions.get(userId);
   if (!session) {
@@ -923,6 +977,7 @@ async function stopTeachSession(userId) {
   
   return { taskId, fileUrl, previousSession: session };
 }
+
 
 // ============================================
 // TASK CREATION HELPERS
@@ -981,22 +1036,25 @@ async function createRegularTask(userText, intent, mode = 'normal') {
   return { taskId, fileUrl, steps, routeMatched };
 }
 
+
 // ============================================
 // TELEGRAM HANDLERS
 // ============================================
 const userSessions = new Map();
 
+
 bot.command('start', async (ctx) => {
   await ctx.reply(`👋 Welcome to DWAI Mobile Agent v2!
+
 
 Available commands:
 /do <task> - Fast execution using learned routes
 /live <task> - Execute with observation and adaptation
 /teach <goal> - Start teaching a new route
 /stopteach - Stop teaching and save the route
-/route <task> - Use a specific route
 /status - Check task queue and routes
 /help - Show this help
+
 
 Examples:
 /do open chrome and search for AI news
@@ -1004,26 +1062,32 @@ Examples:
 /teach search for {query} on youtube`);
 });
 
+
 bot.command('help', async (ctx) => {
   await ctx.reply(`📱 DWAI Commands:
+
 
 **Execution Modes:**
 /do <task> - Fast execution (uses routes, minimal observation)
 /live <task> - Live mode (observes, verifies, adapts)
 
+
 **Teaching:**
 /teach <goal> - Start recording your actions
 /stopteach - Stop and save as reusable route
 
+
 **Route Management:**
 /route <task> - Execute using best matching route
 /status - View recent tasks and routes
+
 
 **Teaching Tips:**
 - Use {variable} syntax for dynamic values
 - Example: /teach search for {query} on youtube
 - The agent will learn to extract "query" from your commands`);
 });
+
 
 bot.command('status', async (ctx) => {
   try {
@@ -1056,9 +1120,10 @@ bot.command('status', async (ctx) => {
   }
 });
 
+
 bot.command('teach', async (ctx) => {
   const userId = ctx.from.id;
-  const goal = ctx.message.text.replace(/^\\/teach\\s*/, '').trim();
+  const goal = ctx.message.text.replace(/^\/teach\s*/, '').trim();
   
   if (!goal) {
     await ctx.reply('❌ Please specify what you want to teach. Example: `/teach search for {query} on youtube`');
@@ -1079,6 +1144,7 @@ bot.command('teach', async (ctx) => {
   }
 });
 
+
 bot.command('stopteach', async (ctx) => {
   const userId = ctx.from.id;
   
@@ -1088,14 +1154,15 @@ bot.command('stopteach', async (ctx) => {
       await ctx.reply('❌ ' + result.error);
       return;
     }
-    await ctx.reply(`✅ **Teach Mode Stopped**\\n\\nGoal: ${result.previousSession.goal}\\n\\nThe route has been saved. You can now use:\\n\\n/do ${result.previousSession.goal}\\n\\nOr with variations:\\n/live ${result.previousSession.goal.replace(/\\{.*?\\}/g, 'something')}`);
+    await ctx.reply(`✅ **Teach Mode Stopped**\\n\\nGoal: ${result.previousSession.goal}\\n\\nThe route has been saved. You can now use:\\n\\n/do ${result.previousSession.goal}\\n\\nOr with variations:\\n/live ${result.previousSession.goal.replace(/\{.*?\}/g, 'something')}`);
   } catch (e) {
     await ctx.reply('❌ Error stopping teach mode: ' + e.message);
   }
 });
 
+
 bot.command('do', async (ctx) => {
-  const taskText = ctx.message.text.replace(/^\\/do\\s*/, '').trim();
+  const taskText = ctx.message.text.replace(/^\/do\s*/, '').trim();
   
   if (!taskText) {
     await ctx.reply('❌ Please specify a task. Example: `/do open chrome and search for news`');
@@ -1122,8 +1189,9 @@ bot.command('do', async (ctx) => {
   }
 });
 
+
 bot.command('live', async (ctx) => {
-  const taskText = ctx.message.text.replace(/^\\/live\\s*/, '').trim();
+  const taskText = ctx.message.text.replace(/^\/live\s*/, '').trim();
   
   if (!taskText) {
     await ctx.reply('❌ Please specify a task. Example: `/live search for shoes on amazon`');
@@ -1150,8 +1218,9 @@ bot.command('live', async (ctx) => {
   }
 });
 
+
 bot.command('route', async (ctx) => {
-  const taskText = ctx.message.text.replace(/^\\/route\\s*/, '').trim();
+  const taskText = ctx.message.text.replace(/^\/route\s*/, '').trim();
   
   if (!taskText) {
     await ctx.reply('❌ Please specify a task to route.');
@@ -1184,6 +1253,7 @@ bot.command('route', async (ctx) => {
     await ctx.reply('❌ Error: ' + e.message);
   }
 });
+
 
 // Handle regular messages
 bot.on('text', async (ctx) => {
@@ -1229,6 +1299,7 @@ bot.on('text', async (ctx) => {
   }
 });
 
+
 // ============================================
 // HTTP ENDPOINTS
 // ============================================
@@ -1240,6 +1311,7 @@ app.get('/health', (req, res) => {
     activeTeachSessions: activeTeachSessions.size
   });
 });
+
 
 app.post('/task', async (req, res) => {
   try {
@@ -1261,6 +1333,7 @@ app.post('/task', async (req, res) => {
   }
 });
 
+
 app.post('/teach/start', async (req, res) => {
   try {
     const { goal, user_id } = req.body;
@@ -1273,6 +1346,7 @@ app.post('/teach/start', async (req, res) => {
   }
 });
 
+
 app.post('/teach/stop', async (req, res) => {
   try {
     const { user_id } = req.body;
@@ -1284,6 +1358,7 @@ app.post('/teach/stop', async (req, res) => {
   }
 });
 
+
 app.get('/routes', async (req, res) => {
   try {
     const routes = await listRouteSummaries(50);
@@ -1292,6 +1367,7 @@ app.get('/routes', async (req, res) => {
     res.status(500).json({ error: e.message });
   }
 });
+
 
 app.get('/routes/:id', async (req, res) => {
   try {
@@ -1303,6 +1379,7 @@ app.get('/routes/:id', async (req, res) => {
   }
 });
 
+
 // ============================================
 // STARTUP
 // ============================================
@@ -1311,8 +1388,10 @@ app.listen(PORT, () => {
   console.log(`Modes: /do (fast), /live (observation), /teach (record), /route (reuse)`);
 });
 
+
 bot.launch();
 console.log('Telegram bot started');
+
 
 // Graceful shutdown
 process.once('SIGINT', () => bot.stop('SIGINT'));
