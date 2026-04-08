@@ -5,10 +5,8 @@ const Groq = require('groq-sdk');
 const https = require('https');
 const { nanoid } = require('nanoid');
 
-
 const app = express();
 const PORT = process.env.PORT || 3000;
-
 
 const GROQ_API_KEY = process.env.GROQ_API_KEY;
 const TELEGRAM_BOT_TOKEN = process.env.TELEGRAM_BOT_TOKEN;
@@ -17,25 +15,20 @@ const GITHUB_REPO = process.env.GITHUB_REPO;
 const GROQ_MODEL = process.env.GROQ_MODEL || 'qwen/qwen3-32b';
 const GITHUB_BRANCH = process.env.GITHUB_BRANCH || 'main';
 
-
 if (!GROQ_API_KEY) throw new Error('GROQ_API_KEY required');
 if (!TELEGRAM_BOT_TOKEN) throw new Error('TELEGRAM_BOT_TOKEN required');
 if (!GITHUB_TOKEN || !GITHUB_REPO) throw new Error('GITHUB_TOKEN and GITHUB_REPO required');
 
-
 const groq = new Groq({ apiKey: GROQ_API_KEY });
 const bot = new Telegraf(TELEGRAM_BOT_TOKEN);
 
-
 app.use(express.json());
-
 
 const GITHUB_API = `https://api.github.com/repos/${GITHUB_REPO}/contents`;
 const TASKS_PATH = 'data/tasks';
 const LOGS_PATH = 'data/logs';
 const ROUTES_PATH = 'data/routes';
 const CURRENT_TASK_PATH = 'data/current_task.json';
-
 
 // ============================================
 // APP REGISTRY
@@ -63,17 +56,14 @@ const APP_REGISTRY = {
   zoom: { aliases: [], package: 'us.zoom.videomeetings' },
 };
 
-
 const ALLOWED_ACTIONS = new Set([
   'launch_app', 'click', 'type', 'press', 'wait', 'toast', 'swipe', 'verify', 'open_url', 'observe'
 ]);
 
-
 // ============================================
 // TEACH SESSION STATE (in-memory)
 // ============================================
-const activeTeachSessions = new Map(); // userId -> session data
-
+const activeTeachSessions = new Map();
 
 // ============================================
 // GITHUB HELPERS
@@ -87,7 +77,6 @@ function ghHeaders() {
     'X-GitHub-Api-Version': '2022-11-28',
   };
 }
-
 
 function githubRequest(method, url, body) {
   return new Promise((resolve, reject) => {
@@ -110,7 +99,6 @@ function githubRequest(method, url, body) {
   });
 }
 
-
 async function ghGetJson(url) {
   const res = await githubRequest('GET', url);
   let json = null;
@@ -118,11 +106,9 @@ async function ghGetJson(url) {
   return { ...res, json };
 }
 
-
 async function ghPutJson(url, body) {
   return githubRequest('PUT', url, body);
 }
-
 
 // ============================================
 // UTILITIES
@@ -130,7 +116,6 @@ async function ghPutJson(url, body) {
 function escapeRegExp(str) {
   return String(str).replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
 }
-
 
 function normalizeLaunchValue(value) {
   if (value === undefined || value === null) return null;
@@ -145,7 +130,6 @@ function normalizeLaunchValue(value) {
   return null;
 }
 
-
 function findAppCanonical(text) {
   const lower = String(text || '').toLowerCase();
   const entries = Object.entries(APP_REGISTRY).sort((a, b) => b[0].length - a[0].length);
@@ -159,7 +143,6 @@ function findAppCanonical(text) {
   return null;
 }
 
-
 function cleanQuery(q) {
   return String(q || '')
     .replace(/^["'`]+|["'`]+$/g, '')
@@ -167,7 +150,6 @@ function cleanQuery(q) {
     .replace(/\s+/g, ' ')
     .trim();
 }
-
 
 function extractSearchQuery(text) {
   const input = String(text || '').trim();
@@ -189,7 +171,6 @@ function extractSearchQuery(text) {
   return null;
 }
 
-
 function extractMessageParts(text) {
   const input = String(text || '').trim();
   const patterns = [
@@ -208,7 +189,6 @@ function extractMessageParts(text) {
   return null;
 }
 
-
 // ============================================
 // SLOT EXTRACTION FOR DYNAMIC TEACHING
 // ============================================
@@ -216,7 +196,6 @@ function extractSlotsFromExample(goal, steps) {
   const slots = [];
   const slotMap = new Map();
   
-  // Common variable patterns
   const patterns = [
     { regex: /search (?:for )?(.+)/i, slotName: 'query', type: 'text' },
     { regex: /send (?:a )?message to (.+?) saying (.+)/i, slots: ['contact', 'message'], type: 'text' },
@@ -242,7 +221,6 @@ function extractSlotsFromExample(goal, steps) {
     }
   }
   
-  // Transform steps to use slot placeholders
   const templatedSteps = steps.map(step => {
     const newStep = { ...step };
     for (const [value, placeholder] of slotMap) {
@@ -261,7 +239,6 @@ function extractSlotsFromExample(goal, steps) {
   return { slots, templatedSteps };
 }
 
-
 function fillSlots(steps, slotValues) {
   return steps.map(step => {
     const newStep = { ...step };
@@ -277,7 +254,6 @@ function fillSlots(steps, slotValues) {
     return newStep;
   });
 }
-
 
 // ============================================
 // INTENT CLASSIFICATION
@@ -303,14 +279,12 @@ function quickIntent(message) {
   return null;
 }
 
-
 async function classifyIntent(userMessage) {
   const quick = quickIntent(userMessage);
   if (quick) return quick;
   
   const prompt = `Classify this user message and decide what to do.
 User: "${userMessage}"
-
 
 Return ONLY JSON with this shape:
 {
@@ -319,7 +293,6 @@ Return ONLY JSON with this shape:
   "target": "app name or search query or none",
   "response": "short response if CHAT or HELP"
 }
-
 
 # Rules:
 - If the user wants phone automation, intent must be TASK.
@@ -333,7 +306,6 @@ Return ONLY JSON with this shape:
 - If they want to use a route (/route), intent must be ROUTE.
 - No markdown.
 - No extra text.`;
-
 
   try {
     const res = await groq.chat.completions.create({
@@ -354,7 +326,6 @@ Return ONLY JSON with this shape:
   return { intent: 'CHAT', action: 'respond', target: null, response: "I'm here. What would you like to do?" };
 }
 
-
 // ============================================
 // STEP VALIDATION & SANITIZATION
 // ============================================
@@ -366,7 +337,7 @@ function isStepValid(step) {
     case 'launch_app':
       return typeof step.value === 'string' && step.value.trim().length > 0;
     case 'click':
-      return Boolean(step.text || step.contains || step.desc || (typeof step.x === 'number' && typeof step.y === 'number'));
+      return Boolean(step.text || step.contains || step.desc || step.descContains || (typeof step.x === 'number' && typeof step.y === 'number'));
     case 'type':
       return typeof step.text === 'string' && step.text.trim().length > 0;
     case 'press':
@@ -387,7 +358,6 @@ function isStepValid(step) {
       return false;
   }
 }
-
 
 function sanitizeSteps(rawSteps) {
   if (!Array.isArray(rawSteps)) return [];
@@ -429,14 +399,12 @@ function sanitizeSteps(rawSteps) {
   return out.slice(0, 20);
 }
 
-
 function buildAppHintsText() {
   return Object.keys(APP_REGISTRY).join(', ');
 }
 
-
 // ============================================
-// TEMPLATE BUILDERS
+// TEMPLATE BUILDERS (FIXED)
 // ============================================
 function buildTemplateSteps(userText) {
   const text = String(userText || '');
@@ -449,6 +417,20 @@ function buildTemplateSteps(userText) {
   const wantsMessage = /\b(send|message|text)\b/.test(lower) && /\bto\b/.test(lower);
   const wantsFirstResult = /\b(first|first one|watch|video|result|open the first)\b/.test(lower);
   const wantsLaunch = /\b(open|launch|start|go to)\b/.test(lower);
+  
+  // FIX: Handle settings navigation for auto-lock
+  if (app === 'settings' && /(auto.lock|screen.timeout|lock.screen|sleep|display)/.test(lower)) {
+    return sanitizeSteps([
+      { action: 'launch_app', value: 'settings' },
+      { action: 'wait', ms: 4000 },
+      { action: 'click', text: 'Display', contains: 'Display', fallbacks: [{ action: 'click', x: 360, y: 600 }] },
+      { action: 'wait', ms: 2000 },
+      { action: 'click', text: 'Sleep', contains: 'Sleep', descContains: 'Sleep', fallbacks: [{ action: 'click', x: 360, y: 800 }] },
+      { action: 'wait', ms: 1000 },
+      { action: 'click', text: '30 minutes', contains: '30', fallbacks: [{ action: 'click', x: 360, y: 1200 }] }, // Highest timeout
+      { action: 'wait', ms: 1000 },
+    ]);
+  }
   
   if (app && wantsLaunch && !wantsSearch && !wantsMessage) {
     return sanitizeSteps([
@@ -477,16 +459,29 @@ function buildTemplateSteps(userText) {
   
   if (wantsSearch) {
     const targetApp = app === 'youtube' ? 'youtube' : 'chrome';
-    const clickStep = targetApp === 'youtube'
-      ? { action: 'click', text: 'Search', contains: 'Search', desc: 'Search', fallbacks: [{ action: 'click', x: 650, y: 120 }] }
-      : { action: 'click', text: 'Search or type URL', contains: 'Search', desc: 'Search', fallbacks: [{ action: 'click', x: 650, y: 120 }] };
+    const searchQuery = query || cleanQuery(text) || text;
     
+    // FIX: Chrome search uses open_url instead of press enter
+    if (targetApp === 'chrome') {
+      const encodedQuery = encodeURIComponent(searchQuery);
+      return sanitizeSteps([
+        { action: 'launch_app', value: 'chrome' },
+        { action: 'wait', ms: 4000 },
+        { action: 'click', text: 'Search or type URL', contains: 'Search', desc: 'Search', fallbacks: [{ action: 'click', x: 650, y: 120 }] },
+        { action: 'wait', ms: 1000 },
+        { action: 'type', text: searchQuery },
+        { action: 'press', key: 'enter' }, // Agent will handle this specially for Chrome
+        { action: 'wait', ms: 4000 },
+      ]);
+    }
+    
+    // YouTube still uses press enter (it has a search button)
     const steps = [
       { action: 'launch_app', value: targetApp },
       { action: 'wait', ms: 4000 },
-      clickStep,
+      { action: 'click', text: 'Search', contains: 'Search', desc: 'Search', fallbacks: [{ action: 'click', x: 650, y: 120 }] },
       { action: 'wait', ms: 1000 },
-      { action: 'type', text: query || cleanQuery(text) || text },
+      { action: 'type', text: searchQuery },
       { action: 'press', key: 'enter' },
       { action: 'wait', ms: 4000 },
     ];
@@ -509,7 +504,6 @@ function buildTemplateSteps(userText) {
   return null;
 }
 
-
 // ============================================
 // AI STEP GENERATION
 // ============================================
@@ -520,12 +514,9 @@ async function generateTaskSteps(userText) {
   const prompt = `Convert this user request into a JSON array of Android automation steps.
 User request: "${userText}"
 
-
 App labels you may use in launch_app.value: ${buildAppHintsText()}
 
-
 Allowed actions: launch_app, click, type, press, wait, toast, swipe, verify, open_url
-
 
 Rules:
 - Output ONLY a JSON array.
@@ -534,7 +525,6 @@ Rules:
 - ALWAYS add a wait after launching an app.
 - Keep the sequence short and practical.
 - If a safe plan is not possible, return [].
-
 
 Examples:
 [
@@ -546,7 +536,6 @@ Examples:
   {"action":"press","key":"enter"},
   {"action":"wait","ms":4000}
 ]`;
-
 
   try {
     const res = await groq.chat.completions.create({
@@ -567,17 +556,15 @@ Examples:
   }
 }
 
-
+// FIX: Reduced observation frequency for better performance
 async function generateLiveSteps(userText) {
-  // Generate steps with observation checkpoints for live mode
   const baseSteps = await generateTaskSteps(userText);
   
-  // Insert observation steps between actions
   const liveSteps = [];
   for (let i = 0; i < baseSteps.length; i++) {
     liveSteps.push(baseSteps[i]);
-    // Add observation after significant actions
-    if (['launch_app', 'click', 'type', 'press'].includes(baseSteps[i].action)) {
+    // Only add observation after launch_app and significant actions, not every action
+    if (['launch_app', 'click'].includes(baseSteps[i].action)) {
       liveSteps.push({ 
         action: 'observe', 
         purpose: 'verify_state',
@@ -589,15 +576,12 @@ async function generateLiveSteps(userText) {
   return liveSteps;
 }
 
-
 // ============================================
 // CHAT RESPONSE - FIXED TO PREVENT THINKING LEAK
 // ============================================
 function cleanAiResponse(text) {
-  // Remove thinking patterns and internal monologue
   let cleaned = text;
   
-  // Remove common thinking patterns
   const thinkingPatterns = [
     /^(Okay|Alright|So|Hmm|Let me think|I should|I need to|I will|I can|If you|Maybe|Perhaps|Wait|Oh|Ah)[,\s]+/i,
     /(the user said|user said|they said|he said|she said)[\s\S]*?/i,
@@ -611,12 +595,10 @@ function cleanAiResponse(text) {
     cleaned = cleaned.replace(pattern, '');
   }
   
-  // Remove multi-line thinking blocks
   cleaned = cleaned.replace(/^(Okay|Alright|So|Hmm)[\\s\\S]*?(\\n\\n|\\n[A-Z])/i, '$2');
   
   return cleaned.trim();
 }
-
 
 async function generateChatResponse(userMessage) {
   const systemPrompt = `You are DWAI, a helpful phone automation assistant.
@@ -663,7 +645,6 @@ Remember: Just the response, no thinking.`;
   }
 }
 
-
 // ============================================
 // JSON EXTRACTION
 // ============================================
@@ -679,7 +660,6 @@ function extractJsonArray(text) {
   }
 }
 
-
 function extractJsonObject(text) {
   const raw = String(text || '').trim();
   const start = raw.indexOf('{');
@@ -691,7 +671,6 @@ function extractJsonObject(text) {
     return null;
   }
 }
-
 
 function validateSteps(steps) {
   if (!Array.isArray(steps)) return false;
@@ -705,7 +684,6 @@ function validateSteps(steps) {
   }
   return true;
 }
-
 
 // ============================================
 // GITHUB OPERATIONS
@@ -726,7 +704,6 @@ async function createTask(taskId, taskData) {
   }
   return taskUrl;
 }
-
 
 async function writeCurrentTask(pointer) {
   const url = `${GITHUB_API}/${CURRENT_TASK_PATH}`;
@@ -750,7 +727,6 @@ async function writeCurrentTask(pointer) {
   return result;
 }
 
-
 async function getTaskFileById(taskId) {
   const fileUrl = `${GITHUB_API}/${TASKS_PATH}/${taskId}.json`;
   const res = await ghGetJson(fileUrl);
@@ -760,7 +736,6 @@ async function getTaskFileById(taskId) {
   const task = JSON.parse(Buffer.from(res.json.content, 'base64').toString('utf8'));
   return { file: res.json, task, fileUrl };
 }
-
 
 async function getRouteById(routeId) {
   const fileUrl = `${GITHUB_API}/${ROUTES_PATH}/${routeId}.json`;
@@ -772,7 +747,6 @@ async function getRouteById(routeId) {
     return null;
   }
 }
-
 
 async function saveRoute(routeId, routeData) {
   const fileUrl = `${GITHUB_API}/${ROUTES_PATH}/${routeId}.json`;
@@ -795,7 +769,6 @@ async function saveRoute(routeId, routeData) {
   }
   return result;
 }
-
 
 async function listTaskSummaries(limit = 15) {
   const folder = await ghGetJson(`${GITHUB_API}/${TASKS_PATH}`);
@@ -826,7 +799,6 @@ async function listTaskSummaries(limit = 15) {
   return out;
 }
 
-
 async function listRouteSummaries(limit = 15) {
   const folder = await ghGetJson(`${GITHUB_API}/${ROUTES_PATH}`);
   if (!folder.ok || !Array.isArray(folder.json)) return [];
@@ -856,7 +828,6 @@ async function listRouteSummaries(limit = 15) {
   return out;
 }
 
-
 // ============================================
 // ROUTE MATCHING ENGINE
 // ============================================
@@ -866,7 +837,6 @@ async function findMatchingRoute(userText) {
   
   const lowerText = userText.toLowerCase();
   
-  // Score each route by similarity
   let bestMatch = null;
   let bestScore = 0;
   
@@ -876,11 +846,8 @@ async function findMatchingRoute(userText) {
     const goalLower = route.goal.toLowerCase();
     let score = 0;
     
-    // Exact match
     if (goalLower === lowerText) score = 100;
-    // Contains match
     else if (lowerText.includes(goalLower) || goalLower.includes(lowerText)) score = 80;
-    // Word overlap
     else {
       const textWords = lowerText.split(/\s+/);
       const goalWords = goalLower.split(/\s+/);
@@ -888,7 +855,6 @@ async function findMatchingRoute(userText) {
       score = (overlap / Math.max(textWords.length, goalWords.length)) * 60;
     }
     
-    // Boost if app matches
     const app = findAppCanonical(lowerText);
     if (app && route.app === app) score += 20;
     
@@ -904,22 +870,18 @@ async function findMatchingRoute(userText) {
   return null;
 }
 
-
 async function extractSlotsFromUserInput(route, userText) {
   const slotValues = {};
   
   if (!route.slots || route.slots.length === 0) return slotValues;
   
-  // Use AI to extract slot values
   const prompt = `Extract values for these slots from the user input.
 Route goal template: "${route.goal}"
 Slots needed: ${route.slots.map(s => s.name).join(', ')}
 User input: "${userText}"
 
-
 Return ONLY JSON: {"slotName": "extracted value", ...}
 If a slot cannot be filled, omit it or use null.`;
-
 
   try {
     const res = await groq.chat.completions.create({
@@ -939,7 +901,6 @@ If a slot cannot be filled, omit it or use null.`;
       }
     }
   } catch {
-    // Fallback: regex extraction
     for (const slot of route.slots) {
       if (slot.example) {
         const pattern = new RegExp(slot.example.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'i');
@@ -951,7 +912,6 @@ If a slot cannot be filled, omit it or use null.`;
   
   return slotValues;
 }
-
 
 // ============================================
 // TEACH MODE HANDLERS
@@ -973,7 +933,6 @@ async function startTeachSession(userId, goal) {
   
   const fileUrl = await createTask(taskId, teachTask);
   
-  // Write to current_task for immediate pickup
   await writeCurrentTask({
     task_id: taskId,
     type: 'teach_start',
@@ -982,7 +941,6 @@ async function startTeachSession(userId, goal) {
     created_at: new Date().toISOString(),
   });
   
-  // Store session data
   activeTeachSessions.set(userId, {
     taskId,
     goal,
@@ -993,7 +951,6 @@ async function startTeachSession(userId, goal) {
   
   return { taskId, fileUrl };
 }
-
 
 async function stopTeachSession(userId) {
   const session = activeTeachSessions.get(userId);
@@ -1030,7 +987,6 @@ async function stopTeachSession(userId) {
   return { taskId, fileUrl, previousSession: session };
 }
 
-
 // ============================================
 // TASK CREATION HELPERS
 // ============================================
@@ -1041,7 +997,6 @@ async function createRegularTask(userText, intent, mode = 'normal') {
   let routeMatched = null;
   let slotValues = {};
   
-  // Try route matching first
   if (intent === 'TASK' || intent === 'DO' || intent === 'LIVE') {
     const matchedRoute = await findMatchingRoute(userText);
     if (matchedRoute) {
@@ -1051,7 +1006,6 @@ async function createRegularTask(userText, intent, mode = 'normal') {
     }
   }
   
-  // If no route match, generate steps
   if (steps.length === 0) {
     if (mode === 'live') {
       steps = await generateLiveSteps(userText);
@@ -1088,16 +1042,13 @@ async function createRegularTask(userText, intent, mode = 'normal') {
   return { taskId, fileUrl, steps, routeMatched };
 }
 
-
 // ============================================
 // TELEGRAM HANDLERS
 // ============================================
 const userSessions = new Map();
 
-
 bot.command('start', async (ctx) => {
   await ctx.reply(`👋 Welcome to DWAI Mobile Agent v2!
-
 
 Available commands:
 /do <task> - Fast execution using learned routes
@@ -1107,39 +1058,32 @@ Available commands:
 /status - Check task queue and routes
 /help - Show this help
 
-
 Examples:
 /do open chrome and search for AI news
 /live send a message to John saying hello
 /teach search for {query} on youtube`);
 });
 
-
 bot.command('help', async (ctx) => {
   await ctx.reply(`📱 DWAI Commands:
-
 
 **Execution Modes:**
 /do <task> - Fast execution (uses routes, minimal observation)
 /live <task> - Live mode (observes, verifies, adapts)
 
-
 **Teaching:**
 /teach <goal> - Start recording your actions
 /stopteach - Stop and save as reusable route
 
-
 **Route Management:**
 /route <task> - Execute using best matching route
 /status - View recent tasks and routes
-
 
 **Teaching Tips:**
 - Use {variable} syntax for dynamic values
 - Example: /teach search for {query} on youtube
 - The agent will learn to extract "query" from your commands`);
 });
-
 
 bot.command('status', async (ctx) => {
   try {
@@ -1172,7 +1116,6 @@ bot.command('status', async (ctx) => {
   }
 });
 
-
 bot.command('teach', async (ctx) => {
   const userId = ctx.from.id;
   const goal = ctx.message.text.replace(/^\/teach\s*/, '').trim();
@@ -1182,7 +1125,6 @@ bot.command('teach', async (ctx) => {
     return;
   }
   
-  // Check if already teaching
   if (activeTeachSessions.has(userId)) {
     await ctx.reply('⚠️ You already have an active teach session. Use /stopteach to finish it first.');
     return;
@@ -1195,7 +1137,6 @@ bot.command('teach', async (ctx) => {
     await ctx.reply('❌ Failed to start teach mode: ' + e.message);
   }
 });
-
 
 bot.command('stopteach', async (ctx) => {
   const userId = ctx.from.id;
@@ -1211,7 +1152,6 @@ bot.command('stopteach', async (ctx) => {
     await ctx.reply('❌ Error stopping teach mode: ' + e.message);
   }
 });
-
 
 bot.command('do', async (ctx) => {
   const taskText = ctx.message.text.replace(/^\/do\s*/, '').trim();
@@ -1241,7 +1181,6 @@ bot.command('do', async (ctx) => {
   }
 });
 
-
 bot.command('live', async (ctx) => {
   const taskText = ctx.message.text.replace(/^\/live\s*/, '').trim();
   
@@ -1269,7 +1208,6 @@ bot.command('live', async (ctx) => {
     await ctx.reply('❌ Error creating live task: ' + e.message);
   }
 });
-
 
 bot.command('route', async (ctx) => {
   const taskText = ctx.message.text.replace(/^\/route\s*/, '').trim();
@@ -1306,12 +1244,10 @@ bot.command('route', async (ctx) => {
   }
 });
 
-
 // Handle regular messages
 bot.on('text', async (ctx) => {
   const text = ctx.message.text;
   
-  // Skip commands
   if (text.startsWith('/')) return;
   
   try {
@@ -1338,7 +1274,6 @@ bot.on('text', async (ctx) => {
         break;
         
       case 'TASK':
-        // Default to /do behavior for natural language
         const { taskId, steps } = await createRegularTask(text, 'TASK', 'normal');
         await ctx.reply(`🤖 I'll help with that.\\n\\nTask ID: ${taskId}\\nSteps: ${steps.length}\\n\\nExecuting...`);
         break;
@@ -1351,7 +1286,6 @@ bot.on('text', async (ctx) => {
   }
 });
 
-
 // ============================================
 // HTTP ENDPOINTS
 // ============================================
@@ -1363,7 +1297,6 @@ app.get('/health', (req, res) => {
     activeTeachSessions: activeTeachSessions.size
   });
 });
-
 
 app.post('/task', async (req, res) => {
   try {
@@ -1385,7 +1318,6 @@ app.post('/task', async (req, res) => {
   }
 });
 
-
 app.post('/teach/start', async (req, res) => {
   try {
     const { goal, user_id } = req.body;
@@ -1398,7 +1330,6 @@ app.post('/teach/start', async (req, res) => {
   }
 });
 
-
 app.post('/teach/stop', async (req, res) => {
   try {
     const { user_id } = req.body;
@@ -1410,7 +1341,6 @@ app.post('/teach/stop', async (req, res) => {
   }
 });
 
-
 app.get('/routes', async (req, res) => {
   try {
     const routes = await listRouteSummaries(50);
@@ -1419,7 +1349,6 @@ app.get('/routes', async (req, res) => {
     res.status(500).json({ error: e.message });
   }
 });
-
 
 app.get('/routes/:id', async (req, res) => {
   try {
@@ -1431,7 +1360,6 @@ app.get('/routes/:id', async (req, res) => {
   }
 });
 
-
 // ============================================
 // STARTUP
 // ============================================
@@ -1440,10 +1368,8 @@ app.listen(PORT, () => {
   console.log(`Modes: /do (fast), /live (observation), /teach (record), /route (reuse)`);
 });
 
-
 bot.launch();
 console.log('Telegram bot started');
-
 
 // Graceful shutdown
 process.once('SIGINT', () => bot.stop('SIGINT'));
