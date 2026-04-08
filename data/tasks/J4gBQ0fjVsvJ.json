@@ -1,7 +1,7 @@
 {
   "task_id": "J4gBQ0fjVsvJ",
   "type": "automation",
-  "status": "executing",
+  "status": "failed",
   "intent": "TASK",
   "mode": "normal",
   "goal": "Open WhatsApp and chat off daddy",
@@ -24,5 +24,7 @@
   "created_at": "2026-04-08T11:22:18.115Z",
   "validate_steps": true,
   "started_at": "2026-04-08T11:22:28.697Z",
-  "worker_id": "phone-vivo 1906-720x1544"
+  "worker_id": "phone-vivo 1906-720x1544",
+  "finished_at": "2026-04-08T11:22:41.890Z",
+  "error": "Step 1 (launch_app) failed"
 }
