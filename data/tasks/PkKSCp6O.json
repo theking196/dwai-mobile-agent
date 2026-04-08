@@ -1,6 +1,6 @@
 {
   "task_id": "PkKSCp6O",
-  "status": "executing",
+  "status": "failed",
   "intent": "Open Com.whatsapp.w4b",
   "type": "automation",
   "created_at": "2026-04-07T18:09:13.561Z",
@@ -22,5 +22,7 @@
   "planner_version": "v11",
   "file_url": "https://api.github.com/repos/theking196/dwai-mobile-agent/contents/data/tasks/PkKSCp6O.json",
   "started_at": "2026-04-08T07:25:08.370Z",
-  "worker_id": "phone-vivo 1906-720x1544"
+  "worker_id": "phone-vivo 1906-720x1544",
+  "finished_at": "2026-04-08T07:27:06.600Z",
+  "error": "Step 1 failed"
 }
