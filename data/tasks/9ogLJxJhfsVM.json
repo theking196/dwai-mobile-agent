@@ -1,7 +1,7 @@
 {
   "task_id": "9ogLJxJhfsVM",
   "type": "automation",
-  "status": "pending",
+  "status": "executing",
   "intent": "LIVE",
   "mode": "live",
   "goal": "open Chrome and search power rangers then submit it",
@@ -59,5 +59,7 @@
   "route_matched": null,
   "slot_values": {},
   "created_at": "2026-04-08T14:45:28.074Z",
-  "validate_steps": true
+  "validate_steps": true,
+  "started_at": "2026-04-08T14:45:44.425Z",
+  "worker_id": "phone-vivo 1906-720x1544"
 }
