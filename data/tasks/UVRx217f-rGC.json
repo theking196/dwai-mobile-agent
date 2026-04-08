@@ -1,0 +1,63 @@
+{
+  "task_id": "UVRx217f-rGC",
+  "type": "automation",
+  "status": "pending",
+  "intent": "LIVE",
+  "mode": "live",
+  "goal": "open Chrome and search power rangers then submit it",
+  "steps": [
+    {
+      "action": "launch_app",
+      "value": "chrome"
+    },
+    {
+      "action": "observe",
+      "purpose": "verify_state",
+      "on_mismatch": "replan",
+      "timeout": 5000
+    },
+    {
+      "action": "wait",
+      "ms": 4000
+    },
+    {
+      "action": "click",
+      "text": "Search or type URL",
+      "contains": "Search",
+      "desc": "Search",
+      "fallbacks": [
+        {
+          "action": "click",
+          "x": 650,
+          "y": 120
+        }
+      ]
+    },
+    {
+      "action": "observe",
+      "purpose": "verify_state",
+      "on_mismatch": "replan",
+      "timeout": 5000
+    },
+    {
+      "action": "wait",
+      "ms": 1000
+    },
+    {
+      "action": "type",
+      "text": "power rangers then submit it"
+    },
+    {
+      "action": "press",
+      "key": "enter"
+    },
+    {
+      "action": "wait",
+      "ms": 4000
+    }
+  ],
+  "route_matched": null,
+  "slot_values": {},
+  "created_at": "2026-04-08T14:46:52.911Z",
+  "validate_steps": true
+}
