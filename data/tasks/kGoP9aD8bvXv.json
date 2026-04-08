@@ -1,0 +1,13 @@
+{
+  "task_id": "kGoP9aD8bvXv",
+  "type": "automation",
+  "status": "pending",
+  "intent": "LIVE",
+  "mode": "live",
+  "goal": "open Chrome and search power rangers then submit it",
+  "steps": [],
+  "route_matched": null,
+  "slot_values": {},
+  "created_at": "2026-04-08T20:15:31.457Z",
+  "validate_steps": true
+}
