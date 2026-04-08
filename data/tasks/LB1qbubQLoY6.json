@@ -1,0 +1,13 @@
+{
+  "task_id": "LB1qbubQLoY6",
+  "type": "automation",
+  "status": "pending",
+  "intent": "TASK",
+  "mode": "normal",
+  "goal": "Open Phone app and dial 09066856504",
+  "steps": [],
+  "route_matched": null,
+  "slot_values": {},
+  "created_at": "2026-04-08T20:18:01.431Z",
+  "validate_steps": true
+}
