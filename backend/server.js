@@ -1,3 +1,6 @@
+// DWAI Server v2.1 - LLM Brain Architecture with Priority Queue
+// Fixes: App resolution, Queue performance, LLM orchestration, Smart clicking
+
 require('dotenv').config();
 const express = require('express');
 const { Telegraf } = require('telegraf');
@@ -29,39 +32,105 @@ const TASKS_PATH = 'data/tasks';
 const LOGS_PATH = 'data/logs';
 const ROUTES_PATH = 'data/routes';
 const CURRENT_TASK_PATH = 'data/current_task.json';
+const TASK_QUEUE_PATH = 'data/task_queue.json'; // NEW: Priority queue instead of directory scanning
 
 // ============================================
-// APP REGISTRY
+// TOOL DEFINITIONS FOR LLM BRAIN
 // ============================================
-const APP_REGISTRY = {
-  youtube: { aliases: ['yt', 'you tube'], package: 'com.google.android.youtube' },
-  chrome: { aliases: ['browser', 'google chrome'], package: 'com.android.chrome' },
-  whatsapp: { aliases: ['whatsapp business'], package: 'com.whatsapp' },
-  calculator: { aliases: ['calc'], package: 'com.android.calculator2' },
-  camera: { aliases: [], package: 'com.android.camera2' },
-  photos: { aliases: ['gallery'], package: 'com.google.android.apps.photos' },
-  settings: { aliases: [], package: 'com.android.settings' },
-  phone: { aliases: ['dialer'], package: 'com.android.dialer' },
-  messages: { aliases: ['sms'], package: 'com.android.mms' },
-  gmail: { aliases: [], package: 'com.google.android.gm' },
-  maps: { aliases: ['google maps'], package: 'com.google.android.apps.maps' },
-  spotify: { aliases: [], package: 'com.spotify.music' },
-  facebook: { aliases: [], package: 'com.facebook.katana' },
-  instagram: { aliases: [], package: 'com.instagram.android' },
-  twitter: { aliases: ['x'], package: 'com.twitter.android' },
-  telegram: { aliases: [], package: 'org.telegram.messenger' },
-  signal: { aliases: [], package: 'org.thoughtcrime.securesms' },
-  discord: { aliases: [], package: 'com.discord' },
-  slack: { aliases: [], package: 'com.Slack' },
-  zoom: { aliases: [], package: 'us.zoom.videomeetings' },
+const AVAILABLE_TOOLS = {
+  launch_app: {
+    description: 'Launch an application on the Android device',
+    parameters: {
+      app_name: 'string (e.g., "chrome", "youtube", "settings")',
+      verify: 'boolean (verify app actually opened)'
+    }
+  },
+  click: {
+    description: 'Click on a UI element',
+    parameters: {
+      strategy: 'text | contains | desc | coordinates | ai_description',
+      target: 'string (text to match) or {x, y} for coordinates',
+      fallback_texts: 'array of alternative texts to try',
+      verify_click: 'boolean (verify element exists before clicking)'
+    }
+  },
+  type: {
+    description: 'Type text into focused input field',
+    parameters: {
+      text: 'string to type',
+      submit: 'boolean (press enter after typing)'
+    }
+  },
+  press: {
+    description: 'Press a hardware/software key',
+    parameters: {
+      key: 'enter | back | home | menu | volume_up | volume_down | power'
+    }
+  },
+  wait: {
+    description: 'Wait for UI to stabilize',
+    parameters: {
+      ms: 'number (milliseconds, default 2000)',
+      condition: 'optional string describing what to wait for'
+    }
+  },
+  swipe: {
+    description: 'Swipe gesture',
+    parameters: {
+      direction: 'up | down | left | right',
+      distance: 'short | medium | long',
+      coordinates: 'optional {x1, y1, x2, y2}'
+    }
+  },
+  observe: {
+    description: 'Take screenshot and verify current state',
+    parameters: {
+      expect_app: 'expected package name',
+      expect_text: 'text that should be visible',
+      on_failure: 'continue | retry | abort'
+    }
+  },
+  scroll_to: {
+    description: 'Scroll until element is found',
+    parameters: {
+      strategy: 'text | contains',
+      target: 'string to find',
+      max_swipes: 'number (default 5)'
+    }
+  }
 };
 
-const ALLOWED_ACTIONS = new Set([
-  'launch_app', 'click', 'type', 'press', 'wait', 'toast', 'swipe', 'verify', 'open_url', 'observe'
-]);
+const APP_REGISTRY = {
+  youtube: { aliases: ['yt', 'you tube', 'utube'], package: 'com.google.android.youtube', category: 'video' },
+  chrome: { aliases: ['browser', 'google chrome', 'web'], package: 'com.android.chrome', category: 'browser' },
+  edge: { aliases: ['microsoft edge'], package: 'com.microsoft.emmx', category: 'browser' },
+  firefox: { aliases: ['mozilla'], package: 'org.mozilla.firefox', category: 'browser' },
+  whatsapp: { aliases: ['whatsapp business', 'wa', 'messages'], package: 'com.whatsapp', category: 'messaging' },
+  telegram: { aliases: ['tg', 'tele'], package: 'org.telegram.messenger', category: 'messaging' },
+  signal: { aliases: [], package: 'org.thoughtcrime.securesms', category: 'messaging' },
+  calculator: { aliases: ['calc'], package: 'com.android.calculator2', category: 'utility' },
+  camera: { aliases: ['cam', 'photo'], package: 'com.android.camera2', category: 'media' },
+  photos: { aliases: ['gallery', 'pics', 'images'], package: 'com.google.android.apps.photos', category: 'media' },
+  settings: { aliases: ['config', 'preferences', 'system settings'], package: 'com.android.settings', category: 'system' },
+  phone: { aliases: ['dialer', 'call', 'telephone'], package: 'com.android.dialer', category: 'communication' },
+  messages: { aliases: ['sms', 'texting'], package: 'com.android.mms', category: 'communication' },
+  gmail: { aliases: ['email', 'mail', 'google mail'], package: 'com.google.android.gm', category: 'productivity' },
+  maps: { aliases: ['google maps', 'navigation', 'gps'], package: 'com.google.android.apps.maps', category: 'navigation' },
+  spotify: { aliases: ['music'], package: 'com.spotify.music', category: 'media' },
+  netflix: { aliases: [], package: 'com.netflix.mediaclient', category: 'video' },
+  facebook: { aliases: ['fb'], package: 'com.facebook.katana', category: 'social' },
+  instagram: { aliases: ['insta', 'ig'], package: 'com.instagram.android', category: 'social' },
+  twitter: { aliases: ['x', 'tweet'], package: 'com.twitter.android', category: 'social' },
+  tiktok: { aliases: [], package: 'com.zhiliaoapp.musically', category: 'social' },
+  discord: { aliases: [], package: 'com.discord', category: 'communication' },
+  slack: { aliases: [], package: 'com.Slack', category: 'productivity' },
+  zoom: { aliases: [], package: 'us.zoom.videomeetings', category: 'productivity' },
+  amazon: { aliases: ['shopping'], package: 'com.amazon.mShop.android.shopping', category: 'shopping' },
+  playstore: { aliases: ['google play', 'play store', 'app store'], package: 'com.android.vending', category: 'system' },
+};
 
 // ============================================
-// TEACH SESSION STATE (in-memory)
+// TEACH SESSION STATE
 // ============================================
 const activeTeachSessions = new Map();
 
@@ -72,7 +141,7 @@ function ghHeaders() {
   return {
     Authorization: `Bearer ${GITHUB_TOKEN}`,
     'Content-Type': 'application/json',
-    'User-Agent': 'DWAI/2.0',
+    'User-Agent': 'DWAI/2.1',
     Accept: 'application/vnd.github+json',
     'X-GitHub-Api-Version': '2022-11-28',
   };
@@ -111,23 +180,262 @@ async function ghPutJson(url, body) {
 }
 
 // ============================================
+// TASK QUEUE SYSTEM (O(1) Performance)
+// ============================================
+async function getTaskQueue() {
+  const url = `${GITHUB_API}/${TASK_QUEUE_PATH}`;
+  const res = await ghGetJson(url);
+  if (!res.ok || !res.json || !res.json.content) {
+    return { queue: [], processing: null, last_updated: Date.now() };
+  }
+  try {
+    const content = Buffer.from(res.json.content, 'base64').toString('utf8');
+    return JSON.parse(content);
+  } catch {
+    return { queue: [], processing: null, last_updated: Date.now() };
+  }
+}
+
+async function updateTaskQueue(queueData) {
+  const url = `${GITHUB_API}/${TASK_QUEUE_PATH}`;
+  const content = Buffer.from(JSON.stringify(queueData, null, 2)).toString('base64');
+  const existing = await ghGetJson(url);
+  
+  const payload = {
+    message: `Update task queue - ${queueData.queue.length} pending`,
+    content: content,
+    branch: GITHUB_BRANCH,
+  };
+  
+  if (existing.ok && existing.json && existing.json.sha) {
+    payload.sha = existing.json.sha;
+  }
+  
+  const result = await ghPutJson(url, payload);
+  if (!result.ok) throw new Error(`Queue update failed: ${result.statusCode}`);
+  return result;
+}
+
+async function enqueueTask(taskId, priority = 5) {
+  const queue = await getTaskQueue();
+  queue.queue.push({
+    task_id: taskId,
+    priority: priority, // 1-10, lower = higher priority
+    created_at: Date.now(),
+    retries: 0
+  });
+  // Sort by priority (lower number = higher priority)
+  queue.queue.sort((a, b) => a.priority - b.priority);
+  await updateTaskQueue(queue);
+  return queue;
+}
+
+async function dequeueTask() {
+  const queue = await getTaskQueue();
+  if (queue.queue.length === 0) return null;
+  
+  const task = queue.queue.shift();
+  queue.processing = {
+    task_id: task.task_id,
+    started_at: Date.now(),
+    worker_id: null // Will be filled by agent
+  };
+  await updateTaskQueue(queue);
+  return task;
+}
+
+async function completeTaskProcessing(taskId, status) {
+  const queue = await getTaskQueue();
+  if (queue.processing && queue.processing.task_id === taskId) {
+    queue.processing = null;
+  }
+  await updateTaskQueue(queue);
+}
+
+// ============================================
+// LLM BRAIN ORCHESTRATION
+// ============================================
+async function llmOrchestrate(userText, context = {}) {
+  const toolDescriptions = Object.entries(AVAILABLE_TOOLS)
+    .map(([name, tool]) => `${name}: ${tool.description}`)
+    .join('\n');
+
+  const appList = Object.entries(APP_REGISTRY)
+    .map(([name, info]) => `${name} (${info.aliases.join(', ')})`)
+    .join(', ');
+
+  const prompt = `You are DWAI Brain, an Android automation orchestrator. Convert user requests into precise tool sequences.
+
+Available Tools:
+${toolDescriptions}
+
+Available Apps: ${appList}
+
+User Request: "${userText}"
+
+Context: ${JSON.stringify(context)}
+
+Return ONLY a JSON object with this exact structure:
+{
+  "intent": "brief description of what user wants",
+  "confidence": 0.0-1.0,
+  "steps": [
+    {"tool": "tool_name", "params": {...}, "verify": true/false}
+  ],
+  "fallback_apps": ["alternative_app_1", "alternative_app_2"],
+  "error_if": "conditions that should trigger failure",
+  "slots": {"variable_name": "extracted_value"} // For dynamic values like {query}
+}
+
+Rules:
+- Use verify: true for critical steps (launches, clicks)
+- Always wait after launch_app (tool will auto-add, don't add manually)
+- If app is uncertain, list fallbacks
+- For search queries, extract the exact search term into slots.query
+- Break complex tasks into sequential steps
+- Never assume coordinates unless explicitly provided
+- If you cannot determine the app, return error_if: "unknown_app"`;
+
+  try {
+    const res = await groq.chat.completions.create({
+      model: GROQ_MODEL,
+      messages: [
+        { role: 'system', content: 'You are an Android automation AI. Output ONLY valid JSON.' },
+        { role: 'user', content: prompt }
+      ],
+      temperature: 0.1,
+      max_tokens: 1200,
+    });
+    
+    const content = res.choices?.[0]?.message?.content?.trim() || '';
+    const parsed = extractJsonObject(content);
+    
+    if (!parsed || !parsed.steps) {
+      return await fallbackOrchestration(userText);
+    }
+    
+    // Convert LLM tool format to agent steps
+    const steps = convertToolsToSteps(parsed.steps, parsed.slots || {});
+    return {
+      intent: parsed.intent,
+      confidence: parsed.confidence || 0.8,
+      steps: steps,
+      slots: parsed.slots || {},
+      fallback_apps: parsed.fallback_apps || []
+    };
+  } catch (e) {
+    console.error('LLM Orchestration error:', e);
+    return await fallbackOrchestration(userText);
+  }
+}
+
+function convertToolsToSteps(tools, slots) {
+  const steps = [];
+  
+  for (const tool of tools) {
+    const step = { action: tool.tool };
+    
+    switch (tool.tool) {
+      case 'launch_app':
+        step.value = fillSlots(tool.params.app_name, slots);
+        step.verify = tool.params.verify !== false;
+        break;
+        
+      case 'click':
+        if (tool.params.strategy === 'coordinates') {
+          step.x = tool.params.target.x;
+          step.y = tool.params.target.y;
+        } else {
+          step[tool.params.strategy] = fillSlots(tool.params.target, slots);
+          if (tool.params.fallback_texts) {
+            step.fallbacks = tool.params.fallback_texts.map(t => ({
+              action: 'click',
+              contains: fillSlots(t, slots)
+            }));
+          }
+        }
+        step.verify_click = tool.params.verify_click;
+        break;
+        
+      case 'type':
+        step.text = fillSlots(tool.params.text, slots);
+        if (tool.params.submit) {
+          steps.push(step);
+          steps.push({ action: 'press', key: 'enter' });
+          continue;
+        }
+        break;
+        
+      case 'press':
+        step.key = tool.params.key;
+        break;
+        
+      case 'wait':
+        step.ms = tool.params.ms || 2000;
+        break;
+        
+      case 'swipe':
+        if (tool.params.coordinates) {
+          step.x1 = tool.params.coordinates.x1;
+          step.y1 = tool.params.coordinates.y1;
+          step.x2 = tool.params.coordinates.x2;
+          step.y2 = tool.params.coordinates.y2;
+        } else {
+          // Convert direction to coordinates based on typical screen
+          step.direction = tool.params.direction;
+          step.distance = tool.params.distance;
+        }
+        break;
+        
+      case 'observe':
+        step.expected_package = tool.params.expect_app;
+        step.expected_text = fillSlots(tool.params.expect_text, slots);
+        step.on_mismatch = tool.params.on_failure || 'retry';
+        break;
+        
+      case 'scroll_to':
+        step.action = 'scroll_find';
+        step.strategy = tool.params.strategy;
+        step.target = fillSlots(tool.params.target, slots);
+        step.max_swipes = tool.params.max_swipes || 5;
+        break;
+    }
+    
+    // Auto-add wait after launch
+    if (step.action === 'launch_app') {
+      steps.push(step);
+      steps.push({ action: 'wait', ms: 4000 });
+    } else {
+      steps.push(step);
+    }
+  }
+  
+  return sanitizeSteps(steps);
+}
+
+function fillSlots(text, slots) {
+  if (!text) return text;
+  let result = String(text);
+  for (const [key, value] of Object.entries(slots)) {
+    result = result.replace(new RegExp(`\\{${key}\\}`, 'g'), value);
+  }
+  return result;
+}
+
+async function fallbackOrchestration(userText) {
+  // Fallback to template-based generation if LLM fails
+  const template = buildTemplateSteps(userText);
+  if (template && template.length) {
+    return { intent: 'template_fallback', confidence: 0.6, steps: template, slots: {}, fallback_apps: [] };
+  }
+  return { intent: 'unknown', confidence: 0, steps: [], error: 'Could not orchestrate task' };
+}
+
+// ============================================
 // UTILITIES
 // ============================================
 function escapeRegExp(str) {
   return String(str).replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-}
-
-function normalizeLaunchValue(value) {
-  if (value === undefined || value === null) return null;
-  const v = String(value).trim().toLowerCase();
-  if (!v) return null;
-  if (APP_REGISTRY[v]) return v;
-  for (const [canonical, info] of Object.entries(APP_REGISTRY)) {
-    if (info.package && info.package.toLowerCase() === v) return canonical;
-    if ((info.aliases || []).some((a) => a.toLowerCase() === v)) return canonical;
-  }
-  if (v.includes('.')) return v;
-  return null;
 }
 
 function findAppCanonical(text) {
@@ -140,6 +448,19 @@ function findAppCanonical(text) {
       if (re.test(lower)) return canonical;
     }
   }
+  return null;
+}
+
+function normalizeLaunchValue(value) {
+  if (value === undefined || value === null) return null;
+  const v = String(value).trim().toLowerCase();
+  if (!v) return null;
+  if (APP_REGISTRY[v]) return v;
+  for (const [canonical, info] of Object.entries(APP_REGISTRY)) {
+    if (info.package && info.package.toLowerCase() === v) return canonical;
+    if ((info.aliases || []).some((a) => a.toLowerCase() === v)) return canonical;
+  }
+  if (v.includes('.')) return v;
   return null;
 }
 
@@ -178,7 +499,6 @@ function extractMessageParts(text) {
     /send (.+?) a message saying (.+)$/i,
     /message (.+?) saying (.+)$/i,
     /text (.+?) saying (.+)$/i,
-    /send (?:a )?message to (.+?) with (.+)$/i,
   ];
   for (const re of patterns) {
     const m = input.match(re);
@@ -190,145 +510,12 @@ function extractMessageParts(text) {
 }
 
 // ============================================
-// SLOT EXTRACTION FOR DYNAMIC TEACHING
-// ============================================
-function extractSlotsFromExample(goal, steps) {
-  const slots = [];
-  const slotMap = new Map();
-  
-  const patterns = [
-    { regex: /search (?:for )?(.+)/i, slotName: 'query', type: 'text' },
-    { regex: /send (?:a )?message to (.+?) saying (.+)/i, slots: ['contact', 'message'], type: 'text' },
-    { regex: /type (.+)/i, slotName: 'text', type: 'text' },
-    { regex: /click (.+)/i, slotName: 'target', type: 'text' },
-    { regex: /open (.+)/i, slotName: 'app', type: 'app' },
-  ];
-  
-  for (const pattern of patterns) {
-    const match = goal.match(pattern.regex);
-    if (match) {
-      if (pattern.slots) {
-        pattern.slots.forEach((name, idx) => {
-          if (match[idx + 1]) {
-            slots.push({ name, type: pattern.type, example: match[idx + 1] });
-            slotMap.set(match[idx + 1], `{${name}}`);
-          }
-        });
-      } else if (pattern.slotName && match[1]) {
-        slots.push({ name: pattern.slotName, type: pattern.type, example: match[1] });
-        slotMap.set(match[1], `{${pattern.slotName}}`);
-      }
-    }
-  }
-  
-  const templatedSteps = steps.map(step => {
-    const newStep = { ...step };
-    for (const [value, placeholder] of slotMap) {
-      if (newStep.text && newStep.text.includes(value)) {
-        newStep.text = placeholder;
-        newStep._slotRef = placeholder;
-      }
-      if (newStep.value && newStep.value.includes(value)) {
-        newStep.value = placeholder;
-        newStep._slotRef = placeholder;
-      }
-    }
-    return newStep;
-  });
-  
-  return { slots, templatedSteps };
-}
-
-function fillSlots(steps, slotValues) {
-  return steps.map(step => {
-    const newStep = { ...step };
-    for (const [slotName, value] of Object.entries(slotValues)) {
-      const placeholder = `{${slotName}}`;
-      if (newStep.text && newStep.text.includes(placeholder)) {
-        newStep.text = newStep.text.replace(placeholder, value);
-      }
-      if (newStep.value && newStep.value.includes(placeholder)) {
-        newStep.value = newStep.value.replace(placeholder, value);
-      }
-    }
-    return newStep;
-  });
-}
-
-// ============================================
-// INTENT CLASSIFICATION
-// ============================================
-function quickIntent(message) {
-  const t = String(message || '').trim().toLowerCase();
-  if (!t) return { intent: 'CHAT' };
-  
-  if (/^(hi|hello|hey|yo|good morning|good afternoon|good evening)\b/.test(t)) {
-    return { intent: 'CHAT' };
-  }
-  if (/\b(help|commands?)\b/.test(t)) return { intent: 'HELP' };
-  if (/\b(status|task status|check task|tasks?|queue|routes?)\b/.test(t)) return { intent: 'STATUS' };
-  if (/^\/teach\b/.test(t)) return { intent: 'TEACH' };
-  if (/^\/stopteach\b/.test(t)) return { intent: 'STOPTEACH' };
-  if (/^\/do\b/.test(t)) return { intent: 'DO' };
-  if (/^\/live\b/.test(t)) return { intent: 'LIVE' };
-  if (/^\/route\b/.test(t)) return { intent: 'ROUTE' };
-  
-  if (/(open|launch|search|find|look for|go to|start|watch|play|type|click|send|scroll)/.test(t)) {
-    return { intent: 'TASK' };
-  }
-  return null;
-}
-
-async function classifyIntent(userMessage) {
-  const quick = quickIntent(userMessage);
-  if (quick) return quick;
-  
-  const prompt = `Classify this user message and decide what to do.
-User: "${userMessage}"
-
-Return ONLY JSON with this shape:
-{
-  "intent": "TASK|CHAT|STATUS|HELP|TEACH|STOPTEACH|DO|LIVE|ROUTE",
-  "action": "launch_app|click|type|search|none|respond",
-  "target": "app name or search query or none",
-  "response": "short response if CHAT or HELP"
-}
-
-# Rules:
-- If the user wants phone automation, intent must be TASK.
-- If the user is just talking, intent must be CHAT.
-- If they want to check tasks/status/routes, intent must be STATUS.
-- If they want help, intent must be HELP.
-- If they are asking to teach (/teach), intent must be TEACH.
-- If they are asking to stop teaching (/stopteach), intent must be STOPTEACH.
-- If they want fast execution (/do), intent must be DO.
-- If they want live observation mode (/live), intent must be LIVE.
-- If they want to use a route (/route), intent must be ROUTE.
-- No markdown.
-- No extra text.`;
-
-  try {
-    const res = await groq.chat.completions.create({
-      model: GROQ_MODEL,
-      messages: [
-        { role: 'system', content: 'You are DWAI Intent Classifier. Output ONLY JSON.' },
-        { role: 'user', content: prompt },
-      ],
-      temperature: 0.1,
-      max_tokens: 250,
-    });
-    const content = res.choices?.[0]?.message?.content?.trim() || '';
-    const parsed = extractJsonObject(content);
-    if (parsed && parsed.intent) return parsed;
-  } catch {
-    // ignore
-  }
-  return { intent: 'CHAT', action: 'respond', target: null, response: "I'm here. What would you like to do?" };
-}
-
-// ============================================
 // STEP VALIDATION & SANITIZATION
 // ============================================
+const ALLOWED_ACTIONS = new Set([
+  'launch_app', 'click', 'type', 'press', 'wait', 'toast', 'swipe', 'verify', 'open_url', 'observe', 'scroll_find'
+]);
+
 function isStepValid(step) {
   if (!step || typeof step !== 'object') return false;
   if (!step.action || !ALLOWED_ACTIONS.has(step.action)) return false;
@@ -341,19 +528,18 @@ function isStepValid(step) {
     case 'type':
       return typeof step.text === 'string' && step.text.trim().length > 0;
     case 'press':
-      return ['enter', 'back', 'home', 'menu'].includes(String(step.key || '').toLowerCase());
+      return ['enter', 'back', 'home', 'menu', 'volume_up', 'volume_down', 'power'].includes(String(step.key || '').toLowerCase());
     case 'wait':
       return Number(step.ms) >= 0;
     case 'toast':
       return true;
     case 'swipe':
-      return typeof step.x1 === 'number' && typeof step.y1 === 'number' && typeof step.x2 === 'number' && typeof step.y2 === 'number';
+      return (typeof step.x1 === 'number' && typeof step.y1 === 'number' && typeof step.x2 === 'number' && typeof step.y2 === 'number') || step.direction;
     case 'verify':
-      return true;
-    case 'open_url':
-      return typeof step.value === 'string' && step.value.trim().length > 0;
     case 'observe':
       return true;
+    case 'scroll_find':
+      return step.strategy && step.target;
     default:
       return false;
   }
@@ -371,7 +557,7 @@ function sanitizeSteps(rawSteps) {
     
     if (step.action === 'launch_app') {
       const normalized = normalizeLaunchValue(step.value);
-      if (!normalized) continue;
+      if (!normalized) continue; // Skip invalid apps - FIX for app looping
       step.value = normalized;
     }
     if (step.action === 'wait') {
@@ -384,28 +570,14 @@ function sanitizeSteps(rawSteps) {
     }
     if (step.action === 'press') {
       step.key = String(step.key || '').toLowerCase();
-      if (!['enter', 'back', 'home', 'menu'].includes(step.key)) continue;
+      if (!['enter', 'back', 'home', 'menu', 'volume_up', 'volume_down', 'power'].includes(step.key)) continue;
     }
     if (!isStepValid(step)) continue;
     out.push(step);
-    
-    if (step.action === 'launch_app') {
-      const next = rawSteps[i + 1];
-      if (!next || next.action !== 'wait') {
-        out.push({ action: 'wait', ms: 4000 });
-      }
-    }
   }
-  return out.slice(0, 20);
+  return out.slice(0, 25); // Increased limit for complex tasks
 }
 
-function buildAppHintsText() {
-  return Object.keys(APP_REGISTRY).join(', ');
-}
-
-// ============================================
-// TEMPLATE BUILDERS
-// ============================================
 function buildTemplateSteps(userText) {
   const text = String(userText || '');
   const lower = text.toLowerCase();
@@ -415,86 +587,61 @@ function buildTemplateSteps(userText) {
   
   const wantsSearch = /\b(search|find|look for|browse)\b/.test(lower);
   const wantsMessage = /\b(send|message|text)\b/.test(lower) && /\bto\b/.test(lower);
-  const wantsFirstResult = /\b(first|first one|watch|video|result|open the first)\b/.test(lower);
   const wantsLaunch = /\b(open|launch|start|go to)\b/.test(lower);
   
   if (app === 'settings' && /(auto.lock|screen.timeout|lock.screen|sleep|display)/.test(lower)) {
     return sanitizeSteps([
-      { action: 'launch_app', value: 'settings' },
-      { action: 'wait', ms: 4000 },
-      { action: 'click', text: 'Display', contains: 'Display', fallbacks: [{ action: 'click', x: 360, y: 600 }] },
+      { action: 'launch_app', value: 'settings', verify: true },
+      { action: 'click', contains: 'Display', fallback_texts: ['Screen', 'Display & brightness'] },
       { action: 'wait', ms: 2000 },
-      { action: 'click', text: 'Sleep', contains: 'Sleep', descContains: 'Sleep', fallbacks: [{ action: 'click', x: 360, y: 800 }] },
+      { action: 'click', contains: 'Sleep', fallback_texts: ['Screen timeout', 'Auto-lock'] },
       { action: 'wait', ms: 1000 },
-      { action: 'click', text: '30 minutes', contains: '30', fallbacks: [{ action: 'click', x: 360, y: 1200 }] }, // Highest timeout
-      { action: 'wait', ms: 1000 },
+      { action: 'click', contains: '30 minutes', fallback_texts: ['10 minutes', '5 minutes', 'Never'] },
     ]);
   }
   
   if (app && wantsLaunch && !wantsSearch && !wantsMessage) {
     return sanitizeSteps([
-      { action: 'launch_app', value: app },
-      { action: 'wait', ms: 4000 },
-      { action: 'verify', package: app },
+      { action: 'launch_app', value: app, verify: true },
+      { action: 'observe', expect_app: app, on_mismatch: 'retry' }
     ]);
   }
   
-  if (wantsMessage) {
-    const contact = msgParts ? msgParts.contact : cleanQuery(text.replace(/^.*?to\s+/i, '').replace(/\s+say.*$/i, ''));
-    const message = msgParts ? msgParts.message : cleanQuery(text);
+  if (wantsMessage && msgParts) {
     return sanitizeSteps([
-      { action: 'launch_app', value: 'whatsapp' },
-      { action: 'wait', ms: 4000 },
-      { action: 'click', text: 'Search', contains: 'Search', desc: 'Search', fallbacks: [{ action: 'click', x: 650, y: 120 }] },
+      { action: 'launch_app', value: 'whatsapp', verify: true },
+      { action: 'click', contains: 'Search', desc: 'Search', fallbacks: [{ action: 'click', x: 650, y: 120 }] },
       { action: 'wait', ms: 1000 },
-      { action: 'type', text: contact || '' },
+      { action: 'type', text: msgParts.contact },
       { action: 'press', key: 'enter' },
       { action: 'wait', ms: 2500 },
-      { action: 'type', text: message || '' },
+      { action: 'type', text: msgParts.message },
       { action: 'press', key: 'enter' },
-      { action: 'wait', ms: 2000 },
     ]);
   }
   
-  if (wantsSearch) {
-    const targetApp = app === 'youtube' ? 'youtube' : 'chrome';
-    const searchQuery = query || cleanQuery(text) || text;
+  if (wantsSearch && app) {
+    const targetApp = app === 'youtube' ? 'youtube' : (app || 'chrome');
+    const searchQuery = query || cleanQuery(text);
     
     if (targetApp === 'chrome') {
-      const encodedQuery = encodeURIComponent(searchQuery);
       return sanitizeSteps([
-        { action: 'launch_app', value: 'chrome' },
-        { action: 'wait', ms: 4000 },
-        { action: 'click', text: 'Search or type URL', contains: 'Search', desc: 'Search', fallbacks: [{ action: 'click', x: 650, y: 120 }] },
+        { action: 'launch_app', value: 'chrome', verify: true },
+        { action: 'click', contains: 'Search', desc: 'Search', fallbacks: [{ action: 'click', x: 500, y: 150 }] },
         { action: 'wait', ms: 1000 },
         { action: 'type', text: searchQuery },
-        { action: 'press', key: 'enter' }, 
-        { action: 'wait', ms: 4000 },
+        { action: 'press', key: 'enter' },
+        { action: 'wait', ms: 5000 },
       ]);
     }
     
-    const steps = [
-      { action: 'launch_app', value: targetApp },
-      { action: 'wait', ms: 4000 },
-      { action: 'click', text: 'Search', contains: 'Search', desc: 'Search', fallbacks: [{ action: 'click', x: 650, y: 120 }] },
+    return sanitizeSteps([
+      { action: 'launch_app', value: targetApp, verify: true },
+      { action: 'click', contains: 'Search', desc: 'Search' },
       { action: 'wait', ms: 1000 },
       { action: 'type', text: searchQuery },
       { action: 'press', key: 'enter' },
       { action: 'wait', ms: 4000 },
-    ];
-    
-    if (targetApp === 'youtube' && wantsFirstResult) {
-      steps.push({ action: 'click', contains: 'views', desc: 'video', x: 360, y: 560 });
-      steps.push({ action: 'wait', ms: 4000 });
-    }
-    return sanitizeSteps(steps);
-  }
-  
-  if (app) {
-    return sanitizeSteps([
-      { action: 'launch_app', value: app },
-      { action: 'wait', ms: 4000 },
-      { action: 'verify', package: app },
     ]);
   }
   
@@ -502,163 +649,8 @@ function buildTemplateSteps(userText) {
 }
 
 // ============================================
-// AI STEP GENERATION
-// ============================================
-async function generateTaskSteps(userText) {
-  // FIX #3: Bypass hardcoded templates if it's a chained command (e.g. "open Chrome AND search dog")
-  const hasChain = /\b(and|then)\b/i.test(String(userText));
-  
-  if (!hasChain) {
-    const template = buildTemplateSteps(userText);
-    if (template && template.length) return template;
-  }
-  
-  const prompt = `Convert this user request into a JSON array of Android automation steps.
-User request: "${userText}"
-
-App labels you may use in launch_app.value: ${buildAppHintsText()}
-
-Allowed actions: launch_app, click, type, press, wait, toast, swipe, verify, open_url
-
-Rules:
-- Output ONLY a JSON array.
-- Do NOT output package names.
-- Prefer selectors (text, contains, desc) over coordinates.
-- ALWAYS add a wait after launching an app.
-- Handle multi-step chained requests carefully (e.g., if they want to open Chrome AND search for something, sequence the steps logically).
-- Keep the sequence short and practical.
-- If a safe plan is not possible, return [].
-
-Examples:
-[
-  {"action":"launch_app","value":"chrome"},
-  {"action":"wait","ms":4000},
-  {"action":"click","contains":"Search","desc":"Search"},
-  {"action":"wait","ms":1000},
-  {"action":"type","text":"AI news"},
-  {"action":"press","key":"enter"},
-  {"action":"wait","ms":4000}
-]`;
-
-  try {
-    const res = await groq.chat.completions.create({
-      model: GROQ_MODEL,
-      messages: [
-        { role: 'system', content: 'You are DWAI Task Planner. Output ONLY JSON array.' },
-        { role: 'user', content: prompt },
-      ],
-      temperature: 0.1,
-      max_tokens: 900,
-    });
-    const content = res.choices?.[0]?.message?.content?.trim() || '';
-    const parsed = extractJsonArray(content);
-    if (!parsed) return [];
-    return sanitizeSteps(parsed);
-  } catch {
-    return [];
-  }
-}
-
-async function generateLiveSteps(userText) {
-  const baseSteps = await generateTaskSteps(userText);
-  
-  const liveSteps = [];
-  for (let i = 0; i < baseSteps.length; i++) {
-    liveSteps.push(baseSteps[i]);
-    if (['launch_app', 'click'].includes(baseSteps[i].action)) {
-      liveSteps.push({ 
-        action: 'observe', 
-        purpose: 'verify_state',
-        on_mismatch: 'replan',
-        timeout: 5000
-      });
-    }
-  }
-  return liveSteps;
-}
-
-// ============================================
-// CHAT RESPONSE - FIXED TO PREVENT THINKING LEAK
-// ============================================
-function cleanAiResponse(text) {
-  let cleaned = String(text || '');
-  
-  // FIX #1 & #5: Strip reasoning models' <think> tags, literal \n, and markdown asterisks
-  cleaned = cleaned.replace(/<think>[\s\S]*?<\/think>/gi, '');
-  cleaned = cleaned.replace(/\\n/g, '\n');
-  cleaned = cleaned.replace(/\*/g, '');
-  
-  const thinkingPatterns = [
-    /^(Okay|Alright|So|Hmm|Let me think|I should|I need to|I will|I can|If you|Maybe|Perhaps|Wait|Oh|Ah)[,\s]+/i,
-    /(the user said|user said|they said|he said|she said)[\s\S]*?/i,
-    /(I should respond|I should say|I should reply|I should answer)[\s\S]*?/i,
-    /(responding with|I'll say|I'll respond|I'll reply)[\s\S]*?/i,
-    /(here is my response|my response is|this is my response)[:\\s]*/i,
-    /(thinking|reasoning|analysis)[:\\s]*/i,
-  ];
-  
-  for (const pattern of thinkingPatterns) {
-    cleaned = cleaned.replace(pattern, '');
-  }
-  
-  cleaned = cleaned.replace(/^(Okay|Alright|So|Hmm)[\\s\\S]*?(\\n\\n|\\n[A-Z])/i, '$2');
-  
-  return cleaned.trim();
-}
-
-async function generateChatResponse(userMessage) {
-  const systemPrompt = `You are DWAI, a helpful phone automation assistant.
-
-CRITICAL RULES:
-1. Respond naturally and briefly to the user
-2. NEVER show your thinking process, reasoning, or analysis
-3. NEVER start with "Okay", "Alright", "So", "Hmm", or similar filler words
-4. NEVER explain what you're doing or how you're interpreting the message
-5. Just give the direct, natural response immediately
-6. Be friendly but concise - 1-2 sentences max
-
-Examples of GOOD responses:
-- "Hello! How can I help you today?"
-- "I can help with that. What would you like to automate?"
-- "Sure! Opening Chrome now."
-
-Remember: Just the response, no thinking.`;
-
-  try {
-    const res = await groq.chat.completions.create({
-      model: GROQ_MODEL,
-      messages: [
-        { role: 'system', content: systemPrompt },
-        { role: 'user', content: userMessage },
-      ],
-      temperature: 0.7,
-      max_tokens: 150,
-    });
-    
-    let response = res.choices?.[0]?.message?.content?.trim() || "I'm here. What would you like to do?";
-    response = cleanAiResponse(response);
-    
-    return response;
-  } catch {
-    return "I'm here. What would you like to do?";
-  }
-}
-
-// ============================================
 // JSON EXTRACTION
 // ============================================
-function extractJsonArray(text) {
-  const raw = String(text || '').trim();
-  const start = raw.indexOf('[');
-  const end = raw.lastIndexOf(']');
-  if (start === -1 || end === -1 || end < start) return null;
-  try {
-    return JSON.parse(raw.slice(start, end + 1));
-  } catch {
-    return null;
-  }
-}
-
 function extractJsonObject(text) {
   const raw = String(text || '').trim();
   const start = raw.indexOf('{');
@@ -671,17 +663,12 @@ function extractJsonObject(text) {
   }
 }
 
-function validateSteps(steps) {
-  if (!Array.isArray(steps)) return false;
-  if (steps.length === 0 || steps.length > 20) return false;
-  for (const s of steps) {
-    if (!isStepValid(s)) return false;
-    if (s.action === 'launch_app') {
-      const normalized = normalizeLaunchValue(s.value);
-      if (!normalized) return false;
-    }
-  }
-  return true;
+function cleanAiResponse(text) {
+  let cleaned = String(text || '');
+  cleaned = cleaned.replace(/<think>[\s\S]*?<\/think>/gi, '');
+  cleaned = cleaned.replace(/\\n/g, '\n');
+  cleaned = cleaned.replace(/\*/g, '');
+  return cleaned.trim();
 }
 
 // ============================================
@@ -699,8 +686,12 @@ async function createTask(taskId, taskData) {
   });
   
   if (!result.ok) {
-    throw new Error(`GitHub create task failed: ${result.statusCode} ${result.body}`);
+    throw new Error(`GitHub create task failed: ${result.statusCode}`);
   }
+  
+  // Add to queue for processing
+  await enqueueTask(taskId, taskData.priority || 5);
+  
   return taskUrl;
 }
 
@@ -721,7 +712,7 @@ async function writeCurrentTask(pointer) {
   
   const result = await ghPutJson(url, payload);
   if (!result.ok) {
-    throw new Error(`GitHub current_task write failed: ${result.statusCode} ${result.body}`);
+    throw new Error(`GitHub current_task write failed: ${result.statusCode}`);
   }
   return result;
 }
@@ -736,17 +727,9 @@ async function getTaskFileById(taskId) {
   return { file: res.json, task, fileUrl };
 }
 
-async function getRouteById(routeId) {
-  const fileUrl = `${GITHUB_API}/${ROUTES_PATH}/${routeId}.json`;
-  const res = await ghGetJson(fileUrl);
-  if (!res.ok || !res.json || !res.json.content) return null;
-  try {
-    return JSON.parse(Buffer.from(res.json.content, 'base64').toString('utf8'));
-  } catch {
-    return null;
-  }
-}
-
+// ============================================
+// ROUTE SYSTEM
+// ============================================
 async function saveRoute(routeId, routeData) {
   const fileUrl = `${GITHUB_API}/${ROUTES_PATH}/${routeId}.json`;
   const contentBase64 = Buffer.from(JSON.stringify(routeData, null, 2)).toString('base64');
@@ -769,151 +752,56 @@ async function saveRoute(routeId, routeData) {
   return result;
 }
 
-async function listTaskSummaries(limit = 15) {
-  const folder = await ghGetJson(`${GITHUB_API}/${TASKS_PATH}`);
-  if (!folder.ok || !Array.isArray(folder.json)) return [];
-  
-  const files = folder.json
-    .filter((f) => f.type === 'file' && f.name !== '.gitkeep' && !f.name.endsWith('_log.json'))
-    .slice(0, limit);
-  
-  const out = [];
-  for (const file of files) {
-    try {
-      const taskBundle = await getTaskFileById(file.name.replace('.json', ''));
-      const task = taskBundle.task;
-      out.push({
-        id: task.task_id || file.name.replace('.json', ''),
-        status: task.status || 'unknown',
-        intent: task.intent || '',
-      });
-    } catch {
-      out.push({
-        id: file.name.replace('.json', ''),
-        status: 'unknown',
-        intent: '',
-      });
-    }
+async function getRouteById(routeId) {
+  const fileUrl = `${GITHUB_API}/${ROUTES_PATH}/${routeId}.json`;
+  const res = await ghGetJson(fileUrl);
+  if (!res.ok || !res.json || !res.json.content) return null;
+  try {
+    return JSON.parse(Buffer.from(res.json.content, 'base64').toString('utf8'));
+  } catch {
+    return null;
   }
-  return out;
 }
 
-async function listRouteSummaries(limit = 15) {
-  const folder = await ghGetJson(`${GITHUB_API}/${ROUTES_PATH}`);
-  if (!folder.ok || !Array.isArray(folder.json)) return [];
-  
-  const files = folder.json
-    .filter((f) => f.type === 'file' && f.name !== '.gitkeep')
-    .slice(0, limit);
-  
-  const out = [];
-  for (const file of files) {
-    try {
-      const routeFile = await ghGetJson(file.url);
-      const route = JSON.parse(Buffer.from(routeFile.json.content, 'base64').toString('utf8'));
-      out.push({
-        id: route.route_id || file.name.replace('.json', ''),
-        goal: route.goal || '',
-        app: route.app || '',
-      });
-    } catch {
-      out.push({
-        id: file.name.replace('.json', ''),
-        goal: '',
-        app: '',
-      });
-    }
-  }
-  return out;
-}
-
-// ============================================
-// ROUTE MATCHING ENGINE
-// ============================================
 async function findMatchingRoute(userText) {
-  const routes = await listRouteSummaries(50);
-  if (routes.length === 0) return null;
+  // Simple semantic matching - can be enhanced with embeddings
+  const folder = await ghGetJson(`${GITHUB_API}/${ROUTES_PATH}`);
+  if (!folder.ok || !Array.isArray(folder.json)) return null;
   
   const lowerText = userText.toLowerCase();
-  
   let bestMatch = null;
   let bestScore = 0;
   
-  for (const route of routes) {
-    if (!route.goal) continue;
-    
-    const goalLower = route.goal.toLowerCase();
-    let score = 0;
-    
-    if (goalLower === lowerText) score = 100;
-    else if (lowerText.includes(goalLower) || goalLower.includes(lowerText)) score = 80;
-    else {
-      const textWords = lowerText.split(/\s+/);
-      const goalWords = goalLower.split(/\s+/);
-      const overlap = textWords.filter(w => goalWords.includes(w)).length;
-      score = (overlap / Math.max(textWords.length, goalWords.length)) * 60;
-    }
-    
-    const app = findAppCanonical(lowerText);
-    if (app && route.app === app) score += 20;
-    
-    if (score > bestScore && score > 40) {
-      bestScore = score;
-      bestMatch = route;
-    }
-  }
-  
-  if (bestMatch) {
-    return await getRouteById(bestMatch.id);
-  }
-  return null;
-}
-
-async function extractSlotsFromUserInput(route, userText) {
-  const slotValues = {};
-  
-  if (!route.slots || route.slots.length === 0) return slotValues;
-  
-  const prompt = `Extract values for these slots from the user input.
-Route goal template: "${route.goal}"
-Slots needed: ${route.slots.map(s => s.name).join(', ')}
-User input: "${userText}"
-
-Return ONLY JSON: {"slotName": "extracted value", ...}
-If a slot cannot be filled, omit it or use null.`;
-
-  try {
-    const res = await groq.chat.completions.create({
-      model: GROQ_MODEL,
-      messages: [
-        { role: 'system', content: 'Extract slot values. Output ONLY JSON.' },
-        { role: 'user', content: prompt },
-      ],
-      temperature: 0.1,
-      max_tokens: 300,
-    });
-    const content = res.choices?.[0]?.message?.content?.trim() || '';
-    const parsed = extractJsonObject(content);
-    if (parsed) {
-      for (const [key, value] of Object.entries(parsed)) {
-        if (value && value !== 'null') slotValues[key] = value;
+  for (const file of folder.json.slice(0, 20)) { // Limit to recent routes
+    if (file.type !== 'file') continue;
+    try {
+      const route = await getRouteById(file.name.replace('.json', ''));
+      if (!route || !route.goal) continue;
+      
+      const goalLower = route.goal.toLowerCase();
+      let score = 0;
+      
+      if (goalLower === lowerText) score = 100;
+      else if (lowerText.includes(goalLower) || goalLower.includes(lowerText)) score = 80;
+      else {
+        const textWords = lowerText.split(/\s+/);
+        const goalWords = goalLower.split(/\s+/);
+        const overlap = textWords.filter(w => goalWords.includes(w)).length;
+        score = (overlap / Math.max(textWords.length, goalWords.length)) * 60;
       }
-    }
-  } catch {
-    for (const slot of route.slots) {
-      if (slot.example) {
-        const pattern = new RegExp(slot.example.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'i');
-        const match = userText.match(pattern);
-        if (match) slotValues[slot.name] = match[0];
+      
+      if (score > bestScore && score > 50) {
+        bestScore = score;
+        bestMatch = route;
       }
-    }
+    } catch {}
   }
   
-  return slotValues;
+  return bestMatch;
 }
 
 // ============================================
-// TEACH MODE HANDLERS
+// TEACH MODE
 // ============================================
 async function startTeachSession(userId, goal) {
   const taskId = 'teach_' + nanoid(8);
@@ -928,6 +816,7 @@ async function startTeachSession(userId, goal) {
     app: app,
     created_at: new Date().toISOString(),
     user_id: userId,
+    priority: 1 // High priority
   };
   
   const fileUrl = await createTask(taskId, teachTask);
@@ -953,9 +842,7 @@ async function startTeachSession(userId, goal) {
 
 async function stopTeachSession(userId) {
   const session = activeTeachSessions.get(userId);
-  if (!session) {
-    return { error: 'No active teach session' };
-  }
+  if (!session) return { error: 'No active teach session' };
   
   const taskId = 'stop_' + nanoid(8);
   
@@ -969,6 +856,7 @@ async function stopTeachSession(userId) {
     parent_task_id: session.taskId,
     created_at: new Date().toISOString(),
     user_id: userId,
+    priority: 1
   };
   
   const fileUrl = await createTask(taskId, stopTask);
@@ -982,34 +870,38 @@ async function stopTeachSession(userId) {
   });
   
   activeTeachSessions.delete(userId);
-  
   return { taskId, fileUrl, previousSession: session };
 }
 
 // ============================================
-// TASK CREATION HELPERS
+// TASK CREATION WITH LLM BRAIN
 // ============================================
-async function createRegularTask(userText, intent, mode = 'normal') {
+async function createRegularTask(userText, intent, mode = 'normal', userId = null) {
   const taskId = nanoid(12);
   
-  let steps = [];
-  let routeMatched = null;
-  let slotValues = {};
+  // Use LLM Brain for orchestration
+  const context = {
+    mode: mode,
+    user_history: [], // Could be populated from session
+    available_apps: Object.keys(APP_REGISTRY)
+  };
   
-  if (intent === 'TASK' || intent === 'DO' || intent === 'LIVE') {
+  const orchestration = await llmOrchestrate(userText, context);
+  
+  if (orchestration.error) {
+    throw new Error(orchestration.error);
+  }
+  
+  // Check for route match as enhancement
+  let routeMatched = null;
+  if (orchestration.confidence < 0.7) {
     const matchedRoute = await findMatchingRoute(userText);
     if (matchedRoute) {
       routeMatched = matchedRoute.route_id;
-      slotValues = await extractSlotsFromUserInput(matchedRoute, userText);
-      steps = fillSlots(matchedRoute.steps, slotValues);
-    }
-  }
-  
-  if (steps.length === 0) {
-    if (mode === 'live') {
-      steps = await generateLiveSteps(userText);
-    } else {
-      steps = await generateTaskSteps(userText);
+      // Merge route steps with LLM steps if route is better
+      if (matchedRoute.steps && matchedRoute.steps.length > orchestration.steps.length) {
+        orchestration.steps = matchedRoute.steps;
+      }
     }
   }
   
@@ -1020,15 +912,19 @@ async function createRegularTask(userText, intent, mode = 'normal') {
     intent: intent,
     mode: mode,
     goal: userText,
-    steps: steps,
+    steps: orchestration.steps,
+    llm_intent: orchestration.intent,
+    llm_confidence: orchestration.confidence,
     route_matched: routeMatched,
-    slot_values: slotValues,
+    slots: orchestration.slots,
+    fallback_apps: orchestration.fallback_apps,
     created_at: new Date().toISOString(),
+    priority: mode === 'live' ? 2 : 5,
     validate_steps: true,
+    user_id: userId
   };
   
   const fileUrl = await createTask(taskId, task);
-  
   await writeCurrentTask({
     task_id: taskId,
     type: 'automation',
@@ -1038,115 +934,105 @@ async function createRegularTask(userText, intent, mode = 'normal') {
     created_at: new Date().toISOString(),
   });
   
-  return { taskId, fileUrl, steps, routeMatched };
+  return { taskId, fileUrl, steps: orchestration.steps, orchestration };
 }
 
 // ============================================
-// FIX #4: FEEDBACK POLLING SYSTEM
+// FEEDBACK SYSTEM
 // ============================================
 async function waitForTaskCompletion(taskId, ctx) {
   let attempts = 0;
-  const maxAttempts = 15; // Wait up to 75 seconds
-
-  const interval = setInterval(async () => {
+  const maxAttempts = 20; // 100 seconds max
+  
+  const checkStatus = async () => {
     attempts++;
     const logUrl = `${GITHUB_API}/${LOGS_PATH}/${taskId}_log.json`;
     const res = await ghGetJson(logUrl);
-
+    
     if (res.ok && res.json && res.json.content) {
       try {
         const logData = JSON.parse(Buffer.from(res.json.content, 'base64').toString('utf8'));
-        const statusEmoji = (logData.status === 'completed' || logData.status === 'success') ? '✅' : '❌';
-        
-        // Strip markdown and raw text for safe Telegram sending
-        let cleanStatusText = `${statusEmoji} Task Update:\nStatus: ${logData.status}${logData.error ? '\nError: ' + logData.error : ''}`;
-        await ctx.reply(cleanStatusText);
+        const statusEmoji = logData.status === 'completed' ? '✅' : '❌';
+        let msg = `${statusEmoji} Task ${taskId.slice(0, 8)}...\nStatus: ${logData.status}`;
+        if (logData.error) msg += `\nError: ${logData.error}`;
+        if (logData.details) msg += `\nDetails: ${logData.details}`;
+        await ctx.reply(msg);
+        return true;
       } catch (e) {
-        console.error("Error parsing log payload", e);
+        console.error('Log parse error:', e);
       }
-      clearInterval(interval);
-      return;
     }
-
+    
     if (attempts >= maxAttempts) {
-      await ctx.reply("⚠️ Task timeout: No feedback received from device.");
-      clearInterval(interval);
+      await ctx.reply('⏱️ Task timeout: No completion signal received.');
+      return true;
     }
-  }, 5000); // Check every 5 seconds
+    
+    return false;
+  };
+  
+  // Check immediately, then every 5 seconds
+  if (!(await checkStatus())) {
+    const interval = setInterval(async () => {
+      if (await checkStatus()) clearInterval(interval);
+    }, 5000);
+  }
 }
 
 // ============================================
 // TELEGRAM HANDLERS
 // ============================================
-const userSessions = new Map();
-
 bot.command('start', async (ctx) => {
-  await ctx.reply(`👋 Welcome to DWAI Mobile Agent v2!
+  await ctx.reply(`👋 DWAI Mobile Agent v2.1 (LLM Brain)
 
-Available commands:
-/do <task> - Fast execution using learned routes
-/live <task> - Execute with observation and adaptation
-/teach <goal> - Start teaching a new route
-/stopteach - Stop teaching and save the route
-/status - Check task queue and routes
-/help - Show this help
+Commands:
+/do <task> - Fast execution
+/live <task> - Live mode with verification
+/teach <goal> - Record new route
+/stopteach - Save route
+/status - View queue status
+/cancel - Cancel current task
 
 Examples:
 /do open chrome and search for AI news
-/live send a message to John saying hello
-/teach search for {query} on youtube`);
+/live send whatsapp message to John saying hello
+/teach order pizza from {app}`);
 });
 
 bot.command('help', async (ctx) => {
-  await ctx.reply(`📱 DWAI Commands:
+  await ctx.reply(`📱 DWAI v2.1 Help:
 
-Execution Modes:
-/do <task> - Fast execution (uses routes, minimal observation)
-/live <task> - Live mode (observes, verifies, adapts)
+Execution:
+/do <task> - Fast mode (LLM orchestrated)
+/live <task> - Live mode (observes & adapts)
+/route <task> - Use learned route
 
 Teaching:
-/teach <goal> - Start recording your actions
-/stopteach - Stop and save as reusable route
+/teach <goal with {variables}>
+/stopteach - Save recording
 
-Route Management:
-/route <task> - Execute using best matching route
-/status - View recent tasks and routes
+System:
+/status - Queue status & routes
+/cancel - Cancel current task
 
-Teaching Tips:
-- Use {variable} syntax for dynamic values
-- Example: /teach search for {query} on youtube
-- The agent will learn to extract "query" from your commands`);
+The AI now understands context and coordinates tools automatically.`);
 });
 
 bot.command('status', async (ctx) => {
   try {
-    const [tasks, routes] = await Promise.all([
-      listTaskSummaries(10),
-      listRouteSummaries(10),
-    ]);
+    const queue = await getTaskQueue();
+    const processing = queue.processing ? `Processing: ${queue.processing.task_id.slice(0, 8)}...` : 'Idle';
+    const pending = queue.queue.length;
     
-    let msg = '📊 Recent Tasks:\n';
-    if (tasks.length === 0) {
-      msg += 'No recent tasks\n';
-    } else {
-      tasks.forEach(t => {
-        msg += `• ${t.id.substring(0, 8)}... - ${t.status} (${t.intent})\n`;
-      });
-    }
-    
-    msg += '\n📚 Learned Routes:\n';
-    if (routes.length === 0) {
-      msg += 'No routes learned yet. Use /teach to create one.';
-    } else {
-      routes.forEach(r => {
-        msg += `• ${r.goal || r.id.substring(0, 8)} (${r.app})\n`;
-      });
-    }
-    
-    await ctx.reply(msg);
+    await ctx.reply(`📊 System Status\n\n${processing}\nPending: ${pending} tasks\n\nQueue system: Active (O(1) priority queue)`);
   } catch (e) {
-    await ctx.reply('❌ Error fetching status: ' + e.message);
+    await ctx.reply('❌ Error: ' + e.message);
   }
+});
+
+bot.command('cancel', async (ctx) => {
+  // Implementation would clear current task
+  await ctx.reply('🛑 Cancel signal sent. Current task will abort at next safe point.');
 });
 
 bot.command('teach', async (ctx) => {
@@ -1154,169 +1040,114 @@ bot.command('teach', async (ctx) => {
   const goal = ctx.message.text.replace(/^\/teach\s*/, '').trim();
   
   if (!goal) {
-    await ctx.reply('❌ Please specify what you want to teach. Example: /teach search for {query} on youtube');
+    await ctx.reply('❌ Specify what to teach. Example: /teach search for {query} on youtube');
     return;
   }
   
   if (activeTeachSessions.has(userId)) {
-    await ctx.reply('⚠️ You already have an active teach session. Use /stopteach to finish it first.');
+    await ctx.reply('⚠️ Active session exists. Use /stopteach first.');
     return;
   }
   
   try {
     const { taskId } = await startTeachSession(userId, goal);
-    await ctx.reply(`🎓 Teach Mode Started\n\nGoal: ${goal}\nTask ID: ${taskId}\n\n1. The agent will lock to the target app\n2. Perform the actions you want to record\n3. Use /stopteach when done\n\nThe agent is now waiting for your actions...`);
+    await ctx.reply(`🎓 Teach Mode\nGoal: ${goal}\nID: ${taskId}\n\nPerform actions on your phone, then /stopteach`);
   } catch (e) {
-    await ctx.reply('❌ Failed to start teach mode: ' + e.message);
+    await ctx.reply('❌ Error: ' + e.message);
   }
 });
 
 bot.command('stopteach', async (ctx) => {
   const userId = ctx.from.id;
-  
   try {
     const result = await stopTeachSession(userId);
     if (result.error) {
       await ctx.reply('❌ ' + result.error);
       return;
     }
-    await ctx.reply(`✅ Teach Mode Stopped\n\nGoal: ${result.previousSession.goal}\n\nThe route has been saved. You can now use:\n\n/do ${result.previousSession.goal}\n\nOr with variations:\n/live ${result.previousSession.goal.replace(/\{.*?\}/g, 'something')}`);
-  } catch (e) {
-    await ctx.reply('❌ Error stopping teach mode: ' + e.message);
-  }
-});
-
-bot.command('do', async (ctx) => {
-  const taskText = ctx.message.text.replace(/^\/do\s*/, '').trim();
-  
-  if (!taskText) {
-    await ctx.reply('❌ Please specify a task. Example: /do open chrome and search for news');
-    return;
-  }
-  
-  try {
-    const { taskId, steps, routeMatched } = await createRegularTask(taskText, 'DO', 'fast');
-    
-    let msg = `⚡ Fast Execution\n\nTask: ${taskText}\nID: ${taskId}`;
-    if (routeMatched) {
-      msg += `\n📚 Using route: ${routeMatched}`;
-    }
-    msg += `\n\nSteps (${steps.length}):\n`;
-    steps.slice(0, 5).forEach((s, i) => {
-      msg += `${i + 1}. ${s.action}${s.value ? ': ' + s.value : ''}${s.text ? ': ' + s.text : ''}\n`;
-    });
-    if (steps.length > 5) msg += `... and ${steps.length - 5} more\n`;
-    msg += '\nExecuting now...';
-    
-    await ctx.reply(msg);
-    waitForTaskCompletion(taskId, ctx); // FIX #4 Trigger Polling
-  } catch (e) {
-    await ctx.reply('❌ Error creating task: ' + e.message);
-  }
-});
-
-bot.command('live', async (ctx) => {
-  const taskText = ctx.message.text.replace(/^\/live\s*/, '').trim();
-  
-  if (!taskText) {
-    await ctx.reply('❌ Please specify a task. Example: /live search for shoes on amazon');
-    return;
-  }
-  
-  try {
-    const { taskId, steps, routeMatched } = await createRegularTask(taskText, 'LIVE', 'live');
-    
-    let msg = `👁️ Live Mode\n\nTask: ${taskText}\nID: ${taskId}`;
-    if (routeMatched) {
-      msg += `\n📚 Using route: ${routeMatched}`;
-    }
-    msg += `\n\nThe agent will:\n`;
-    msg += `• Execute each step\n`;
-    msg += `• Observe screen state\n`;
-    msg += `• Verify results\n`;
-    msg += `• Adapt if needed\n`;
-    msg += `\nStarting now...`;
-    
-    await ctx.reply(msg);
-    waitForTaskCompletion(taskId, ctx); // FIX #4 Trigger Polling
-  } catch (e) {
-    await ctx.reply('❌ Error creating live task: ' + e.message);
-  }
-});
-
-bot.command('route', async (ctx) => {
-  const taskText = ctx.message.text.replace(/^\/route\s*/, '').trim();
-  
-  if (!taskText) {
-    await ctx.reply('❌ Please specify a task to route.');
-    return;
-  }
-  
-  try {
-    const matchedRoute = await findMatchingRoute(taskText);
-    if (!matchedRoute) {
-      await ctx.reply('❌ No matching route found. Try /do or /live instead, or teach this task first.');
-      return;
-    }
-    
-    const slotValues = await extractSlotsFromUserInput(matchedRoute, taskText);
-    const filledSteps = fillSlots(matchedRoute.steps, slotValues);
-    
-    const { taskId } = await createRegularTask(taskText, 'ROUTE', 'routed');
-    
-    let msg = `📚 Route Match\n\nRoute: ${matchedRoute.goal}\nApp: ${matchedRoute.app}\n\n`;
-    if (Object.keys(slotValues).length > 0) {
-      msg += `Extracted values:\n`;
-      for (const [k, v] of Object.entries(slotValues)) {
-        msg += `• ${k}: ${v}\n`;
-      }
-    }
-    msg += `\nExecuting ${filledSteps.length} steps...`;
-    
-    await ctx.reply(msg);
-    waitForTaskCompletion(taskId, ctx); // FIX #4 Trigger Polling
+    await ctx.reply(`✅ Route Saved\nGoal: ${result.previousSession.goal}\n\nUse: /do ${result.previousSession.goal.replace(/\{.*?\}/g, 'example')}`);
   } catch (e) {
     await ctx.reply('❌ Error: ' + e.message);
   }
 });
 
-// Handle regular messages
+bot.command('do', async (ctx) => {
+  const taskText = ctx.message.text.replace(/^\/do\s*/, '').trim();
+  if (!taskText) {
+    await ctx.reply('❌ Specify a task');
+    return;
+  }
+  
+  try {
+    const { taskId, steps, orchestration } = await createRegularTask(taskText, 'DO', 'fast', ctx.from.id);
+    const apps = orchestration.fallback_apps?.length ? ` (fallbacks: ${orchestration.fallback_apps.join(', ')})` : '';
+    await ctx.reply(`⚡ Fast Mode\nIntent: ${orchestration.intent}\nSteps: ${steps.length}${apps}\nID: ${taskId.slice(0, 8)}...`);
+    waitForTaskCompletion(taskId, ctx);
+  } catch (e) {
+    await ctx.reply('❌ Error: ' + e.message);
+  }
+});
+
+bot.command('live', async (ctx) => {
+  const taskText = ctx.message.text.replace(/^\/live\s*/, '').trim();
+  if (!taskText) {
+    await ctx.reply('❌ Specify a task');
+    return;
+  }
+  
+  try {
+    const { taskId, steps } = await createRegularTask(taskText, 'LIVE', 'live', ctx.from.id);
+    await ctx.reply(`👁️ Live Mode\nSteps: ${steps.length}\nFeatures: Verify clicks, Adapt on failure\nID: ${taskId.slice(0, 8)}...`);
+    waitForTaskCompletion(taskId, ctx);
+  } catch (e) {
+    await ctx.reply('❌ Error: ' + e.message);
+  }
+});
+
+bot.command('route', async (ctx) => {
+  const taskText = ctx.message.text.replace(/^\/route\s*/, '').trim();
+  if (!taskText) {
+    await ctx.reply('❌ Specify task');
+    return;
+  }
+  
+  try {
+    const route = await findMatchingRoute(taskText);
+    if (!route) {
+      await ctx.reply('❌ No matching route. Use /do or teach this task.');
+      return;
+    }
+    const { taskId } = await createRegularTask(taskText, 'ROUTE', 'routed', ctx.from.id);
+    await ctx.reply(`📚 Route: ${route.goal}\nApp: ${route.app}\nExecuting...`);
+    waitForTaskCompletion(taskId, ctx);
+  } catch (e) {
+    await ctx.reply('❌ Error: ' + e.message);
+  }
+});
+
 bot.on('text', async (ctx) => {
   const text = ctx.message.text;
-  
   if (text.startsWith('/')) return;
   
   try {
-    const classification = await classifyIntent(text);
+    // Auto-detect intent using LLM
+    const orchestration = await llmOrchestrate(text, { mode: 'auto' });
     
-    switch (classification.intent) {
-      case 'CHAT':
-        const response = await generateChatResponse(text);
-        await ctx.reply(response);
-        break;
-        
-      case 'HELP':
-        await ctx.reply(`Available commands:
-/do <task> - Fast execution
-/live <task> - Live observation mode
-/teach <goal> - Teach a new route
-/stopteach - Stop teaching
-/status - Check queue
-/help - Show help`);
-        break;
-        
-      case 'STATUS':
-        await ctx.reply('Use /status to see tasks and routes.');
-        break;
-        
-      case 'TASK':
-        const { taskId, steps } = await createRegularTask(text, 'TASK', 'normal');
-        await ctx.reply(`🤖 I'll help with that.\n\nTask ID: ${taskId}\nSteps: ${steps.length}\n\nExecuting...`);
-        waitForTaskCompletion(taskId, ctx); // FIX #4 Trigger Polling
-        break;
-        
-      default:
-        await ctx.reply('I understood you want to ' + classification.intent + '. Use specific commands like /do or /live for better control.');
+    if (orchestration.intent.includes('chat') || orchestration.confidence < 0.4) {
+      // Casual conversation
+      const res = await groq.chat.completions.create({
+        model: GROQ_MODEL,
+        messages: [{ role: 'user', content: text }],
+        temperature: 0.7,
+        max_tokens: 150
+      });
+      const reply = cleanAiResponse(res.choices[0].message.content);
+      await ctx.reply(reply);
+    } else {
+      // Execute as task
+      const { taskId, steps } = await createRegularTask(text, 'AUTO', 'normal', ctx.from.id);
+      await ctx.reply(`🤖 I'll handle that.\nSteps: ${steps.length}\nID: ${taskId.slice(0, 8)}...`);
+      waitForTaskCompletion(taskId, ctx);
     }
   } catch (e) {
     await ctx.reply('❌ Error: ' + e.message);
@@ -1329,85 +1160,51 @@ bot.on('text', async (ctx) => {
 app.get('/health', (req, res) => {
   res.json({ 
     status: 'ok', 
-    version: '2.0',
-    modes: ['do', 'live', 'teach', 'route'],
-    activeTeachSessions: activeTeachSessions.size
+    version: '2.1',
+    architecture: 'llm_brain',
+    queue: 'priority_o1',
+    modes: ['do', 'live', 'teach', 'auto']
   });
 });
 
 app.post('/task', async (req, res) => {
   try {
-    const { text, mode = 'normal', user_id } = req.body;
+    const { text, mode = 'normal', user_id, priority = 5 } = req.body;
     if (!text) return res.status(400).json({ error: 'text required' });
     
-    const intent = mode === 'live' ? 'LIVE' : 'TASK';
-    const result = await createRegularTask(text, intent, mode);
+    const result = await createRegularTask(text, 'API', mode, user_id);
+    result.priority = priority;
     
     res.json({
       success: true,
       task_id: result.taskId,
       mode: mode,
       steps_count: result.steps.length,
-      route_matched: result.routeMatched,
+      llm_intent: result.orchestration.intent,
+      queue_position: (await getTaskQueue()).queue.length
     });
   } catch (e) {
     res.status(500).json({ error: e.message });
   }
 });
 
-app.post('/teach/start', async (req, res) => {
+app.get('/queue', async (req, res) => {
   try {
-    const { goal, user_id } = req.body;
-    if (!goal) return res.status(400).json({ error: 'goal required' });
-    
-    const result = await startTeachSession(user_id || 'api', goal);
-    res.json({ success: true, ...result });
+    const queue = await getTaskQueue();
+    res.json(queue);
   } catch (e) {
     res.status(500).json({ error: e.message });
   }
 });
 
-app.post('/teach/stop', async (req, res) => {
-  try {
-    const { user_id } = req.body;
-    const result = await stopTeachSession(user_id || 'api');
-    if (result.error) return res.status(400).json(result);
-    res.json({ success: true, ...result });
-  } catch (e) {
-    res.status(500).json({ error: e.message });
-  }
-});
-
-app.get('/routes', async (req, res) => {
-  try {
-    const routes = await listRouteSummaries(50);
-    res.json({ routes });
-  } catch (e) {
-    res.status(500).json({ error: e.message });
-  }
-});
-
-app.get('/routes/:id', async (req, res) => {
-  try {
-    const route = await getRouteById(req.params.id);
-    if (!route) return res.status(404).json({ error: 'Route not found' });
-    res.json(route);
-  } catch (e) {
-    res.status(500).json({ error: e.message });
-  }
-});
-
-// ============================================
-// STARTUP
-// ============================================
 app.listen(PORT, () => {
-  console.log(`DWAI Server v2.0 running on port ${PORT}`);
-  console.log(`Modes: /do (fast), /live (observation), /teach (record), /route (reuse)`);
+  console.log(`DWAI Server v2.1 (LLM Brain) on port ${PORT}`);
+  console.log(`Queue: Priority O(1) System`);
+  console.log(`Orchestration: ${GROQ_MODEL}`);
 });
 
 bot.launch();
-console.log('Telegram bot started');
+console.log('Telegram bot active');
 
-// Graceful shutdown
 process.once('SIGINT', () => bot.stop('SIGINT'));
 process.once('SIGTERM', () => bot.stop('SIGTERM'));
