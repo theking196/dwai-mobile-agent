@@ -1,7 +1,7 @@
 {
   "task_id": "KbYA8sGsiI5q",
   "type": "automation",
-  "status": "pending",
+  "status": "executing",
   "intent": "LIVE",
   "mode": "live",
   "goal": "Open WhatsApp business",
@@ -28,5 +28,7 @@
   "route_matched": null,
   "slot_values": {},
   "created_at": "2026-04-08T14:48:10.440Z",
-  "validate_steps": true
+  "validate_steps": true,
+  "started_at": "2026-04-08T14:48:12.044Z",
+  "worker_id": "phone-vivo 1906-720x1544"
 }
