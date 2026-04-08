@@ -269,7 +269,7 @@ function quickIntent(message) {
   }
   if (/\\b(help|commands?)\\b/.test(t)) return { intent: 'HELP' };
   if (/\\b(status|task status|check task|tasks?|queue|routes?)\\b/.test(t)) return { intent: 'STATUS' };
-  if (/^\\/teach\\b/.test(t)) return { intent: 'TEACH' };
+  if (/^\/teach\b/.test(t)) return { intent: 'TEACH' };
   if (/^\\/stopteach\\b/.test(t)) return { intent: 'STOPTEACH' };
   if (/^\\/do\\b/.test(t)) return { intent: 'DO' };
   if (/^\\/live\\b/.test(t)) return { intent: 'LIVE' };
