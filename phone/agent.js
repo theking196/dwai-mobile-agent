@@ -1,42 +1,41 @@
-// DWAI Mobile Agent v2.0 - ROOT-FREE VERSION (FIXED)
-// Features: /do (fast), /live (watch+adapt), /teach (record), route matching, queue fix
-// NO ROOT REQUIRED - Works on all devices
+// DWAI Mobile Agent v2.1 - LLM Brain Client
+// Fixes: App resolution, Queue performance, Smart verification
 
 // ============================================
-// CONFIGURATION - UPDATE THESE!
+// CONFIGURATION
 // ============================================
-var GITHUB_TOKEN = "ghp_YOUR_TOKEN_HERE"; // ← REPLACE WITH YOUR GITHUB TOKEN
-var REPO_OWNER = "theking196";            // Your GitHub username
-var REPO_NAME = "dwai-mobile-agent";      // Your repo name
+var GITHUB_TOKEN = "ghp_YOUR_TOKEN_HERE";
+var REPO_OWNER = "theking196";
+var REPO_NAME = "dwai-mobile-agent";
 
 // ============================================
-// PATHS & CONSTANTS
+// CONSTANTS
 // ============================================
 var TASKS_PATH = "data/tasks";
 var LOGS_PATH = "data/logs";
 var ROUTES_PATH = "data/routes";
 var CURRENT_TASK_PATH = "data/current_task.json";
+var TASK_QUEUE_PATH = "data/task_queue.json"; // NEW: O(1) Queue
 
 var FATAL_ERROR_COUNT = 0;
-var FATAL_ERROR_LIMIT = 15;  
-
+var FATAL_ERROR_LIMIT = 15;
 var POLL_INTERVAL = 2000;
 var BRANCH = "main";
 var WORKER_ID = "phone-" + (device.model || "android") + "-" + device.width + "x" + device.height;
 var BASE_URL = "https://api.github.com/repos/" + REPO_OWNER + "/" + REPO_NAME + "/contents/";
 
-console.log("=== DWAI AGENT v2.0 ROOT-FREE START ===");
-toast("DWAI v2.0 (No Root) starting...");
+console.log("=== DWAI AGENT v2.1 LLM BRAIN START ===");
+toast("DWAI v2.1 starting...");
 
 // ============================================
-// STATE MANAGEMENT
+// STATE
 // ============================================
 var isProcessing = false;
 var currentTaskId = null;
-var lastTaskId = null;
 var processedTaskIds = new Set();
+var lastProcessedTimestamp = 0;
 
-// Teach mode state
+// Teach mode
 var TEACH_MODE = false;
 var TEACH_SESSION = null;
 var TEACH_LAST_FP = null;
@@ -44,46 +43,51 @@ var TEACH_SNAPS = [];
 var TEACH_TOUCHES = [];
 var TEACH_START_TIME = null;
 
-// Live mode state
+// Live mode
 var LIVE_MODE = false;
 var LIVE_CURRENT_STEP = 0;
 var LIVE_TASK = null;
 var LIVE_VERIFICATION_FAILS = 0;
+var LAST_SCREEN_STATE = null;
 
 // Touch observer
 var touchObserver = null;
 
-// ============================================
-// APP DISCOVERY
-// ============================================
+// App cache
 var INSTALLED_APPS = {};
 var APP_CACHE_BUILT = false;
 
-var KNOWN_APPS = {
-  "youtube": "com.google.android.youtube",
-  "chrome": "com.android.chrome",
-  "google chrome": "com.android.chrome",
-  "browser": "com.android.chrome",
-  "whatsapp": "com.whatsapp",
-  "whatsapp business": "com.whatsapp.w4b",
-  "calculator": "com.android.calculator2",
-  "camera": "com.android.camera2",
-  "photos": "com.google.android.apps.photos",
-  "gallery": "com.google.android.apps.photos",
-  "settings": "com.android.settings",
-  "phone": "com.android.dialer",
-  "messages": "com.android.mms",
-  "gmail": "com.google.android.gm",
-  "maps": "com.google.android.apps.maps",
-  "spotify": "com.spotify.music",
-  "facebook": "com.facebook.katana",
-  "instagram": "com.instagram.android",
-  "twitter": "com.twitter.android",
-  "telegram": "org.telegram.messenger",
-  "signal": "org.thoughtcrime.securesms",
-  "discord": "com.discord",
-  "slack": "com.Slack",
-  "zoom": "us.zoom.videomeetings"
+// ============================================
+// ENHANCED APP REGISTRY
+// ============================================
+var APP_REGISTRY = {
+  "youtube": { pkg: "com.google.android.youtube", category: "video" },
+  "chrome": { pkg: "com.android.chrome", category: "browser" },
+  "browser": { pkg: "com.android.chrome", category: "browser" },
+  "edge": { pkg: "com.microsoft.emmx", category: "browser" },
+  "firefox": { pkg: "org.mozilla.firefox", category: "browser" },
+  "whatsapp": { pkg: "com.whatsapp", category: "messaging" },
+  "telegram": { pkg: "org.telegram.messenger", category: "messaging" },
+  "signal": { pkg: "org.thoughtcrime.securesms", category: "messaging" },
+  "calculator": { pkg: "com.android.calculator2", category: "utility" },
+  "calc": { pkg: "com.android.calculator2", category: "utility" },
+  "camera": { pkg: "com.android.camera2", category: "media" },
+  "photos": { pkg: "com.google.android.apps.photos", category: "media" },
+  "gallery": { pkg: "com.google.android.apps.photos", category: "media" }, // FIX: Map gallery to photos, not loop
+  "settings": { pkg: "com.android.settings", category: "system" },
+  "phone": { pkg: "com.android.dialer", category: "communication" },
+  "messages": { pkg: "com.android.mms", category: "communication" },
+  "gmail": { pkg: "com.google.android.gm", category: "productivity" },
+  "maps": { pkg: "com.google.android.apps.maps", category: "navigation" },
+  "spotify": { pkg: "com.spotify.music", category: "media" },
+  "facebook": { pkg: "com.facebook.katana", category: "social" },
+  "instagram": { pkg: "com.instagram.android", category: "social" },
+  "twitter": { pkg: "com.twitter.android", category: "social" },
+  "discord": { pkg: "com.discord", category: "communication" },
+  "slack": { pkg: "com.Slack", category: "productivity" },
+  "zoom": { pkg: "us.zoom.videomeetings", category: "productivity" },
+  "amazon": { pkg: "com.amazon.mShop.android.shopping", category: "shopping" },
+  "playstore": { pkg: "com.android.vending", category: "system" }
 };
 
 function buildInstalledAppsMap() {
@@ -94,43 +98,48 @@ function buildInstalledAppsMap() {
     for (var i = 0; i < apps.size(); i++) {
       var app = apps.get(i);
       var pkg = app.packageName;
-      var label = "";
       try {
-        label = pm.getApplicationLabel(app).toString().toLowerCase();
-      } catch (e) {}
-      if (label) {
+        var label = pm.getApplicationLabel(app).toString().toLowerCase();
         INSTALLED_APPS[label] = pkg;
-      }
-      INSTALLED_APPS[pkg] = pkg;
+        INSTALLED_APPS[pkg] = pkg;
+      } catch (e) {}
     }
     APP_CACHE_BUILT = true;
-    console.log("App cache built: " + Object.keys(INSTALLED_APPS).length);
+    console.log("Apps cached: " + Object.keys(INSTALLED_APPS).length);
   } catch (e) {
-    console.log("App discovery failed: " + e);
+    console.log("App cache failed: " + e);
     APP_CACHE_BUILT = true;
   }
 }
 
-// FIX #2: STRICTER APP RESOLUTION TO PREVENT FALSE POSITIVES (LIKE GALLERY)
+// FIX #1: Strict app resolution to prevent false positives
 function resolveApp(appName) {
-  if (!appName || appName.length < 2) return null; // Ignore very short/empty names
+  if (!appName || appName.length < 2) return null;
   var name = String(appName).toLowerCase().trim();
   
-  // 1. Exact match first
-  if (KNOWN_APPS[name]) return KNOWN_APPS[name];
+  // 1. Direct registry lookup
+  if (APP_REGISTRY[name]) return APP_REGISTRY[name].pkg;
+  
+  // 2. Check installed apps (exact match only)
   if (INSTALLED_APPS[name]) return INSTALLED_APPS[name];
   
-  // 2. Strict start-of-word match
-  for (var key in KNOWN_APPS) {
-    if (key.indexOf(name) === 0 || name.indexOf(key) === 0) {
-      return KNOWN_APPS[key];
+  // 3. Strict prefix match (min 4 chars to avoid false positives)
+  if (name.length >= 4) {
+    for (var key in APP_REGISTRY) {
+      if (key.indexOf(name) === 0 || name.indexOf(key) === 0) {
+        return APP_REGISTRY[key].pkg;
+      }
     }
   }
-  for (var k in INSTALLED_APPS) {
-    if (k.indexOf(name) === 0 || name.indexOf(k) === 0) {
-      return INSTALLED_APPS[k];
+  
+  // 4. If looks like package name, verify it exists
+  if (name.indexOf(".") !== -1) {
+    // Verify it's actually installed
+    for (var installed in INSTALLED_APPS) {
+      if (installed === name) return name;
     }
   }
+  
   return null;
 }
 
@@ -140,8 +149,7 @@ function normalizeLaunchTarget(value) {
   if (!v) return null;
   var resolved = resolveApp(v);
   if (resolved) return resolved;
-  if (v.indexOf(".") !== -1) return v;
-  return null;
+  return null; // FIX: Don't return invalid values
 }
 
 // ============================================
@@ -166,7 +174,6 @@ function b64Encode(text) {
       android.util.Base64.NO_WRAP
     );
   } catch (e) {
-    log("b64Encode error: " + e);
     return "";
   }
 }
@@ -179,7 +186,6 @@ function b64Decode(text) {
       "UTF-8"
     ).toString();
   } catch (e) {
-    log("b64Decode error: " + e);
     return "";
   }
 }
@@ -199,7 +205,6 @@ function readStream(stream) {
     reader.close();
     return out;
   } catch (e) {
-    log("readStream error: " + e);
     return "";
   }
 }
@@ -207,7 +212,7 @@ function readStream(stream) {
 function headers() {
   return {
     "Authorization": "token " + GITHUB_TOKEN,
-    "User-Agent": "DWAI-Agent-v2.0",
+    "User-Agent": "DWAI-Agent-v2.1",
     "Accept": "application/vnd.github+json"
   };
 }
@@ -222,9 +227,7 @@ function httpRequest(method, url, body, extraHeaders) {
     
     var h = headers();
     if (extraHeaders) {
-      for (var k in extraHeaders) {
-        h[k] = extraHeaders[k];
-      }
+      for (var k in extraHeaders) h[k] = extraHeaders[k];
     }
     for (var key in h) {
       conn.setRequestProperty(key, String(h[key]));
@@ -244,7 +247,7 @@ function httpRequest(method, url, body, extraHeaders) {
     conn.disconnect();
     return { statusCode: code, body: res };
   } catch (e) {
-    log("httpRequest exception: " + e);
+    log("HTTP error: " + e);
     return { statusCode: -1, body: String(e) };
   }
 }
@@ -254,9 +257,7 @@ function ghGetJson(url) {
   var parsed = null;
   try {
     parsed = res.body ? JSON.parse(res.body) : null;
-  } catch (e) {
-    parsed = null;
-  }
+  } catch (e) {}
   return {
     ok: res.statusCode >= 200 && res.statusCode < 300,
     statusCode: res.statusCode,
@@ -275,124 +276,39 @@ function ghPutJson(url, bodyObj) {
 }
 
 // ============================================
-// GITHUB TASK OPERATIONS
+// QUEUE SYSTEM (O(1) Performance Fix)
 // ============================================
-function getTaskList() {
-  var url = BASE_URL + TASKS_PATH;
+function getTaskQueue() {
+  var url = BASE_URL + TASK_QUEUE_PATH;
   var res = ghGetJson(url);
-  if (!res.ok || !Array.isArray(res.json)) {
-    log("Failed to fetch task list: " + res.statusCode);
-    return [];
+  if (!res.ok || !res.json || !res.json.content) {
+    return { queue: [], processing: null };
   }
-  return res.json;
-}
-
-function getCurrentPointer() {
-  var url = BASE_URL + CURRENT_TASK_PATH;
-  var res = ghGetJson(url);
-  if (!res.ok || !res.json || !res.json.content) return null;
   try {
     return JSON.parse(b64Decode(res.json.content));
   } catch (e) {
-    log("current_task parse error: " + e);
-    return null;
+    return { queue: [], processing: null };
   }
 }
 
-function getTask(fileUrl) {
-  var res = ghGetJson(fileUrl);
-  if (!res.ok || !res.json || !res.json.content) {
-    log("Failed to fetch task file: " + res.statusCode);
-    return null;
-  }
-  try {
-    var file = res.json;
-    var task = JSON.parse(b64Decode(file.content));
-    return { file: file, task: task, fileUrl: fileUrl };
-  } catch (e) {
-    log("Task parse error: " + e);
-    return null;
-  }
-}
-
-function saveTask(fileUrl, sha, task, message) {
-  var payload = {
-    message: message,
-    content: b64Encode(JSON.stringify(task, null, 2)),
-    sha: sha,
-    branch: BRANCH
-  };
-  var res = ghPutJson(fileUrl, payload);
-  if (!res.ok) {
-    throw new Error("GitHub save failed: " + res.statusCode + " | " + res.body);
-  }
-  var parsed = null;
-  try {
-    parsed = JSON.parse(res.body);
-  } catch (e) {
-    parsed = null;
-  }
-  if (!parsed || !parsed.content || !parsed.content.sha) {
-    throw new Error("GitHub save succeeded but SHA missing");
-  }
-  return parsed.content.sha;
-}
-
-function writeLog(taskId, status, error) {
-  var logData = {
-    task_id: taskId,
-    status: status,
-    error: error || null,
-    worker_id: WORKER_ID,
-    timestamp: new Date().toISOString()
-  };
-  var url = BASE_URL + LOGS_PATH + "/" + taskId + "_log.json";
-  var payload = {
-    message: "log " + taskId,
-    content: b64Encode(JSON.stringify(logData, null, 2)),
-    branch: BRANCH
-  };
-  var res = ghPutJson(url, payload);
-  if (!res.ok) {
-    log("Log write failed: " + res.statusCode + " | " + res.body);
-  }
-}
-
-function saveRoute(goal, routeData) {
-  var safeGoal = String(goal || "route")
-    .toLowerCase()
-    .replace(/[^a-z0-9]+/g, "_")
-    .replace(/^_+|_+$/g, "");
-  if (!safeGoal) safeGoal = "route";
-  var routeId = safeGoal + "_" + Date.now();
-  var url = BASE_URL + ROUTES_PATH + "/" + routeId + ".json";
-  var payload = {
-    message: "route " + routeId,
-    content: b64Encode(JSON.stringify(routeData, null, 2)),
-    branch: BRANCH
-  };
-  var res = ghPutJson(url, payload);
-  if (!res.ok) {
-    log("Route save failed: " + res.statusCode + " | " + res.body);
-  } else {
-    log("Route saved: " + routeId);
-  }
-}
-
-function upsertCurrentPointer(pointer) {
-  var url = BASE_URL + CURRENT_TASK_PATH;
+function updateTaskQueue(queueData) {
+  var url = BASE_URL + TASK_QUEUE_PATH;
+  var content = b64Encode(JSON.stringify(queueData, null, 2));
+  
   var existing = ghGetJson(url);
   var payload = {
-    message: "current task " + (pointer.task_id || "unknown"),
-    content: b64Encode(JSON.stringify(pointer, null, 2)),
+    message: "queue update",
+    content: content,
     branch: BRANCH
   };
+  
   if (existing.ok && existing.json && existing.json.sha) {
     payload.sha = existing.json.sha;
   }
+  
   var res = ghPutJson(url, payload);
   if (!res.ok) {
-    throw new Error("GitHub current_task write failed: " + res.statusCode + " | " + res.body);
+    log("Queue update failed: " + res.statusCode);
   }
   return res;
 }
@@ -405,14 +321,12 @@ function isLocked() {
     var km = context.getSystemService(context.KEYGUARD_SERVICE);
     return km.isKeyguardLocked();
   } catch (e) {
-    log("isLocked error: " + e);
     return false;
   }
 }
 
 function waitForUnlock() {
   while (isLocked()) {
-    log("Device locked, waiting...");
     notify("Unlock phone...");
     waitMs(2000);
   }
@@ -431,76 +345,328 @@ function currentScreenFingerprint() {
   var act = "";
   try {
     pkg = currentPackage() || "";
-    var activity = currentActivity() || "";
-    act = activity;
-  } catch (e) {
-    // ignore
-  }
+    act = currentActivity() || "";
+  } catch (e) {}
+  
   var texts = [];
+  var clickable = [];
   try {
     var nodes = className("android.widget.TextView").find();
-    for (var i = 0; i < Math.min(nodes.size(), 5); i++) {
+    for (var i = 0; i < Math.min(nodes.size(), 8); i++) {
       var t = nodes.get(i).text();
       if (t) texts.push(String(t));
     }
-  } catch (e) {
-    // ignore
-  }
+    
+    // Also get clickable elements for better verification
+    var clickNodes = clickable(true).find();
+    for (var j = 0; j < Math.min(clickNodes.size(), 5); j++) {
+      var node = clickNodes.get(j);
+      var txt = node.text() || node.desc();
+      if (txt) clickable.push(String(txt));
+    }
+  } catch (e) {}
+  
   return {
     pkg: pkg,
     activity: act,
     texts: texts,
+    clickable: clickable,
     ts: Date.now()
   };
 }
 
 // ============================================
-// TOUCH OBSERVER (for teach mode)
+// SMART LAUNCH WITH VERIFICATION
 // ============================================
-function tryStartTouchObserver() {
-  try {
-    if (touchObserver) return;
-    touchObserver = new android.view.View.OnTouchListener({
-      onTouch: function(view, event) {
-        if (!TEACH_MODE) return false;
-        try {
-          var action = event.getAction();
-          if (action === android.view.MotionEvent.ACTION_DOWN) {
-            var x = event.getRawX();
-            var y = event.getRawY();
-            TEACH_TOUCHES.push({
-              x: x,
-              y: y,
-              ts: Date.now()
-            });
-            log("Teach touch recorded: " + x + "," + y);
-          }
-        } catch (e) {
-          // ignore
-        }
-        return false;
-      }
-    });
-
-    var roots = [];
-    try {
-      roots = (typeof windows === "object" && windows.getDecorView)
-        ? [windows.getDecorView()]
-        : [className("android.view.View").findOnce()];
-    } catch (e) {}
-    roots.forEach(function(root) {
-      if (root && root.setOnTouchListener) {
-        root.setOnTouchListener(touchObserver);
-      }
-    });
-    log("Touch observer initialized.");
-  } catch (e) {
-    log("Touch observer unavailable: " + e);
+function launchAppSafe(nameOrPackage, verify) {
+  var target = normalizeLaunchTarget(nameOrPackage);
+  if (!target) {
+    log("App not resolvable: " + nameOrPackage);
+    return null;
   }
+  
+  log("Launching: " + nameOrPackage + " -> " + target);
+  
+  for (var attempt = 0; attempt < 3; attempt++) {
+    try {
+      app.launchPackage(target);
+      waitMs(2000 + (attempt * 1000));
+      
+      if (currentAppIs(target)) {
+        log("Launch success: " + target);
+        return target;
+      }
+      
+      // Try intent method
+      try {
+        app.startActivity({
+          packageName: target,
+          action: "android.intent.action.MAIN",
+          category: "android.intent.category.LAUNCHER"
+        });
+        waitMs(2000);
+        
+        if (currentAppIs(target)) {
+          log("Launch via intent success: " + target);
+          return target;
+        }
+      } catch (intentErr) {}
+      
+    } catch (e) {
+      log("Launch error: " + e);
+    }
+  }
+  
+  log("Launch failed: " + target);
+  return null;
 }
 
 // ============================================
-// TEACH MODE FUNCTIONS
+// SMART CLICK WITH VERIFICATION (Fix #4)
+// ============================================
+function verifyElementExists(strategy, target) {
+  try {
+    var node = null;
+    if (strategy === 'text') node = text(target).findOnce();
+    else if (strategy === 'contains') node = textContains(target).findOnce();
+    else if (strategy === 'desc') node = desc(target).findOnce();
+    else if (strategy === 'descContains') node = descContains(target).findOnce();
+    
+    if (node && node.exists()) {
+      var bounds = node.bounds();
+      return {
+        exists: true,
+        x: bounds.centerX(),
+        y: bounds.centerY(),
+        bounds: bounds
+      };
+    }
+  } catch (e) {}
+  return { exists: false };
+}
+
+function clickSmart(step) {
+  var strategies = [];
+  
+  // Build strategy list
+  if (step.text) strategies.push({ type: 'text', val: step.text });
+  if (step.contains) strategies.push({ type: 'contains', val: step.contains });
+  if (step.desc) strategies.push({ type: 'desc', val: step.desc });
+  if (step.descContains) strategies.push({ type: 'descContains', val: step.descContains });
+  
+  // Try each strategy with verification
+  for (var i = 0; i < strategies.length; i++) {
+    var strat = strategies[i];
+    log("Trying click: " + strat.type + "=" + strat.val);
+    
+    var verify = verifyElementExists(strat.type, strat.val);
+    if (verify.exists) {
+      log("Element found at: " + verify.x + "," + verify.y);
+      click(verify.x, verify.y);
+      
+      // Post-click verification in live mode
+      if (LIVE_MODE) {
+        waitMs(500);
+        var newState = currentScreenFingerprint();
+        if (LAST_SCREEN_STATE && JSON.stringify(LAST_SCREEN_STATE.texts) === JSON.stringify(newState.texts)) {
+          log("Warning: Screen unchanged after click");
+          // Continue anyway, might be same screen with updated content
+        }
+        LAST_SCREEN_STATE = newState;
+      }
+      return true;
+    }
+  }
+  
+  // Fallback to coordinates if provided
+  if (typeof step.x === 'number' && typeof step.y === 'number') {
+    log("Using coordinates: " + step.x + "," + step.y);
+    click(step.x, step.y);
+    return true;
+  }
+  
+  // Try fallbacks
+  if (step.fallbacks) {
+    for (var j = 0; j < step.fallbacks.length; j++) {
+      var fb = step.fallbacks[j];
+      if (fb.action === 'click' && (fb.x || fb.contains)) {
+        if (fb.x && fb.y) {
+          click(fb.x, fb.y);
+          return true;
+        } else if (fb.contains) {
+          var v = verifyElementExists('contains', fb.contains);
+          if (v.exists) {
+            click(v.x, v.y);
+            return true;
+          }
+        }
+      }
+    }
+  }
+  
+  return false;
+}
+
+function typeText(value) {
+  try {
+    var t = String(value || "");
+    if (!t) return false;
+    setClip(t);
+    waitMs(300);
+    paste();
+    return true;
+  } catch (e) {
+    return false;
+  }
+}
+
+function execStep(step) {
+  if (!step || !step.action) throw new Error("Invalid step");
+  
+  log("Exec: " + step.action + (step.value ? " -> " + step.value : "") + (step.text ? " -> " + step.text : ""));
+  
+  // Pre-execution observation in live mode
+  if (LIVE_MODE && step.verify) {
+    LAST_SCREEN_STATE = currentScreenFingerprint();
+  }
+  
+  switch (step.action) {
+    case "launch_app":
+      var launched = launchAppSafe(step.value, step.verify);
+      if (!launched) throw new Error("Launch failed: " + step.value);
+      
+      // Verify if requested
+      if (step.verify && !currentAppIs(launched)) {
+        throw new Error("Launch verification failed");
+      }
+      return true;
+      
+    case "click":
+      if (!clickSmart(step)) {
+        if (LIVE_MODE) {
+          // In live mode, try to find similar elements
+          log("Click failed, attempting recovery...");
+          waitMs(1000);
+          if (!clickSmart(step)) throw new Error("Click failed after retry");
+        } else {
+          throw new Error("Click failed");
+        }
+      }
+      return true;
+      
+    case "type":
+      if (!typeText(step.text || step.value || "")) throw new Error("Type failed");
+      return true;
+      
+    case "press":
+      var key = String(step.key || "").toLowerCase();
+      
+      if (key === "enter") {
+        var enterBtn = text("Go").findOne(500) || 
+                      desc("Go").findOne(500) ||
+                      text("Search").findOne(500) || 
+                      desc("Search").findOne(500);
+        if (enterBtn && enterBtn.clickable()) {
+          enterBtn.click();
+          return true;
+        }
+        
+        // Keyboard enter
+        var screenW = device.width;
+        var screenH = device.height;
+        click(screenW - 100, screenH - 150);
+        return true;
+      }
+      else if (key === "back") {
+        back();
+        return true;
+      }
+      else if (key === "home") {
+        home();
+        return true;
+      }
+      else if (key === "menu") {
+        var menuBtn = desc("More options").findOne(500);
+        if (menuBtn && menuBtn.clickable()) {
+          menuBtn.click();
+          return true;
+        }
+        back();
+        return true;
+      }
+      else {
+        throw new Error("Unknown key: " + key);
+      }
+      
+    case "wait":
+      waitMs(Number(step.ms || 1000));
+      return true;
+      
+    case "toast":
+      notify(String(step.text || step.value || "Done"));
+      return true;
+      
+    case "swipe":
+      if (step.direction) {
+        var w = device.width;
+        var h = device.height;
+        var dist = step.distance === 'long' ? 0.8 : (step.distance === 'short' ? 0.3 : 0.5);
+        
+        if (step.direction === 'up') swipe(w/2, h * (1-dist), w/2, h * dist, 300);
+        else if (step.direction === 'down') swipe(w/2, h * dist, w/2, h * (1-dist), 300);
+        else if (step.direction === 'left') swipe(w * (1-dist), h/2, w * dist, h/2, 300);
+        else if (step.direction === 'right') swipe(w * dist, h/2, w * (1-dist), h/2, 300);
+        return true;
+      }
+      if (typeof step.x1 === 'number') {
+        swipe(step.x1, step.y1, step.x2, step.y2, step.duration || 300);
+        return true;
+      }
+      throw new Error("Swipe params missing");
+      
+    case "observe":
+      var obs = observeAndVerify({
+        package: step.expected_package,
+        text: step.expected_text
+      });
+      if (!obs.ok && step.on_mismatch === 'abort') {
+        throw new Error("Observation failed: " + obs.reason);
+      }
+      return true;
+      
+    case "scroll_find":
+      for (var s = 0; s < (step.max_swipes || 5); s++) {
+        var found = verifyElementExists(step.strategy, step.target);
+        if (found.exists) {
+          click(found.x, found.y);
+          return true;
+        }
+        // Swipe up to scroll down
+        swipe(device.width/2, device.height*0.7, device.width/2, device.height*0.3, 300);
+        waitMs(500);
+      }
+      throw new Error("Scroll find failed: " + step.target);
+      
+    default:
+      throw new Error("Unknown action: " + step.action);
+  }
+}
+
+function execWithRetry(step) {
+  for (var i = 0; i < 3; i++) {
+    try {
+      if (execStep(step)) return true;
+    } catch (e) {
+      log("Attempt " + (i+1) + " failed: " + e);
+      if (i === 2) throw e;
+      waitMs(1000);
+    }
+  }
+  return false;
+}
+
+// ============================================
+// TEACH MODE
 // ============================================
 function startTeachSession(task) {
   TEACH_MODE = true;
@@ -523,8 +689,8 @@ function startTeachSession(task) {
     }
   }
   
-  notify("Teach mode ON: " + task.goal);
-  log("Teach session started: " + task.goal);
+  notify("Teach: " + task.goal);
+  log("Teach started: " + task.goal);
 }
 
 function recordTeachSnapshot() {
@@ -544,12 +710,7 @@ function recordTeachSnapshot() {
   snap.touches = TEACH_TOUCHES.slice();
   snap.elapsed = Date.now() - TEACH_START_TIME;
   TEACH_SNAPS.push(snap);
-  
   TEACH_TOUCHES = [];
-  
-  if (TEACH_SNAPS.length % 5 === 0) {
-    log("Teach snapshots: " + TEACH_SNAPS.length);
-  }
 }
 
 function finalizeTeachSession() {
@@ -565,9 +726,9 @@ function finalizeTeachSession() {
       steps.push({
         action: "launch_app",
         value: snap.pkg,
+        verify: true,
         _from_teach: true
       });
-      steps.push({ action: "wait", ms: 4000 });
       lastPkg = snap.pkg;
     }
     
@@ -580,7 +741,6 @@ function finalizeTeachSession() {
           y: touch.y,
           _from_teach: true
         });
-        steps.push({ action: "wait", ms: 1000 });
       }
     }
   }
@@ -589,75 +749,42 @@ function finalizeTeachSession() {
     route_id: TEACH_SESSION.task_id,
     goal: TEACH_SESSION.goal,
     app: TEACH_SESSION.app,
-    started_at: TEACH_SESSION.started_at,
-    finished_at: new Date().toISOString(),
     steps: steps,
     snapshots: TEACH_SNAPS.length,
-    notes: "Route captured from teach mode"
+    created: new Date().toISOString()
   };
   
-  saveRoute(TEACH_SESSION.goal, routeData);
+  // Save route via GitHub
+  var url = BASE_URL + ROUTES_PATH + "/" + TEACH_SESSION.task_id + ".json";
+  var payload = {
+    message: "route " + TEACH_SESSION.task_id,
+    content: b64Encode(JSON.stringify(routeData, null, 2)),
+    branch: BRANCH
+  };
+  ghPutJson(url, payload);
   
   TEACH_MODE = false;
   TEACH_SESSION = null;
-  TEACH_LAST_FP = null;
-  TEACH_SNAPS = [];
-  TEACH_TOUCHES = [];
-  TEACH_START_TIME = null;
   
-  clearCurrentPointer();
-  
-  log("Teach session finalized and saved as route");
   notify("Route saved!");
-}
-
-function clearCurrentPointer() {
-  var payload = {
-    task_id: null,
-    status: "idle",
-    intent: "none",
-    goal: "",
-    app: null,
-    file_url: null,
-    created_at: new Date().toISOString(),
-    source: "agent"
-  };
-  try {
-    upsertCurrentPointer(payload);
-  } catch (e) {
-    log("clearCurrentPointer error: " + e);
-  }
+  log("Teach finalized");
 }
 
 // ============================================
-// LIVE MODE FUNCTIONS
+// LIVE MODE
 // ============================================
-function startLiveMode(task) {
-  LIVE_MODE = true;
-  LIVE_TASK = task;
-  LIVE_CURRENT_STEP = 0;
-  LIVE_VERIFICATION_FAILS = 0;
-  log("Live mode started for task: " + task.task_id);
-}
-
-function stopLiveMode() {
-  LIVE_MODE = false;
-  LIVE_TASK = null;
-  LIVE_CURRENT_STEP = 0;
-  LIVE_VERIFICATION_FAILS = 0;
-  log("Live mode stopped");
-}
-
-function observeAndVerify(expectedState) {
+function observeAndVerify(expected) {
   try {
     var current = currentScreenFingerprint();
     
-    if (expectedState.package && !currentAppIs(expectedState.package)) {
+    if (expected.package && !currentAppIs(expected.package)) {
       return { ok: false, reason: "wrong_package", current: current };
     }
     
-    if (expectedState.text && current.texts) {
-      var found = current.texts.some(function(t) { return t.indexOf(expectedState.text) !== -1; });
+    if (expected.text && current.texts) {
+      var found = current.texts.some(function(t) { 
+        return t.toLowerCase().indexOf(expected.text.toLowerCase()) !== -1; 
+      });
       if (!found) {
         return { ok: false, reason: "text_not_found", current: current };
       }
@@ -670,658 +797,190 @@ function observeAndVerify(expectedState) {
 }
 
 // ============================================
-// ROOT-FREE ACTION EXECUTION
+// TASK EXECUTION
 // ============================================
-
-function launchAppSafe(nameOrPackage) {
-  var target = normalizeLaunchTarget(nameOrPackage);
-  if (!target) return null;
-  
-  log("Launching (no root): " + nameOrPackage + " -> " + target);
-  
-  for (var attempt = 0; attempt < 3; attempt++) {
-    try {
-      // Method 1: Use AutoX.js built-in launchPackage
-      app.launchPackage(target);
-      waitMs(2000);
-      
-      if (currentAppIs(target)) {
-        log("Launch success: " + target);
-        return target;
-      }
-      
-      // Method 2: Try intent-based launch
-      try {
-        app.startActivity({
-          packageName: target,
-          action: "android.intent.action.MAIN",
-          category: "android.intent.category.LAUNCHER"
-        });
-        waitMs(2000);
-        
-        if (currentAppIs(target)) {
-          log("Launch success via intent: " + target);
-          return target;
-        }
-      } catch (intentErr) {
-        log("Intent launch failed: " + intentErr);
-      }
-      
-    } catch (e) {
-      log("Launch attempt " + (attempt + 1) + " error: " + e);
-    }
-    waitMs(1000);
-  }
-  
-  log("All launch attempts failed for: " + target);
-  return null;
+function writeLog(taskId, status, error, details) {
+  var logData = {
+    task_id: taskId,
+    status: status,
+    error: error || null,
+    details: details || null,
+    worker_id: WORKER_ID,
+    timestamp: new Date().toISOString()
+  };
+  var url = BASE_URL + LOGS_PATH + "/" + taskId + "_log.json";
+  var payload = {
+    message: "log " + taskId,
+    content: b64Encode(JSON.stringify(logData, null, 2)),
+    branch: BRANCH
+  };
+  ghPutJson(url, payload);
 }
 
-function clickSmart(step) {
-  try {
-    // Try text-based click
-    if (step.text) {
-      var t = text(step.text).findOne(1000);
-      if (t && t.clickable()) {
-        t.click();
-        return true;
-      }
-    }
-    
-    // Try contains
-    if (step.contains) {
-      var c = textContains(step.contains).findOne(1000);
-      if (c && c.clickable()) {
-        c.click();
-        return true;
-      }
-    }
-    
-    // Try desc
-    if (step.desc) {
-      var d = desc(step.desc).findOne(1000);
-      if (d && d.clickable()) {
-        d.click();
-        return true;
-      }
-    }
-    
-    // Try descContains
-    if (step.descContains) {
-      var dc = descContains(step.descContains).findOne(1000);
-      if (dc && dc.clickable()) {
-        dc.click();
-        return true;
-      }
-    }
-    
-    // Fallback to coordinates
-    if (typeof step.x === "number" && typeof step.y === "number") {
-      click(step.x, step.y);
-      return true;
-    }
-    
-    // Try fallbacks
-    if (step.fallbacks) {
-      for (var i = 0; i < step.fallbacks.length; i++) {
-        var fb = step.fallbacks[i];
-        if (fb.action === "click" && typeof fb.x === "number" && typeof fb.y === "number") {
-          click(fb.x, fb.y);
-          waitMs(500);
-          return true;
-        }
-      }
-    }
-  } catch (e) {
-    log("clickSmart error: " + e);
+function updateCurrentTaskStatus(taskId, status, error) {
+  var url = BASE_URL + CURRENT_TASK_PATH;
+  var pointer = {
+    task_id: taskId,
+    status: status,
+    updated_at: new Date().toISOString(),
+    error: error || null,
+    worker_id: WORKER_ID
+  };
+  var existing = ghGetJson(url);
+  var payload = {
+    message: "status " + taskId,
+    content: b64Encode(JSON.stringify(pointer, null, 2)),
+    branch: BRANCH
+  };
+  if (existing.ok && existing.json && existing.json.sha) {
+    payload.sha = existing.json.sha;
   }
-  return false;
+  ghPutJson(url, payload);
 }
 
-function typeText(value) {
-  try {
-    var t = String(value || "");
-    if (!t) return false;
-    setClip(t);
-    waitMs(300);
-    paste();
-    return true;
-  } catch (e) {
-    log("typeText error: " + e);
-    return false;
-  }
-}
-
-// ============================================
-// press key handler for Chrome compatibility
-// ============================================
-function execStep(step) {
-  if (!step || !step.action) {
-    throw new Error("Invalid step");
-  }
-  
-  log("Executing: " + step.action + (step.value ? " -> " + step.value : "") + (step.text ? " -> " + step.text : ""));
-  
-  switch (step.action) {
-    case "launch_app":
-      var launched = launchAppSafe(step.value);
-      if (!launched) throw new Error("Launch failed: " + step.value);
-      return true;
-      
-    case "click":
-      if (!clickSmart(step)) throw new Error("Click failed");
-      return true;
-      
-    case "type":
-      if (!typeText(step.text || step.value || "")) throw new Error("Type failed");
-      return true;
-      
-    case "press":
-      var key = String(step.key || "").toLowerCase();
-      
-      if (key === "enter") {
-        // Chrome-compatible enter key simulation
-        // Try multiple methods to submit/enter
-        
-        // Method 1: Look for common submit buttons
-        var enterBtn = text("Go").findOne(300) || 
-                      desc("Go").findOne(300) ||
-                      text("Search").findOne(300) || 
-                      desc("Search").findOne(300) ||
-                      text("Send").findOne(300) ||
-                      desc("Send").findOne(300) ||
-                      descContains("Search").findOne(300) ||
-                      descContains("Navigate").findOne(300);
-                      
-        if (enterBtn && enterBtn.clickable()) {
-          enterBtn.click();
-          log("Pressed enter via button: " + (enterBtn.text() || enterBtn.desc()));
-          waitMs(500);
-          return true;
-        }
-        
-        // Method 2: For Chrome - click on address bar to submit
-        var addressBar = className("android.widget.EditText").findOne(300);
-        if (addressBar) {
-          var bounds = addressBar.bounds();
-          click(bounds.right - 50, bounds.centerY());
-          log("Pressed enter via address bar right-click at " + (bounds.right - 50) + "," + bounds.centerY());
-          waitMs(500);
-          return true;
-        }
-        
-        // Method 3: Click bottom-right of screen (keyboard enter area)
-        var screenW = device.width;
-        var screenH = device.height;
-        click(screenW - 100, screenH - 150);
-        log("Pressed enter via bottom-screen click");
-        waitMs(500);
-        return true;
-      }
-      else if (key === "back") {
-        back();
-        return true;
-      }
-      else if (key === "home") {
-        home();
-        return true;
-      }
-      else if (key === "menu") {
-        var menuBtn = desc("More options").findOne(500) || 
-                      className("android.widget.ImageView").desc("More options").findOne(500);
-        if (menuBtn && menuBtn.clickable()) {
-          menuBtn.click();
-          return true;
-        }
-        try {
-          if (typeof recents === 'function') {
-            recents();
-            return true;
-          }
-        } catch(e) {}
-        back();
-        return true;
-      }
-      else {
-        throw new Error("Unsupported key: " + key);
-      }
-      
-    case "wait":
-      waitMs(Number(step.ms || 1000));
-      return true;
-      
-    case "toast":
-      notify(String(step.text || step.value || "Done"));
-      return true;
-      
-    case "swipe":
-      if (typeof step.x1 === "number" && typeof step.y1 === "number" && 
-          typeof step.x2 === "number" && typeof step.y2 === "number") {
-        swipe(step.x1, step.y1, step.x2, step.y2, step.duration || 300);
-        return true;
-      }
-      throw new Error("Swipe requires x1, y1, x2, y2");
-      
-    case "verify":
-      return true;
-      
-    case "open_url":
-      var url = String(step.value || "");
-      if (!url) throw new Error("open_url missing URL");
-      app.startActivity({
-        action: "android.intent.action.VIEW",
-        data: url
-      });
-      return true;
-      
-    case "observe":
-      if (step.expected_package || step.expected_text) {
-        var obs = observeAndVerify({
-          package: step.expected_package,
-          text: step.expected_text
-        });
-        if (!obs.ok) {
-          log("Observation warning: " + obs.reason);
-        }
-      }
-      return true;
-      
-    default:
-      throw new Error("Unknown action: " + step.action);
-  }
-}
-
-function execWithRetry(step) {
-  for (var i = 0; i < 3; i++) {
-    try {
-      if (execStep(step)) return true;
-    } catch (e) {
-      log("Step attempt " + (i + 1) + " failed: " + e);
-    }
-    waitMs(800);
-  }
-  return false;
-}
-
-// ============================================
-// TASK PROCESSING
-// ============================================
-function claimTask(bundle, pointerRef) {
-  var task = bundle.task;
-  var taskFileUrl = bundle.fileUrl;
-  var fileSha = bundle.file.sha;
-  
-  task.status = "executing";
-  task.started_at = new Date().toISOString();
-  task.worker_id = WORKER_ID;
-  
-  var newSha = saveTask(taskFileUrl, fileSha, task, "executing");
-  
-  if (pointerRef) {
-    pointerRef.status = "executing";
-    pointerRef.started_at = new Date().toISOString();
-    pointerRef.worker_id = WORKER_ID;
-    try {
-      upsertCurrentPointer(pointerRef);
-    } catch (e) {
-      log("pointer claim update failed: " + e);
-    }
-  }
-  
-  return newSha;
-}
-
-function finishTask(bundle, sha, task, status, errorMsg, pointerRef) {
-  task.status = status;
-  task.finished_at = new Date().toISOString();
-  if (errorMsg) task.error = errorMsg;
-  
-  var newSha = saveTask(bundle.fileUrl, sha, task, status);
-  
-  if (pointerRef) {
-    pointerRef.status = status;
-    pointerRef.finished_at = new Date().toISOString();
-    pointerRef.error = errorMsg || null;
-    pointerRef.worker_id = WORKER_ID;
-    try {
-      upsertCurrentPointer(pointerRef);
-    } catch (e) {
-      log("pointer finish update failed: " + e);
-    }
-  }
-  
-  writeLog(task.task_id, status, errorMsg || null);
-  
-  processedTaskIds.add(task.task_id);
-  lastTaskId = task.task_id;
-  
-  return newSha;
-}
-
-// ============================================
-// MODE HANDLERS
-// ============================================
-function runTeachStart(bundle, pointerRef) {
-  var task = bundle.task;
-  var sha = claimTask(bundle, pointerRef);
-  
-  waitForUnlock();
-  startTeachSession(task);
-  
-  task.status = "completed";
-  task.finished_at = new Date().toISOString();
-  finishTask(bundle, sha, task, "completed", null, pointerRef);
-  
-  log("Teach start completed: " + task.task_id);
-}
-
-function runTeachStop(bundle, pointerRef) {
-  var task = bundle.task;
-  
-  if (!TEACH_MODE) {
-    log("StopTeach requested but not in teach mode");
-    var sha = claimTask(bundle, pointerRef);
-    task.status = "completed";
-    task.finished_at = new Date().toISOString();
-    finishTask(bundle, sha, task, "completed", null, pointerRef);
-    return;
-  }
-  
-  var sha = claimTask(bundle, pointerRef);
-  waitForUnlock();
-  
-  finalizeTeachSession();
-  
-  task.status = "completed";
-  task.finished_at = new Date().toISOString();
-  finishTask(bundle, sha, task, "completed", null, pointerRef);
-  
-  log("Teach stop completed: " + task.task_id);
-}
-
-function runFastTask(bundle, pointerRef) {
-  var task = bundle.task;
-  
-  if (processedTaskIds.has(task.task_id)) {
-    log("Skipping already processed task: " + task.task_id);
-    return;
-  }
-  
+function runTaskExecution(task, taskFileUrl, fileSha) {
   isProcessing = true;
   currentTaskId = task.task_id;
-  log("FAST task: " + currentTaskId);
+  LIVE_MODE = (task.mode === 'live');
   
-  var sha = null;
+  log("Executing: " + task.task_id + " mode=" + (task.mode || 'normal'));
+  updateCurrentTaskStatus(task.task_id, "executing");
+  
   try {
-    sha = claimTask(bundle, pointerRef);
     waitForUnlock();
     
     if (!task.steps || !task.steps.length) {
-      throw new Error("Task has no steps");
+      throw new Error("No steps provided");
     }
     
     var success = true;
     var errorMsg = "";
-    
-    for (var j = 0; j < task.steps.length; j++) {
-      var step = task.steps[j];
-      
-      if (step.action === "observe") continue;
-      
-      var ok = execWithRetry(step);
-      if (!ok) {
-        success = false;
-        errorMsg = "Step " + (j + 1) + " (" + step.action + ") failed";
-        break;
-      }
-      waitMs(500);
-    }
-    
-    if (success) {
-      finishTask(bundle, sha, task, "completed", null, pointerRef);
-      log("Task completed: " + currentTaskId);
-    } else {
-      finishTask(bundle, sha, task, "failed", errorMsg, pointerRef);
-      log("Task failed: " + currentTaskId + " - " + errorMsg);
-    }
-    
-  } catch (e) {
-    log("Task error: " + e);
-    processedTaskIds.add(task.task_id);
-    try {
-      if (task && sha) {
-        finishTask(bundle, sha, task, "failed", String(e), pointerRef);
-      }
-    } catch (inner) {
-      log("Finalization error: " + inner);
-    }
-  }
-  
-  isProcessing = false;
-  currentTaskId = null;
-}
-
-function runLiveTask(bundle, pointerRef) {
-  var task = bundle.task;
-  
-  if (processedTaskIds.has(task.task_id)) {
-    log("Skipping already processed live task: " + task.task_id);
-    return;
-  }
-  
-  isProcessing = true;
-  currentTaskId = task.task_id;
-  LIVE_MODE = true;
-  log("LIVE task: " + currentTaskId);
-  
-  var sha = null;
-  try {
-    sha = claimTask(bundle, pointerRef);
-    waitForUnlock();
-    startLiveMode(task);
-    
-    if (!task.steps || !task.steps.length) {
-      throw new Error("Task has no steps");
-    }
-    
-    var success = true;
-    var errorMsg = "";
-    var adaptationCount = 0;
     
     for (var j = 0; j < task.steps.length; j++) {
       LIVE_CURRENT_STEP = j;
       var step = task.steps[j];
       
-      if (step.action === "observe") {
-        log("Observation checkpoint at step " + j);
-        var obs = observeAndVerify({
-          package: step.expected_package,
-          text: step.expected_text
-        });
-        
-        if (!obs.ok) {
-          LIVE_VERIFICATION_FAILS++;
-          log("Observation mismatch: " + obs.reason);
-          
-          if (step.on_mismatch === "replan" && adaptationCount < 3) {
-            log("LiveMode: Attempting adaptation (re-execute last step)...");
-            adaptationCount++;
-            waitMs(2000);
-            var ok = false;
-            try {
-              ok = execWithRetry(task.steps[Math.max(0, j-1)] || step);
-            } catch(e) {}
-            if (ok) {
-              log("Adaptation succeeded; continue execution.");
-              LIVE_VERIFICATION_FAILS = 0;
-              continue;
-            }
-          } else if (LIVE_VERIFICATION_FAILS > 5) {
-            success = false;
-            errorMsg = "Too many verification failures at step " + j;
-            break;
-          }
-        } else {
-          LIVE_VERIFICATION_FAILS = 0;
-        }
+      // Skip pure observation steps in non-live mode unless verify requested
+      if (step.action === "observe" && task.mode !== 'live' && !step.on_mismatch) {
         continue;
       }
       
-      var ok = execWithRetry(step);
-      if (!ok) {
-        if (adaptationCount < 3) {
-          log("Step failed, attempting recovery...");
-          adaptationCount++;
-          waitMs(3000);
-          ok = execWithRetry(step);
-        }
-        
-        if (!ok) {
-          success = false;
-          errorMsg = "Step " + (j + 1) + " (" + step.action + ") failed after retry";
-          break;
-        }
-      }
-      
-      waitMs(800);
+      execWithRetry(step);
+      waitMs(step.action === 'launch_app' ? 1000 : 500);
     }
     
-    stopLiveMode();
-    
     if (success) {
-      finishTask(bundle, sha, task, "completed", null, pointerRef);
-      log("Live task completed: " + currentTaskId);
-    } else {
-      finishTask(bundle, sha, task, "failed", errorMsg, pointerRef);
-      log("Live task failed: " + currentTaskId + " - " + errorMsg);
+      writeLog(task.task_id, "completed", null, "All steps executed");
+      updateCurrentTaskStatus(task.task_id, "completed");
+      log("Completed: " + task.task_id);
     }
     
   } catch (e) {
-    log("Live task error: " + e);
-    stopLiveMode();
-    processedTaskIds.add(task.task_id);
-    try {
-      if (task && sha) {
-        finishTask(bundle, sha, task, "failed", String(e), pointerRef);
-      }
-    } catch (inner) {
-      log("Finalization error: " + inner);
-    }
+    log("Task error: " + e);
+    writeLog(task.task_id, "failed", String(e), "Step " + LIVE_CURRENT_STEP);
+    updateCurrentTaskStatus(task.task_id, "failed", String(e));
   }
   
   isProcessing = false;
   currentTaskId = null;
   LIVE_MODE = false;
+  processedTaskIds.add(task.task_id);
 }
 
 // ============================================
-// MAIN PROCESSING LOOP
+// MAIN LOOP (O(1) Queue Processing)
 // ============================================
-function processTeachTick() {
-  var pointer = getCurrentPointer();
-  if (pointer && pointer.type === "teach_stop" && pointer.status === "pending") {
-    var stopBundle = pointer.file_url ? getTask(pointer.file_url) : null;
-    if (stopBundle) {
-      try {
-        var stopTask = stopBundle.task;
-        var stopSha = stopBundle.file.sha;
-        stopTask.status = "executing";
-        stopTask.started_at = new Date().toISOString();
-        stopTask.worker_id = WORKER_ID;
-        saveTask(pointer.file_url, stopSha, stopTask, "executing");
-        
-        TEACH_MODE = false;
-        finalizeTeachSession();
-        
-        stopTask.status = "completed";
-        stopTask.finished_at = new Date().toISOString();
-        var newSha = saveTask(pointer.file_url, stopSha, stopTask, "completed");
-        writeLog(stopTask.task_id, "completed", null);
-        log("Teach stop processed via tick");
-      } catch (e) {
-        log("Teach stop tick error: " + e);
-      }
-    }
-    return;
-  }
+function processQueue() {
+  if (isProcessing) return;
   
+  // Handle teach mode snapshots
   if (TEACH_MODE) {
     recordTeachSnapshot();
-  }
-}
-
-function processOneTask() {
-  if (isProcessing) {
-    log("Already processing, skipping...");
-    return;
-  }
-  
-  if (TEACH_MODE) {
-    processTeachTick();
-    return;
-  }
-  
-  var pointer = getCurrentPointer();
-  if (pointer && pointer.status === "pending" && pointer.file_url) {
-    if (processedTaskIds.has(pointer.task_id)) {
-      log("Pointer task already processed: " + pointer.task_id);
-      return;
-    }
     
-    var pb = getTask(pointer.file_url);
-    if (pb && pb.task) {
-      routeTaskByType(pb, pointer);
-      return;
-    }
-  }
-  
-  var files = getTaskList();
-  for (var i = 0; i < files.length; i++) {
-    var f = files[i];
-    if (!f || !f.name) continue;
-    if (f.type !== "file") continue;
-    if (f.name === ".gitkeep") continue;
-    if (f.name.indexOf("_log") !== -1) continue;
-    
-    var bundle = getTask(f.url);
-    if (!bundle) continue;
-    if (bundle.task.status !== "pending") continue;
-    
-    if (processedTaskIds.has(bundle.task.task_id)) {
-      continue;
-    }
-    
-    routeTaskByType(bundle, null);
-    return;
-  }
-}
-
-function routeTaskByType(bundle, pointer) {
-  var task = bundle.task;
-  var type = task.type || "automation";
-  var mode = task.mode || "normal";
-  
-  log("Routing task: " + task.task_id + " type=" + type + " mode=" + mode);
-  
-  switch (type) {
-    case "teach_start":
-      runTeachStart(bundle, pointer);
-      break;
-      
-    case "teach_stop":
-      runTeachStop(bundle, pointer);
-      break;
-      
-    case "automation":
-      if (mode === "live" || mode === "LIVE") {
-        runLiveTask(bundle, pointer);
-      } else {
-        runFastTask(bundle, pointer);
+    // Check for teach_stop in queue
+    var queue = getTaskQueue();
+    for (var i = 0; i < queue.queue.length; i++) {
+      var qItem = queue.queue[i];
+      if (qItem.task_id.indexOf('stop_') === 0 || qItem.task_id.indexOf('teach_stop') !== -1) {
+        // Process stop
+        var taskUrl = BASE_URL + TASKS_PATH + "/" + qItem.task_id + ".json";
+        var taskRes = ghGetJson(taskUrl);
+        if (taskRes.ok && taskRes.json && taskRes.json.content) {
+          var task = JSON.parse(b64Decode(taskRes.json.content));
+          if (task.type === 'teach_stop') {
+            finalizeTeachSession();
+            writeLog(task.task_id, "completed", null, "Teach session saved");
+            queue.queue.splice(i, 1);
+            updateTaskQueue(queue);
+            return;
+          }
+        }
       }
-      break;
-      
-    default:
-      runFastTask(bundle, pointer);
+    }
+    return;
+  }
+  
+  // Get next task from queue (O(1))
+  var queue = getTaskQueue();
+  if (queue.queue.length === 0) return;
+  
+  var nextTask = queue.queue[0];
+  
+  // Skip if already processed
+  if (processedTaskIds.has(nextTask.task_id)) {
+    queue.queue.shift();
+    updateTaskQueue(queue);
+    return;
+  }
+  
+  // Fetch full task
+  var taskUrl = BASE_URL + TASKS_PATH + "/" + nextTask.task_id + ".json";
+  var taskRes = ghGetJson(taskUrl);
+  
+  if (!taskRes.ok || !taskRes.json || !taskRes.json.content) {
+    log("Failed to fetch task: " + nextTask.task_id);
+    queue.queue.shift();
+    updateTaskQueue(queue);
+    return;
+  }
+  
+  try {
+    var task = JSON.parse(b64Decode(taskRes.json.content));
+    var fileSha = taskRes.json.sha;
+    
+    if (task.status !== "pending") {
+      queue.queue.shift();
+      updateTaskQueue(queue);
+      return;
+    }
+    
+    // Handle teach start
+    if (task.type === 'teach_start') {
+      queue.queue.shift();
+      updateTaskQueue(queue);
+      startTeachSession(task);
+      writeLog(task.task_id, "completed", null, "Teach mode active");
+      return;
+    }
+    
+    // Execute regular task
+    queue.queue.shift();
+    queue.processing = {
+      task_id: task.task_id,
+      started_at: Date.now()
+    };
+    updateTaskQueue(queue);
+    
+    runTaskExecution(task, taskUrl, fileSha);
+    
+    queue = getTaskQueue();
+    queue.processing = null;
+    updateTaskQueue(queue);
+    
+  } catch (e) {
+    log("Process error: " + e);
+    queue.queue.shift();
+    updateTaskQueue(queue);
   }
 }
 
@@ -1329,35 +988,27 @@ function routeTaskByType(bundle, pointer) {
 // STARTUP
 // ============================================
 buildInstalledAppsMap();
-tryStartTouchObserver();
 
-log("Installed apps discovered: " + Object.keys(INSTALLED_APPS).length);
-log("Known apps available: " + Object.keys(KNOWN_APPS).length);
-log("Agent ready (ROOT-FREE MODE). Waiting for tasks...");
+log("Agent ready. Mode: O(1) Queue, Smart Click, LLM Brain Client");
 
-// Main loop
 while (true) {
   try {
-    processOneTask();
+    processQueue();
     FATAL_ERROR_COUNT = 0;
   } catch (e) {
-    log("PROCESS ERROR: " + e);
+    log("FATAL LOOP ERROR: " + e);
     isProcessing = false;
-    currentTaskId = null;
-    TEACH_MODE = false;
-    LIVE_MODE = false;
     FATAL_ERROR_COUNT++;
     if (FATAL_ERROR_COUNT >= FATAL_ERROR_LIMIT) {
-      log("FATAL: Too many sequential agent errors, exiting loop!");
-      notify("DWAI fatal crash: check credentials or repo setup.");
-      break;
+      notify("DWAI fatal error - restarting");
+      waitMs(5000);
+      FATAL_ERROR_COUNT = 0;
     }
   }
   
-  if (processedTaskIds.size > 1000) {
-    var toRemove = Array.from(processedTaskIds).slice(0, 500);
-    toRemove.forEach(function(id) { processedTaskIds.delete(id); });
-    log("Cleaned up processed task cache");
+  // Cleanup old processed IDs
+  if (processedTaskIds.size > 500) {
+    processedTaskIds.clear();
   }
   
   waitMs(POLL_INTERVAL);
