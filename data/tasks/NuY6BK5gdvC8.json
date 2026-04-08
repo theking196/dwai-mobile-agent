@@ -1,0 +1,75 @@
+{
+  "task_id": "NuY6BK5gdvC8",
+  "type": "automation",
+  "status": "pending",
+  "intent": "LIVE",
+  "mode": "live",
+  "goal": "search dog in chrome browser",
+  "steps": [
+    {
+      "action": "launch_app",
+      "value": "chrome"
+    },
+    {
+      "action": "observe",
+      "purpose": "verify_state",
+      "on_mismatch": "replan",
+      "timeout": 5000
+    },
+    {
+      "action": "wait",
+      "ms": 4000
+    },
+    {
+      "action": "click",
+      "text": "Search or type URL",
+      "contains": "Search",
+      "desc": "Search",
+      "fallbacks": [
+        {
+          "action": "click",
+          "x": 650,
+          "y": 120
+        }
+      ]
+    },
+    {
+      "action": "observe",
+      "purpose": "verify_state",
+      "on_mismatch": "replan",
+      "timeout": 5000
+    },
+    {
+      "action": "wait",
+      "ms": 1000
+    },
+    {
+      "action": "type",
+      "text": "dog in chrome browser"
+    },
+    {
+      "action": "observe",
+      "purpose": "verify_state",
+      "on_mismatch": "replan",
+      "timeout": 5000
+    },
+    {
+      "action": "press",
+      "key": "enter"
+    },
+    {
+      "action": "observe",
+      "purpose": "verify_state",
+      "on_mismatch": "replan",
+      "timeout": 5000
+    },
+    {
+      "action": "wait",
+      "ms": 4000
+    }
+  ],
+  "route_matched": null,
+  "slot_values": {},
+  "created_at": "2026-04-08T12:27:22.584Z",
+  "validate_steps": true
+}
