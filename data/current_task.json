@@ -1,8 +1,10 @@
 {
   "task_id": "RaVYrmb0oirc",
   "type": "automation",
-  "status": "pending",
+  "status": "executing",
   "file_url": "https://api.github.com/repos/theking196/dwai-mobile-agent/contents/data/tasks/RaVYrmb0oirc.json",
   "mode": "live",
-  "created_at": "2026-04-08T12:42:26.104Z"
+  "created_at": "2026-04-08T12:42:26.104Z",
+  "started_at": "2026-04-08T12:42:34.755Z",
+  "worker_id": "phone-vivo 1906-720x1544"
 }
