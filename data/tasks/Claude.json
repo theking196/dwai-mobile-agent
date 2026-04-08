@@ -1,0 +1,22 @@
+{
+  "mode": "task",
+  "intent": "Open Google Maps and search for Nigeria",
+  "steps": [
+    {
+      "action": "launch_app",
+      "value": "maps"
+    },
+    {
+      "action": "click",
+      "contains": "Search here"
+    },
+    {
+      "action": "type",
+      "text": "Nigeria"
+    },
+    {
+      "action": "press",
+      "key": "enter"
+    }
+  ]
+}
