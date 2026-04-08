@@ -1,0 +1,26 @@
+{
+  "task_id": "av_23stmBeIM",
+  "type": "automation",
+  "status": "pending",
+  "intent": "DO",
+  "mode": "fast",
+  "goal": "open Chrome",
+  "steps": [
+    {
+      "action": "launch_app",
+      "value": "chrome"
+    },
+    {
+      "action": "wait",
+      "ms": 4000
+    },
+    {
+      "action": "verify",
+      "package": "chrome"
+    }
+  ],
+  "route_matched": null,
+  "slot_values": {},
+  "created_at": "2026-04-08T11:54:55.821Z",
+  "validate_steps": true
+}
