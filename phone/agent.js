@@ -542,11 +542,11 @@ function recordTeachSnapshot() {
   }
   
   TEACH_LAST_FP = fp;
-  TEACH_SNAPS.push({
-    ...fp,
-    touches: TEACH_TOUCHES.slice(),
-    elapsed: Date.now() - TEACH_START_TIME
-  });
+  var snap = {};
+for (var k in fp) if (fp.hasOwnProperty(k)) snap[k] = fp[k];
+snap.touches = TEACH_TOUCHES.slice();
+snap.elapsed = Date.now() - TEACH_START_TIME;
+TEACH_SNAPS.push(snap);
   
   // Clear touches after recording
   TEACH_TOUCHES = [];
