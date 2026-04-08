@@ -1,7 +1,7 @@
 {
   "task_id": "WdHXJ_m9J5lM",
   "type": "automation",
-  "status": "executing",
+  "status": "completed",
   "intent": "LIVE",
   "mode": "live",
   "goal": "Open Google maps and search for Nigeria",
@@ -61,5 +61,6 @@
   "created_at": "2026-04-08T14:50:19.076Z",
   "validate_steps": true,
   "started_at": "2026-04-08T14:50:39.647Z",
-  "worker_id": "phone-vivo 1906-720x1544"
+  "worker_id": "phone-vivo 1906-720x1544",
+  "finished_at": "2026-04-08T14:51:14.988Z"
 }
