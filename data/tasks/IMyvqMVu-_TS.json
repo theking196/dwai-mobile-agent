@@ -1,0 +1,32 @@
+{
+  "task_id": "IMyvqMVu-_TS",
+  "type": "automation",
+  "status": "pending",
+  "intent": "LIVE",
+  "mode": "live",
+  "goal": "go to settings and set auto lock screen to the highest",
+  "steps": [
+    {
+      "action": "launch_app",
+      "value": "settings"
+    },
+    {
+      "action": "observe",
+      "purpose": "verify_state",
+      "on_mismatch": "replan",
+      "timeout": 5000
+    },
+    {
+      "action": "wait",
+      "ms": 4000
+    },
+    {
+      "action": "verify",
+      "package": "settings"
+    }
+  ],
+  "route_matched": null,
+  "slot_values": {},
+  "created_at": "2026-04-08T12:34:46.056Z",
+  "validate_steps": true
+}
