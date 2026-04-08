@@ -1,0 +1,52 @@
+{
+  "task_id": "wWdHWeziAlxJ",
+  "type": "automation",
+  "status": "pending",
+  "intent": "AUTO",
+  "mode": "normal",
+  "goal": "Open chrome app and search for lion",
+  "steps": [
+    {
+      "action": "launch_app",
+      "value": "chrome",
+      "verify": true
+    },
+    {
+      "action": "click",
+      "contains": "Search",
+      "desc": "Search",
+      "fallbacks": [
+        {
+          "action": "click",
+          "x": 500,
+          "y": 150
+        }
+      ]
+    },
+    {
+      "action": "wait",
+      "ms": 1000
+    },
+    {
+      "action": "type",
+      "text": "lion"
+    },
+    {
+      "action": "press",
+      "key": "enter"
+    },
+    {
+      "action": "wait",
+      "ms": 5000
+    }
+  ],
+  "llm_intent": "template_fallback",
+  "llm_confidence": 0.6,
+  "route_matched": null,
+  "slots": {},
+  "fallback_apps": [],
+  "created_at": "2026-04-08T21:33:19.139Z",
+  "priority": 5,
+  "validate_steps": true,
+  "user_id": 7345542163
+}
