@@ -1,0 +1,26 @@
+{
+  "task_id": "aLt4jL9xZNSy",
+  "type": "automation",
+  "status": "pending",
+  "intent": "TASK",
+  "mode": "normal",
+  "goal": "Open maps Google maps",
+  "steps": [
+    {
+      "action": "launch_app",
+      "value": "maps"
+    },
+    {
+      "action": "wait",
+      "ms": 4000
+    },
+    {
+      "action": "verify",
+      "package": "maps"
+    }
+  ],
+  "route_matched": null,
+  "slot_values": {},
+  "created_at": "2026-04-08T14:49:33.948Z",
+  "validate_steps": true
+}
