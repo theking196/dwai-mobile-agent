@@ -1,7 +1,7 @@
 {
   "task_id": "QZw0JVZ19Ukd",
   "type": "automation",
-  "status": "executing",
+  "status": "completed",
   "intent": "LIVE",
   "mode": "live",
   "goal": "open YouTube and search for greatman",
@@ -73,5 +73,6 @@
   "created_at": "2026-04-08T12:28:44.129Z",
   "validate_steps": true,
   "started_at": "2026-04-08T12:28:49.762Z",
-  "worker_id": "phone-vivo 1906-720x1544"
+  "worker_id": "phone-vivo 1906-720x1544",
+  "finished_at": "2026-04-08T12:29:25.490Z"
 }
