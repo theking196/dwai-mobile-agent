@@ -1,0 +1,26 @@
+{
+  "task_id": "YeOioZF30I7y",
+  "type": "automation",
+  "status": "pending",
+  "intent": "TASK",
+  "mode": "normal",
+  "goal": "Open settings",
+  "steps": [
+    {
+      "action": "launch_app",
+      "value": "settings"
+    },
+    {
+      "action": "wait",
+      "ms": 4000
+    },
+    {
+      "action": "verify",
+      "package": "settings"
+    }
+  ],
+  "route_matched": null,
+  "slot_values": {},
+  "created_at": "2026-04-08T14:32:09.436Z",
+  "validate_steps": true
+}
