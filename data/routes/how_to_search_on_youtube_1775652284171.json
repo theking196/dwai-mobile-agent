@@ -1,0 +1,92 @@
+{
+  "route_id": "teach_8Nt292S8",
+  "goal": "how to search on YouTube",
+  "app": "youtube",
+  "started_at": "2026-04-08T12:43:28.882Z",
+  "finished_at": "2026-04-08T12:44:44.166Z",
+  "steps": [
+    {
+      "action": "launch_app",
+      "value": "com.google.android.youtube",
+      "_from_teach": true
+    },
+    {
+      "action": "wait",
+      "ms": 4000
+    },
+    {
+      "action": "launch_app",
+      "value": "com.google.android.inputmethod.latin",
+      "_from_teach": true
+    },
+    {
+      "action": "wait",
+      "ms": 4000
+    },
+    {
+      "action": "launch_app",
+      "value": "com.vivo.upslide",
+      "_from_teach": true
+    },
+    {
+      "action": "wait",
+      "ms": 4000
+    },
+    {
+      "action": "launch_app",
+      "value": "org.telegram.messenger",
+      "_from_teach": true
+    },
+    {
+      "action": "wait",
+      "ms": 4000
+    },
+    {
+      "action": "launch_app",
+      "value": "com.google.android.inputmethod.latin",
+      "_from_teach": true
+    },
+    {
+      "action": "wait",
+      "ms": 4000
+    },
+    {
+      "action": "launch_app",
+      "value": "com.vivo.floatingball",
+      "_from_teach": true
+    },
+    {
+      "action": "wait",
+      "ms": 4000
+    },
+    {
+      "action": "launch_app",
+      "value": "com.github.android",
+      "_from_teach": true
+    },
+    {
+      "action": "wait",
+      "ms": 4000
+    },
+    {
+      "action": "launch_app",
+      "value": "com.vivo.upslide",
+      "_from_teach": true
+    },
+    {
+      "action": "wait",
+      "ms": 4000
+    },
+    {
+      "action": "launch_app",
+      "value": "org.telegram.messenger",
+      "_from_teach": true
+    },
+    {
+      "action": "wait",
+      "ms": 4000
+    }
+  ],
+  "snapshots": 13,
+  "notes": "Route captured from teach mode"
+}
