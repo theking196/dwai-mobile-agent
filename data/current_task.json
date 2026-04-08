@@ -1,12 +1,8 @@
 {
-  "task_id": "4j3WrzlTY7RC",
+  "task_id": "av_23stmBeIM",
   "type": "automation",
-  "status": "failed",
-  "file_url": "https://api.github.com/repos/theking196/dwai-mobile-agent/contents/data/tasks/4j3WrzlTY7RC.json",
+  "status": "pending",
+  "file_url": "https://api.github.com/repos/theking196/dwai-mobile-agent/contents/data/tasks/av_23stmBeIM.json",
   "mode": "fast",
-  "created_at": "2026-04-08T11:53:14.938Z",
-  "started_at": "2026-04-08T11:53:29.850Z",
-  "worker_id": "phone-vivo 1906-720x1544",
-  "finished_at": "2026-04-08T11:53:42.931Z",
-  "error": "Step 1 (launch_app) failed"
+  "created_at": "2026-04-08T11:54:56.338Z"
 }
