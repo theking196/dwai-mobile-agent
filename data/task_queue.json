@@ -1,8 +1,5 @@
 {
   "queue": [],
-  "processing": {
-    "task_id": "wWdHWeziAlxJ",
-    "started_at": 1775684000833
-  },
+  "processing": null,
   "last_updated": 1775683862410
 }
