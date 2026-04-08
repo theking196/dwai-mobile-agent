@@ -1,7 +1,7 @@
 {
   "task_id": "XE2PcxeYCEuZ",
   "type": "automation",
-  "status": "executing",
+  "status": "completed",
   "intent": "LIVE",
   "mode": "live",
   "goal": "open Chrome and search for a dog",
@@ -61,5 +61,6 @@
   "created_at": "2026-04-08T14:33:44.961Z",
   "validate_steps": true,
   "started_at": "2026-04-08T14:34:05.417Z",
-  "worker_id": "phone-vivo 1906-720x1544"
+  "worker_id": "phone-vivo 1906-720x1544",
+  "finished_at": "2026-04-08T14:34:39.538Z"
 }
