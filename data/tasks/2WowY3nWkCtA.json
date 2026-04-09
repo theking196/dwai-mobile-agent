@@ -1,7 +1,7 @@
 {
   "task_id": "2WowY3nWkCtA",
   "type": "automation",
-  "status": "executing",
+  "status": "failed",
   "intent": "AUTO",
   "mode": "normal",
   "goal": "open youtube and search for power rangers",
@@ -55,5 +55,7 @@
   "priority": 5,
   "verify_every_step": true,
   "started_at": "2026-04-09T04:57:42.493Z",
-  "worker_id": "phone-vivo 1906-720x1544"
+  "worker_id": "phone-vivo 1906-720x1544",
+  "finished_at": "2026-04-09T04:58:20.321Z",
+  "error": "Error: Verification failed: Expected com.google.android.youtube, but in com.vivo.upslide"
 }
