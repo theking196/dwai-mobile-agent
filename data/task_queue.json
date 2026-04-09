@@ -7,6 +7,10 @@
       "retries": 0
     }
   ],
-  "processing": null,
+  "processing": {
+    "task_id": "ppvKsWeVRpH_",
+    "started_at": 1775699210077,
+    "worker_id": "phone-vivo 1906-720x1544"
+  },
   "last_updated": 1775699164656
 }
