@@ -1,7 +1,7 @@
 {
   "task_id": "wkembuZeGCeJ",
   "type": "automation",
-  "status": "pending",
+  "status": "executing",
   "intent": "ROUTE",
   "mode": "normal",
   "goal": "Hello",
@@ -15,5 +15,7 @@
   "user_id": 7345542163,
   "created_at": "2026-04-09T12:58:57.036Z",
   "priority": 5,
-  "verify_every_step": true
+  "verify_every_step": true,
+  "started_at": "2026-04-09T13:00:44.974Z",
+  "worker_id": "phone-vivo 1906-720x1544"
 }
