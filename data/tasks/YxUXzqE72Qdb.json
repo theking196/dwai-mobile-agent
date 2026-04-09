@@ -1,0 +1,62 @@
+{
+  "task_id": "YxUXzqE72Qdb",
+  "type": "automation",
+  "status": "pending",
+  "intent": "LIVE",
+  "mode": "live",
+  "goal": "Open YouTube and watch updated on openclaw",
+  "target_app": "com.google.android.youtube",
+  "steps": [
+    {
+      "action": "launch_app",
+      "value": "com.google.android.youtube",
+      "description": "Open YouTube",
+      "id": 1,
+      "verify": true
+    },
+    {
+      "action": "click",
+      "text": "Search",
+      "description": "Tap search icon",
+      "id": 2,
+      "verify": true
+    },
+    {
+      "action": "type",
+      "text": "openclaw updated",
+      "description": "Enter search query",
+      "id": 3,
+      "verify": true
+    },
+    {
+      "action": "press",
+      "key": "enter",
+      "description": "Submit search query",
+      "id": 4,
+      "verify": true
+    },
+    {
+      "action": "analyze_screenshot",
+      "description": "Analyze search results",
+      "id": 5,
+      "verify": true
+    },
+    {
+      "action": "click",
+      "text": "openclaw",
+      "description": "Select relevant video",
+      "id": 6,
+      "verify": true
+    }
+  ],
+  "slots": {},
+  "llm_intent": "Watch updated on openclaw on YouTube",
+  "llm_confidence": 0.9,
+  "route_matched": null,
+  "execution_notes": "No warnings",
+  "chat_id": 7345542163,
+  "user_id": 7345542163,
+  "created_at": "2026-04-09T14:05:52.197Z",
+  "priority": 2,
+  "verify_every_step": true
+}
