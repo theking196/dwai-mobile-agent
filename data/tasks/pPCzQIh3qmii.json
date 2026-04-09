@@ -1,7 +1,7 @@
 {
   "task_id": "pPCzQIh3qmii",
   "type": "automation",
-  "status": "executing",
+  "status": "failed",
   "intent": "AUTO",
   "mode": "normal",
   "goal": "open youtube and search for cats",
@@ -55,5 +55,7 @@
   "priority": 5,
   "verify_every_step": true,
   "started_at": "2026-04-09T01:52:48.700Z",
-  "worker_id": "phone-vivo 1906-720x1544"
+  "worker_id": "phone-vivo 1906-720x1544",
+  "finished_at": "2026-04-09T01:52:58.422Z",
+  "error": "Error: Verification failed: Expected com.google.android.youtube, but in com.google.android.inputmethod.latin"
 }
