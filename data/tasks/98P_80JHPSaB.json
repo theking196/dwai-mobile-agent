@@ -1,0 +1,49 @@
+{
+  "task_id": "98P_80JHPSaB",
+  "type": "automation",
+  "status": "pending",
+  "intent": "ROUTE",
+  "mode": "normal",
+  "goal": "Open chrome and search for helped",
+  "target_app": "com.android.chrome",
+  "steps": [
+    {
+      "action": "launch_app",
+      "value": "com.android.chrome",
+      "description": "Open Chrome",
+      "id": 1,
+      "verify": true
+    },
+    {
+      "action": "click",
+      "text": "Search",
+      "description": "Tap search bar",
+      "id": 2,
+      "verify": true
+    },
+    {
+      "action": "type",
+      "text": "helped",
+      "description": "Enter search query",
+      "id": 3,
+      "verify": true
+    },
+    {
+      "action": "press",
+      "key": "enter",
+      "description": "Submit search",
+      "id": 4,
+      "verify": true
+    }
+  ],
+  "slots": {},
+  "llm_intent": "Search for 'helped' in Chrome",
+  "llm_confidence": 0.9,
+  "route_matched": null,
+  "execution_notes": "No warnings",
+  "chat_id": 7345542163,
+  "user_id": 7345542163,
+  "created_at": "2026-04-09T13:57:54.062Z",
+  "priority": 5,
+  "verify_every_step": true
+}
