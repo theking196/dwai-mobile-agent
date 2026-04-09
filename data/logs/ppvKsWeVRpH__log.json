@@ -1,0 +1,7 @@
+{
+  "task_id": "ppvKsWeVRpH_",
+  "status": "failed",
+  "error": "Error: Verification failed: Expected com.android.chrome, but in com.vivo.gallery",
+  "worker_id": "phone-vivo 1906-720x1544",
+  "timestamp": "2026-04-09T01:47:04.027Z"
+}
