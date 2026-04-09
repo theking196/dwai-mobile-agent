@@ -2301,6 +2301,42 @@ bot.on('text', async (ctx) => {
       return;
     }
     
+    // Check for schedule command
+    const scheduleMatch = userMessage.match(/^(?:schedule|remind|reminder)\s+(.+?)\s+(?:at|every|in)\s+(.+)$/i);
+    if (scheduleMatch) {
+      const task = scheduleMatch[1].trim();
+      const schedule = scheduleMatch[2].trim();
+      
+      const cron = await parseScheduleToCron(schedule);
+      
+      if (!cron) {
+        await ctx.reply('❌ Could not understand the schedule. Try: "remind me to check email every day at 9am"');
+        return;
+      }
+      
+      // Save schedule
+      const scheduleData = {
+        id: 'sched_' + Date.now(),
+        task: task,
+        schedule: schedule,
+        cron: cron,
+        enabled: true,
+        created_by: userId,
+        created_at: new Date().toISOString()
+      };
+      
+      const url = `${GITHUB_API}/${SCHEDULES_PATH}/sched_${Date.now()}.json`;
+      await ghPutJson(url, {
+        message: 'Schedule created',
+        content: Buffer.from(JSON.stringify(scheduleData, null, 2)).toString('base64'),
+        branch: GITHUB_BRANCH
+      });
+      
+      await ctx.reply(`✅ *Schedule Created!*\n\nTask: ${task}\nSchedule: ${schedule}\nCron: ${cron}`, { parse_mode: 'Markdown' });
+      addToContext(userId, 'assistant', 'Schedule created: ' + task);
+      return;
+    }
+    
     // Show typing indicator while processing
     await sendTypingAction(ctx.chat.id);
     
@@ -2437,10 +2473,81 @@ app.post('/report/:taskId', async (req, res) => {
   });
 });
 
+// ============================================
+// SCHEDULER - Run tasks at scheduled times
+// ============================================
+const SCHEDULER_INTERVAL = 60000; // Check every minute
+const schedules = new Map(); // In-memory cache of active schedules
+
+async function loadSchedules() {
+  try {
+    const url = `${GITHUB_API}/${SCHEDULES_PATH}`;
+    const res = await ghGetJson(url);
+    if (res.ok && Array.isArray(res.json)) {
+      res.json.filter(f => f.type === 'file' && f.name.endsWith('.json')).forEach(f => {
+        // Would load schedule details
+      });
+    }
+  } catch (e) {
+    console.log("Load schedules error: " + e);
+  }
+}
+
+function shouldRunNow(cron) {
+  const now = new Date();
+  const minute = now.getMinutes();
+  const hour = now.getHours();
+  const day = now.getDay();
+  const date = now.getDate();
+  
+  const parts = cron.split(' ');
+  if (parts.length !== 5) return false;
+  
+  const [m, h, dom, mon, dow] = parts;
+  
+  if (m !== '*' && parseInt(m) !== minute) return false;
+  if (h !== '*' && parseInt(h) !== hour) return false;
+  if (dow !== '*' && !dow.split(',').includes(String(day))) return false;
+  if (dom !== '*' && parseInt(dom) !== date) return false;
+  
+  return true;
+}
+
+function startScheduler() {
+  console.log("Starting task scheduler...");
+  
+  setInterval(async () => {
+    try {
+      const url = `${GITHUB_API}/${SCHEDULES_PATH}`;
+      const res = await ghGetJson(url);
+      
+      if (!res.ok || !Array.isArray(res.json)) return;
+      
+      for (const file of res.json) {
+        if (!file.name.endsWith('.json')) continue;
+        
+        const scheduleUrl = file.download_url;
+        const scheduleRes = await ghGetJson(scheduleUrl);
+        
+        if (!scheduleRes.ok || !scheduleRes.body) continue;
+        
+        try {
+          const schedule = JSON.parse(scheduleRes.body);
+          
+          if (!schedule.enabled) continue;
+          
+          if (shouldRunNow(schedule.cron)) {
+            console.log("Running scheduled: " + schedule.task);
+            await createRegularTask(schedule.task, 'SCHEDULED', 'normal', 0, 0);
+          }
+        } catch (e) {}
+      }
+    } catch (e) {}
+  }, SCHEDULER_INTERVAL);
+}
+
 app.listen(PORT, () => {
   console.log(`DWAI Server v2.9 on port ${PORT}`);
   console.log('Features: LLM Brain, Verification, Teach Mode, Routes, Progress');
 });
 
-bot.launch();
-console.log('Bot started');
