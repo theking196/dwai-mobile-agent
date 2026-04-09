@@ -1,7 +1,7 @@
 {
   "task_id": "RDvaTFdQH_Zm",
   "type": "automation",
-  "status": "executing",
+  "status": "completed",
   "intent": "AUTO",
   "mode": "normal",
   "goal": "Open Chrome and search for OBA",
@@ -50,5 +50,6 @@
   "validate_steps": true,
   "user_id": 7345542163,
   "started_at": "2026-04-09T01:48:34.930Z",
-  "worker_id": "phone-vivo 1906-720x1544"
+  "worker_id": "phone-vivo 1906-720x1544",
+  "finished_at": "2026-04-09T01:49:00.603Z"
 }
