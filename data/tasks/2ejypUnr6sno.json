@@ -1,0 +1,80 @@
+{
+  "task_id": "2ejypUnr6sno",
+  "type": "automation",
+  "status": "pending",
+  "intent": "AUTO",
+  "mode": "normal",
+  "goal": "List apps on my phone",
+  "target_app": "settings",
+  "steps": [
+    {
+      "action": "launch_app",
+      "value": "settings",
+      "verify": true,
+      "description": "Open System Settings",
+      "id": 1,
+      "target_package": "com.android.settings"
+    },
+    {
+      "action": "verify",
+      "package": "com.android.settings",
+      "strict": true,
+      "description": "Verify settings launched"
+    },
+    {
+      "action": "wait",
+      "ms": 4000,
+      "description": "Wait for app to load"
+    },
+    {
+      "action": "verify",
+      "package": "com.android.settings",
+      "strict": true,
+      "description": "Verify settings launched"
+    },
+    {
+      "action": "wait",
+      "ms": 4000,
+      "description": "Wait for app to load"
+    },
+    {
+      "action": "verify",
+      "package": "com.android.settings",
+      "description": "Confirm Settings app",
+      "id": 2,
+      "strict": true
+    },
+    {
+      "action": "click",
+      "text": "Apps",
+      "verify_change": true,
+      "description": "Navigate to Apps section",
+      "id": 3
+    },
+    {
+      "action": "verify",
+      "description": "Verify after click"
+    },
+    {
+      "action": "verify",
+      "description": "Verify after click"
+    },
+    {
+      "action": "verify",
+      "text": "Manage apps",
+      "description": "Confirm app list screen",
+      "id": 4,
+      "appears": "Manage apps"
+    }
+  ],
+  "slots": {},
+  "llm_intent": "List installed applications on the device",
+  "llm_confidence": 0.8,
+  "route_matched": null,
+  "execution_notes": "Device-specific UI variations may require adjustment. Automation cannot extract actual app list contents.",
+  "chat_id": 7345542163,
+  "user_id": 7345542163,
+  "created_at": "2026-04-09T06:13:26.104Z",
+  "priority": 5,
+  "verify_every_step": true
+}
