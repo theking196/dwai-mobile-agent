@@ -1233,9 +1233,10 @@ async function fetchStoredRoutes() {
   if (cachedRoutes) return cachedRoutes;
   const url = `${GITHUB_API}/${ROUTES_PATH}`;
   const res = await ghGetJson(url);
-  if (res.ok && res.json) {
+  console.log('>>> fetchStoredRoutes res.ok:', res.ok, 'isArray:', Array.isArray(res.json));
+  if (res.ok && Array.isArray(res.json)) {
     const routes = [];
-    for (const file of (res.json || [])) {
+    for (const file of res.json) {
       if (file.name?.endsWith('.json') && file.name !== '.gitkeep') {
         const routeUrl = file.download_url;
         const routeRes = await ghGetJson(routeUrl);
@@ -1247,8 +1248,10 @@ async function fetchStoredRoutes() {
       }
     }
     cachedRoutes = routes;
+    console.log('>>> fetchStoredRoutes found:', routes.length, 'routes');
     return routes;
   }
+  console.log('>>> fetchStoredRoutes: NO routes folder or empty');
   return [];
 }
 
@@ -1787,8 +1790,13 @@ async function getRouteById(routeId) {
 }
 
 async function listRouteSummaries(limit = 50) {
+  console.log('>>> listRouteSummaries: fetching...');
   const folder = await ghGetJson(`${GITHUB_API}/${ROUTES_PATH}`);
-  if (!folder.ok || !Array.isArray(folder.json)) return [];
+  console.log('>>> listRouteSummaries folder:', folder.ok, Array.isArray(folder.json));
+  if (!folder.ok || !Array.isArray(folder.json)) {
+    console.log('>>> listRouteSummaries: NO routes');
+    return [];
+  }
   
   const files = folder.json.filter(f => f.type === 'file' && f.name !== '.gitkeep').slice(0, limit);
   const out = [];
