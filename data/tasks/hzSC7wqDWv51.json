@@ -1,7 +1,7 @@
 {
   "task_id": "hzSC7wqDWv51",
   "type": "automation",
-  "status": "executing",
+  "status": "failed",
   "intent": "AUTO",
   "mode": "normal",
   "goal": "open youtube and search for chatgpt",
@@ -101,5 +101,7 @@
   "priority": 5,
   "verify_every_step": true,
   "started_at": "2026-04-09T02:05:43.311Z",
-  "worker_id": "phone-vivo 1906-720x1544"
+  "worker_id": "phone-vivo 1906-720x1544",
+  "finished_at": "2026-04-09T02:06:18.275Z",
+  "error": "Error: Click failed"
 }
