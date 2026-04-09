@@ -1,7 +1,7 @@
 {
   "task_id": "vziU29vQSTYO",
   "type": "automation",
-  "status": "executing",
+  "status": "failed",
   "intent": "AUTO",
   "mode": "normal",
   "goal": "Open chrome",
@@ -107,5 +107,7 @@
   "priority": 5,
   "verify_every_step": true,
   "started_at": "2026-04-09T05:09:25.044Z",
-  "worker_id": "phone-vivo 1906-720x1544"
+  "worker_id": "phone-vivo 1906-720x1544",
+  "finished_at": "2026-04-09T05:09:50.536Z",
+  "error": "Error: Click failed"
 }
