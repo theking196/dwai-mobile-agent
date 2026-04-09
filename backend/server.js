@@ -2275,6 +2275,22 @@ bot.on('text', async (ctx) => {
     // Show typing indicator while processing
     await sendTypingAction(ctx.chat.id);
     
+    // FEATURE 5: Check for game mode - auto-detect gaming commands
+    const lowerMsg = userMessage.toLowerCase();
+    const gameKeywords = ['play', 'game', 'jump', 'slide', 'swipe', 'dodge', 'collect', 'run', 'subway', 'temple', 'candy', 'flappy', 'arcade'];
+    const isGameCommand = gameKeywords.some(kw => lowerMsg.includes(kw)) || lowerMsg.startsWith('/game');
+    
+    if (isGameCommand || userMessage.startsWith('/game ')) {
+      // Extract game command
+      const gameCommand = userMessage.replace(/^\/game\s*/, '').trim();
+      if (gameCommand) {
+        await ctx.reply('🎮 *Starting Game Mode...*', { parse_mode: 'Markdown' });
+        const result = await createRegularTask(gameCommand, 'GAME', 'GAME', userId, ctx.chat.id);
+        addToContext(userId, 'assistant', 'Game mode started');
+        return;
+      }
+    }
+    
     // FEATURE 3: Analyze if this is a complex task
     const taskAnalysis = await analyzeComplexTask(userMessage);
     

@@ -1549,6 +1549,257 @@ function runFastTask(bundle, pointerRef) {
   CURRENT_TASK = null;
 }
 
+// ============================================
+// GAME MODE - Auto Play Games with AI
+// ============================================
+
+// Game state analysis
+var GAME_STATE = {
+  gameType: null,
+  screenElements: [],
+  lastAction: null,
+  consecutiveSame: 0,
+  score: 0,
+  isGameOver: false
+};
+
+// Detect game type from screen
+function detectGameType() {
+  try {
+    var texts = [];
+    var nodes = className("android.widget.TextView").find();
+    for (var i = 0; i < Math.min(nodes.size(), 20); i++) {
+      var t = nodes.get(i).text();
+      if (t) texts.push(String(t).toLowerCase());
+    }
+    
+    var screenText = texts.join(" ");
+    
+    // Detect common games
+    if (screenText.includes("subway") || screenText.includes("surfer")) {
+      return "subway_surfers";
+    }
+    if (screenText.includes("temple") || screenText.includes("run")) {
+      return "temple_run";
+    }
+    if (screenText.includes("candy") || screenText.includes("crush")) {
+      return "candy_crush";
+    }
+    if (screenText.includes("flappy")) {
+      return "flappy_bird";
+    }
+    if (screenText.includes("score") || screenText.includes("level") || screenText.includes("game")) {
+      return "arcade"; // Generic arcade game
+    }
+    
+    return "unknown";
+  } catch (e) {
+    log("Game detect error: " + e);
+    return "unknown";
+  }
+}
+
+// Get smart game action based on game type and state
+function getSmartGameAction(gameType) {
+  var actions = [];
+  var width = device.width;
+  var height = device.height;
+  
+  switch (gameType) {
+    case "subway_surfers":
+      // Subway Surfers: tap to jump, swipe to change lanes
+      actions = [
+        { action: "tap", x: width * 0.5, y: height * 0.8, description: "Jump" },
+        { action: "swipe", x1: width * 0.3, y1: height * 0.5, x2: width * 0.7, y2: height * 0.5, description: "Change lane right" },
+        { action: "swipe", x1: width * 0.7, y1: height * 0.5, x2: width * 0.3, y2: height * 0.5, description: "Change lane left" },
+        { action: "swipe", x1: width * 0.5, y1: height * 0.8, x2: width * 0.5, y2: height * 0.3, description: "Roll" }
+      ];
+      break;
+      
+    case "temple_run":
+      // Temple Run: jump, slide, turn
+      actions = [
+        { action: "tap", x: width * 0.5, y: height * 0.8, description: "Jump" },
+        { action: "swipe", x1: width * 0.5, y1: height * 0.8, x2: width * 0.5, y2: height * 0.4, description: "Slide" },
+        { action: "swipe", x1: width * 0.3, y1: height * 0.5, x2: width * 0.7, y2: height * 0.5, description: "Turn right" },
+        { action: "swipe", x1: width * 0.7, y1: height * 0.5, x2: width * 0.3, y2: height * 0.5, description: "Turn left" }
+      ];
+      break;
+      
+    case "candy_crush":
+      // Match 3: tap on candies
+      actions = [
+        { action: "tap", x: width * 0.25, y: height * 0.4, description: "Tap candy 1" },
+        { action: "tap", x: width * 0.5, y: height * 0.4, description: "Tap candy 2" },
+        { action: "tap", x: width * 0.75, y: height * 0.4, description: "Tap candy 3" },
+        { action: "tap", x: width * 0.25, y: height * 0.6, description: "Tap candy 4" },
+        { action: "tap", x: width * 0.5, y: height * 0.6, description: "Tap candy 5" },
+        { action: "tap", x: width * 0.75, y: height * 0.6, description: "Tap candy 6" }
+      ];
+      break;
+      
+    case "flappy_bird":
+      // Flappy bird: tap to flap
+      actions = [
+        { action: "tap", x: width * 0.5, y: height * 0.5, description: "Flap" }
+      ];
+      break;
+      
+    default:
+      // Generic: tap center, swipe up/down
+      actions = [
+        { action: "tap", x: width * 0.5, y: height * 0.5, description: "Tap center" },
+        { action: "tap", x: width * 0.3, y: height * 0.7, description: "Tap left" },
+        { action: "tap", x: width * 0.7, y: height * 0.7, description: "Tap right" },
+        { action: "swipe", x1: width * 0.5, y1: height * 0.8, x2: width * 0.5, y2: height * 0.2, description: "Swipe up" },
+        { action: "swipe", x1: width * 0.5, y1: height * 0.2, x2: width * 0.5, y2: height * 0.8, description: "Swipe down" }
+      ];
+  }
+  
+  return actions;
+}
+
+// Execute game action
+function executeGameAction(gameAction) {
+  try {
+    if (gameAction.action === "tap") {
+      click(gameAction.x, gameAction.y);
+      log("Game: " + gameAction.description);
+    } else if (gameAction.action === "swipe") {
+      swipe(gameAction.x1, gameAction.y1, gameAction.x2, gameAction.y2, 200);
+      log("Game: " + gameAction.description);
+    }
+    return true;
+  } catch (e) {
+    log("Game action error: " + e);
+    return false;
+  }
+}
+
+// Continuous game loop
+var gameLoopInterval = null;
+
+function startGameLoop() {
+  if (gameLoopInterval) return;
+  
+  log("Starting continuous game loop...");
+  
+  gameLoopInterval = setInterval(function() {
+    if (!GAME_MODE) {
+      stopGameLoop();
+      return;
+    }
+    
+    try {
+      // Detect game
+      var gameType = detectGameType();
+      if (gameType !== GAME_STATE.gameType) {
+        GAME_STATE.gameType = gameType;
+        log("Game detected: " + gameType);
+      }
+      
+      // Check if game over
+      if (GAME_STATE.isGameOver) {
+        // Try to restart
+        click(device.width / 2, device.height * 0.7);
+        GAME_STATE.isGameOver = false;
+        GAME_STATE.consecutiveSame = 0;
+        waitMs(500);
+        return;
+      }
+      
+      // Get available actions
+      var actions = getSmartGameAction(gameType);
+      
+      // Pick action with some randomness + learning
+      var actionIndex = Math.floor(Math.random() * actions.length);
+      
+      // Try to avoid same action twice in a row
+      if (GAME_STATE.lastAction === actionIndex && actions.length > 1) {
+        actionIndex = (actionIndex + 1) % actions.length;
+      }
+      
+      var action = actions[actionIndex];
+      
+      // Execute
+      var success = executeGameAction(action);
+      
+      if (success) {
+        GAME_STATE.lastAction = actionIndex;
+        GAME_STATE.consecutiveSame = (GAME_STATE.lastAction === actionIndex) 
+          ? GAME_STATE.consecutiveSame + 1 
+          : 0;
+      }
+      
+    } catch (e) {
+      log("Game loop error: " + e);
+    }
+    
+  }, GAME_POLL_INTERVAL); // 500ms in game mode
+}
+
+function stopGameLoop() {
+  if (gameLoopInterval) {
+    clearInterval(gameLoopInterval);
+    gameLoopInterval = null;
+    log("Game loop stopped");
+  }
+}
+
+// Run game mode task
+function runGameModeTask(bundle, pointerRef) {
+  var task = bundle.task;
+  
+  if (processedTaskIds.has(task.task_id)) {
+    log("Skipping already processed game task: " + task.task_id);
+    return;
+  }
+  
+  isProcessing = true;
+  currentTaskId = task.task_id;
+  CURRENT_TASK = task;
+  GAME_MODE = true;
+  POLL_INTERVAL = GAME_POLL_INTERVAL;
+  
+  log("GAME MODE TASK: " + task.command);
+  
+  var sha = null;
+  try {
+    sha = claimTask(bundle, pointerRef);
+    
+    // Get the game command
+    var gameCommand = task.command || "";
+    
+    // Start the game loop
+    startGameLoop();
+    
+    // The game loop runs continuously until stopped
+    // For now, just mark as started
+    task.status = "running";
+    task.started_at = new Date().toISOString();
+    task.worker_id = WORKER_ID;
+    
+    // Don't complete - let it run
+    log("Game mode started - running continuously");
+    
+  } catch (e) {
+    log("Game task error: " + e);
+    GAME_MODE = false;
+    POLL_INTERVAL = NORMAL_POLL_INTERVAL;
+    stopGameLoop();
+    
+    try {
+      if (task && sha) {
+        finishTask(bundle, sha, task, "failed", String(e), pointerRef);
+      }
+    } catch (inner) {}
+  }
+  
+  isProcessing = false;
+  currentTaskId = null;
+  CURRENT_TASK = null;
+}
+
 function runLiveTask(bundle, pointerRef) {
   var task = bundle.task;
   
@@ -1760,9 +2011,15 @@ function routeTaskByType(bundle, pointer) {
     case "automation":
       if (mode === "live" || mode === "LIVE") {
         runLiveTask(bundle, pointer);
+      } else if (mode === "GAME" || mode === "game") {
+        runGameModeTask(bundle, pointer);
       } else {
         runFastTask(bundle, pointer);
       }
+      break;
+      
+    case "GAME":
+      runGameModeTask(bundle, pointer);
       break;
       
     default:
