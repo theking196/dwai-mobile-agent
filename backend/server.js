@@ -1585,8 +1585,7 @@ Return JSON:
   ]
 }
 
-Now process: "${userText}"`;
-  ],
+Now process: "${userText}";
   "execution_notes": "Warnings"
 }`;
 
@@ -2484,12 +2483,7 @@ app.post('/report/:taskId', async (req, res) => {
     res.status(500).json({ ok: false, error: e.message });
   }
 });
-
-  });
-});
-
-// ============================================
-// SCHEDULER - Run tasks at scheduled times
+// ============================================// SCHEDULER - Run tasks at scheduled times
 // ============================================
 const SCHEDULER_INTERVAL = 60000; // Check every minute
 const schedules = new Map(); // In-memory cache of active schedules
