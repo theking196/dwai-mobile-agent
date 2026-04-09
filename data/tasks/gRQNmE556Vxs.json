@@ -1,7 +1,7 @@
 {
   "task_id": "gRQNmE556Vxs",
   "type": "automation",
-  "status": "executing",
+  "status": "completed",
   "intent": "AUTO",
   "mode": "normal",
   "goal": "We are not in Chrome right now go to Chrome app then search for lion",
@@ -34,5 +34,6 @@
   "validate_steps": true,
   "user_id": 7345542163,
   "started_at": "2026-04-09T01:51:24.407Z",
-  "worker_id": "phone-vivo 1906-720x1544"
+  "worker_id": "phone-vivo 1906-720x1544",
+  "finished_at": "2026-04-09T01:51:37.709Z"
 }
