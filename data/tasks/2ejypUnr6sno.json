@@ -1,7 +1,7 @@
 {
   "task_id": "2ejypUnr6sno",
   "type": "automation",
-  "status": "executing",
+  "status": "failed",
   "intent": "AUTO",
   "mode": "normal",
   "goal": "List apps on my phone",
@@ -78,5 +78,7 @@
   "priority": 5,
   "verify_every_step": true,
   "started_at": "2026-04-09T06:13:41.721Z",
-  "worker_id": "phone-vivo 1906-720x1544"
+  "worker_id": "phone-vivo 1906-720x1544",
+  "finished_at": "2026-04-09T06:14:09.808Z",
+  "error": "Error: Click failed"
 }
