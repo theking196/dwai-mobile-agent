@@ -2560,3 +2560,7 @@ app.listen(PORT, () => {
   console.log('Features: LLM Brain, Verification, Teach Mode, Routes, Progress');
 });
 
+
+
+bot.launch();
+console.log('Bot started');
