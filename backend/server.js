@@ -81,9 +81,10 @@ function formatTelegramStyle(text, style = 'default') {
 function createTelegramButtons(buttons) {
   // buttons: [{text, callback_data, style}]
   // style: 'primary' (blue), 'secondary' (gray), 'danger' (red)
+  if (!Array.isArray(buttons)) return [];
   return buttons.map(btn => ({
-    text: btn.text,
-    callback_data: btn.callback_data
+    text: btn?.text || '',
+    callback_data: btn?.callback_data || ''
   }));
 }
 
@@ -1323,14 +1324,18 @@ function extractSlotsFromExample(goal, steps) {
 }
 
 function fillSlots(steps, slotValues) {
+  if (!Array.isArray(steps)) return [];
+  if (!slotValues || Object.keys(slotValues).length === 0) return steps;
+  
   return steps.map(step => {
+    if (!step || typeof step !== 'object') return step;
     const newStep = { ...step };
     for (const [slotName, value] of Object.entries(slotValues)) {
       const placeholder = `{${slotName}}`;
-      if (newStep.text && newStep.text.includes(placeholder)) {
+      if (newStep.text && typeof newStep.text === 'string' && newStep.text.includes(placeholder)) {
         newStep.text = newStep.text.replace(placeholder, value);
       }
-      if (newStep.value && newStep.value.includes(placeholder)) {
+      if (newStep.value && typeof newStep.value === 'string' && newStep.value.includes(placeholder)) {
         newStep.value = newStep.value.replace(placeholder, value);
       }
     }
@@ -2042,14 +2047,11 @@ async function createRegularTask(userText, intent, mode, userId, chatId) {
       console.log('>>> LLM returned steps, processing:', orch.steps.length);
       console.log('>>> orch.steps:', JSON.stringify(orch.steps));
       try {
-        steps = orch.steps.map(s => ({
-          ...s,
-          text: fillSlots(s.text || '', orch.slots),
-          value: fillSlots(s.value || '', orch.slots)
-        }));
-        console.log('>>> MAPPED steps:', steps.length);
+        // Fix: Use fillSlots on the whole array, not individual properties
+        steps = fillSlots(orch.steps, orch.slots || {});
+        console.log('>>> FILL SLOTS steps:', steps.length);
       } catch(mapErr) {
-        console.error('>>> MAP ERROR:', mapErr.message);
+        console.error('>>> FILL SLOTS ERROR:', mapErr.message);
         steps = [];
       }
     }
@@ -2458,7 +2460,7 @@ bot.on('text', async (ctx) => {
     // FEATURE 3: Analyze if this is a complex task
     const taskAnalysis = await analyzeComplexTask(userMessage);
     
-    if (taskAnalysis.complex) {
+    if (taskAnalysis.complex && taskAnalysis.steps && Array.isArray(taskAnalysis.steps)) {
       await ctx.reply(`📊 *Task Analysis*\n\nThis is a complex task. I'll break it down:\n\n${taskAnalysis.steps.map((s, i) => `${i + 1}. ${s}`).join('\n')}`, { parse_mode: 'Markdown' });
     }
     
