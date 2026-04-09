@@ -1,0 +1,7 @@
+{
+  "task_id": "2WowY3nWkCtA",
+  "status": "failed",
+  "error": "Error: Verification failed: Expected com.google.android.youtube, but in com.vivo.upslide",
+  "worker_id": "phone-vivo 1906-720x1544",
+  "timestamp": "2026-04-09T04:58:21.175Z"
+}
