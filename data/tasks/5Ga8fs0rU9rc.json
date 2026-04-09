@@ -1,7 +1,7 @@
 {
   "task_id": "5Ga8fs0rU9rc",
   "type": "automation",
-  "status": "pending",
+  "status": "executing",
   "intent": "ROUTE",
   "mode": "normal",
   "goal": "Open Facebook lite",
@@ -24,5 +24,7 @@
   "user_id": 7345542163,
   "created_at": "2026-04-09T14:17:17.365Z",
   "priority": 5,
-  "verify_every_step": true
+  "verify_every_step": true,
+  "started_at": "2026-04-09T14:17:35.074Z",
+  "worker_id": "phone-vivo 1906-720x1544"
 }
