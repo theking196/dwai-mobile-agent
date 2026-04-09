@@ -1,0 +1,68 @@
+{
+  "task_id": "0PV84tPEwqpN",
+  "type": "automation",
+  "status": "pending",
+  "intent": "AUTO",
+  "mode": "normal",
+  "goal": "Open WhatsApp business and open the group teens Kingdom Mandate",
+  "target_app": "com.whatsapp.w4b",
+  "steps": [
+    {
+      "action": "launch_app",
+      "value": "com.whatsapp.w4b",
+      "description": "Open WhatsApp Business",
+      "id": 1,
+      "verify": true
+    },
+    {
+      "action": "wait",
+      "ms": 2000,
+      "description": "Wait for WhatsApp Business to load",
+      "id": 2,
+      "verify": true
+    },
+    {
+      "action": "analyze_screenshot",
+      "description": "Analyze the screen to find the groups tab",
+      "id": 3,
+      "verify": true
+    },
+    {
+      "action": "click",
+      "text": "Groups",
+      "description": "Tap on the groups tab",
+      "id": 4,
+      "verify": true
+    },
+    {
+      "action": "wait",
+      "ms": 1000,
+      "description": "Wait for the groups list to load",
+      "id": 5,
+      "verify": true
+    },
+    {
+      "action": "analyze_screenshot",
+      "description": "Analyze the screen to find the group 'teens Kingdom Mandate'",
+      "id": 6,
+      "verify": true
+    },
+    {
+      "action": "click",
+      "text": "teens Kingdom Mandate",
+      "description": "Tap on the group 'teens Kingdom Mandate'",
+      "id": 7,
+      "verify": true
+    }
+  ],
+  "slots": {},
+  "llm_intent": "Open WhatsApp Business and access a specific group",
+  "llm_confidence": 0.9,
+  "route_matched": null,
+  "execution_notes": "If the group is not found, a search will be initiated to find it. If the user is not a member of the group, an error will be reported.",
+  "chat_id": 7345542163,
+  "user_id": 7345542163,
+  "created_at": "2026-04-09T14:09:59.822Z",
+  "priority": 5,
+  "verify_every_step": true
+}
