@@ -944,13 +944,28 @@ app.get('/api/health', (req, res) => {
 if (!GROQ_API_KEY) throw new Error('GROQ_API_KEY required');
 if (!TELEGRAM_BOT_TOKEN) throw new Error('TELEGRAM_BOT_TOKEN required');
 
-// Storage mode: set STORAGE_MODE env var to "github", "local", or "memory"
+// Storage mode: set STORAGE_MODE env var to:
+// - "github" (default) - GitHub API
+// - "local" - Local filesystem  
+// - "memory" - In-memory (resets on restart)
+// - "firebase" - Firebase Firestore
+// - "supabase" - Supabase
+// - "s3" - AWS S3
 const STORAGE_MODE = process.env.STORAGE_MODE || 'github';
 console.log('>>> Storage mode:', STORAGE_MODE);
 
-// Only require GitHub if using github mode
-if (STORAGE_MODE === 'github') {
-  if (!GITHUB_TOKEN || !GITHUB_REPO) throw new Error('GITHUB_TOKEN and GITHUB_REPO required for github mode');
+// Required configs per mode
+if (STORAGE_MODE === 'github' && (!GITHUB_TOKEN || !GITHUB_REPO)) {
+  throw new Error('GITHUB_TOKEN and GITHUB_REPO required for github mode');
+}
+if (STORAGE_MODE === 'firebase' && !process.env.FIREBASE_PROJECT_ID) {
+  throw new Error('FIREBASE_PROJECT_ID required for firebase mode');
+}
+if (STORAGE_MODE === 'supabase' && !process.env.SUPABASE_URL) {
+  throw new Error('SUPABASE_URL required for supabase mode');
+}
+if (STORAGE_MODE === 's3' && !process.env.AWS_S3_BUCKET) {
+  throw new Error('AWS_S3_BUCKET required for s3 mode');
 }
 
 const groq = new Groq({ apiKey: GROQ_API_KEY });
@@ -1060,15 +1075,14 @@ function githubRequest(method, url, body) {
 }
 
 async function ghGetJson(url) {
-  // Use memory storage
+  // Memory storage
   if (STORAGE_MODE === 'memory') {
-    const key = url;
-    const data = memoryStorage.get(key);
+    const data = memoryStorage.get(url);
     return data ? { ok: true, json: data, body: JSON.stringify(data) } : { ok: false, status: 404 };
   }
-  // Use local file storage
+  // Local file storage
   if (STORAGE_MODE === 'local') {
-    const key = url.replace(/.*\/contents\//, '').replace(/\?.*/, '');
+    const key = 'data/' + url.split('/').pop();
     try {
       const fs = require('fs');
       if (fs.existsSync(key)) {
@@ -1078,32 +1092,58 @@ async function ghGetJson(url) {
     } catch {}
     return { ok: false, status: 404 };
   }
-  // Use GitHub
+  // Firebase (placeholder for now)
+  if (STORAGE_MODE === 'firebase') {
+    console.log('>>> Firebase not implemented yet');
+    return { ok: false, status: 501 };
+  }
+  // Supabase (placeholder)
+  if (STORAGE_MODE === 'supabase') {
+    console.log('>>> Supabase not implemented yet');
+    return { ok: false, status: 501 };
+  }
+  // S3 (placeholder)
+  if (STORAGE_MODE === 's3') {
+    console.log('>>> S3 not implemented yet');
+    return { ok: false, status: 501 };
+  }
+  // GitHub (default)
   const res = await githubRequest('GET', url);
-  if (!res.ok) console.log('>>> GITHUB GET ERROR:', res.status, res.body?.slice(0, 200));
+  if (!res.ok) console.log('>>> GITHUB GET ERROR:', res.status);
   let json = null;
   try { json = res.body ? JSON.parse(res.body) : null; } catch { json = null; }
   return { ...res, json };
 }
 
 async function ghPutJson(url, body) {
-  // Use memory storage
+  // Memory storage
   if (STORAGE_MODE === 'memory') {
     memoryStorage.set(url, body);
     return { ok: true };
   }
-  // Use local file storage
+  // Local file storage
   if (STORAGE_MODE === 'local') {
-    const key = url.replace(/.*\/contents\//, '').replace(/\?.*/, '');
+    const key = 'data/' + url.split('/').pop();
     const fs = require('fs');
-    const dir = key.split('/').slice(0, -1).join('/');
-    if (dir) fs.mkdirSync(dir, { recursive: true });
+    fs.mkdirSync('data', { recursive: true });
     fs.writeFileSync(key, JSON.stringify(body, null, 2));
     return { ok: true };
   }
-  // Use GitHub
+  // Firebase (placeholder)
+  if (STORAGE_MODE === 'firebase') {
+    return { ok: false, status: 501 };
+  }
+  // Supabase (placeholder)
+  if (STORAGE_MODE === 'supabase') {
+    return { ok: false, status: 501 };
+  }
+  // S3 (placeholder)
+  if (STORAGE_MODE === 's3') {
+    return { ok: false, status: 501 };
+  }
+  // GitHub (default)
   const res = await githubRequest('PUT', url, body);
-  if (!res.ok) console.log('>>> GITHUB PUT ERROR:', res.status, res.body?.slice(0, 200));
+  if (!res.ok) console.log('>>> GITHUB PUT ERROR:', res.status);
   return res;
 }
 
