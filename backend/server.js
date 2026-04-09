@@ -2333,10 +2333,12 @@ bot.command('do', async (ctx) => {
     
     let msg = `⚡ Task Created\nIntent: ${intent}\nTarget: ${appName}\nSteps: ${steps.length}\n`;
     if (routeMatched) msg += `📚 Using route: ${routeMatched}\n`;
-    msg += `ID: ${taskId.slice(0, 8)}...\n\nStarting...`;
+    msg += `⏳ ID: ${createdTaskId.slice(0, 8)}...\n\n🔄 Executing...`;
     
-    await ctx.reply(msg);
-    monitorTaskProgress(taskId, ctx.chat.id, steps);
+    const replyMsg = await ctx.reply(msg);
+    // React with hourglass while running
+    replyMsg?.react('⏳').catch(() => {});
+    monitorTaskProgress(createdTaskId, ctx.chat.id, steps);
   } catch (e) {
     await ctx.reply('❌ Error: ' + e.message);
   }
