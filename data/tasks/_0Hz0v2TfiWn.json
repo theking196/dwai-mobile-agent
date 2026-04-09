@@ -1,0 +1,42 @@
+{
+  "task_id": "_0Hz0v2TfiWn",
+  "type": "automation",
+  "status": "pending",
+  "intent": "LIVE",
+  "mode": "live",
+  "goal": "Open WhatsApp business and open the group teens Kingdom Mandate in 3 steps",
+  "target_app": "com.whatsapp.w4b",
+  "steps": [
+    {
+      "action": "launch_app",
+      "value": "com.whatsapp.w4b",
+      "description": "Open WhatsApp Business",
+      "id": 1,
+      "verify": true
+    },
+    {
+      "action": "click",
+      "text": "Search",
+      "description": "Tap search bar to find the group",
+      "id": 2,
+      "verify": true
+    },
+    {
+      "action": "type",
+      "text": "teens Kingdom Mandate",
+      "description": "Enter the group name to search",
+      "id": 3,
+      "verify": true
+    }
+  ],
+  "slots": {},
+  "llm_intent": "Open WhatsApp Business and navigate to a specific group",
+  "llm_confidence": 0.9,
+  "route_matched": null,
+  "execution_notes": "Ensure WhatsApp Business is installed and configured properly. The group 'teens Kingdom Mandate' must exist and be accessible by the user.",
+  "chat_id": 7345542163,
+  "user_id": 7345542163,
+  "created_at": "2026-04-09T14:13:32.717Z",
+  "priority": 2,
+  "verify_every_step": true
+}
