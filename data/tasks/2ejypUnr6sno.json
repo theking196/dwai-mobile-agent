@@ -1,7 +1,7 @@
 {
   "task_id": "2ejypUnr6sno",
   "type": "automation",
-  "status": "pending",
+  "status": "executing",
   "intent": "AUTO",
   "mode": "normal",
   "goal": "List apps on my phone",
@@ -76,5 +76,7 @@
   "user_id": 7345542163,
   "created_at": "2026-04-09T06:13:26.104Z",
   "priority": 5,
-  "verify_every_step": true
+  "verify_every_step": true,
+  "started_at": "2026-04-09T06:13:41.721Z",
+  "worker_id": "phone-vivo 1906-720x1544"
 }
