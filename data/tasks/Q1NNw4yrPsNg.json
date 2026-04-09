@@ -1,0 +1,56 @@
+{
+  "task_id": "Q1NNw4yrPsNg",
+  "type": "automation",
+  "status": "pending",
+  "intent": "AUTO",
+  "mode": "normal",
+  "goal": "Open YouTube and watch updated on openclaw",
+  "target_app": "com.google.android.youtube",
+  "steps": [
+    {
+      "action": "launch_app",
+      "value": "com.google.android.youtube",
+      "description": "Open YouTube",
+      "id": 1,
+      "verify": true
+    },
+    {
+      "action": "click",
+      "text": "Search",
+      "description": "Tap search icon",
+      "id": 2,
+      "verify": true
+    },
+    {
+      "action": "type",
+      "text": "openclaw",
+      "description": "Enter search query",
+      "id": 3,
+      "verify": true
+    },
+    {
+      "action": "press",
+      "key": "enter",
+      "description": "Submit search query",
+      "id": 4,
+      "verify": true
+    },
+    {
+      "action": "click",
+      "text": "Updated",
+      "description": "Select video with 'Updated' in title",
+      "id": 5,
+      "verify": true
+    }
+  ],
+  "slots": {},
+  "llm_intent": "Watch YouTube video on openclaw",
+  "llm_confidence": 0.8,
+  "route_matched": null,
+  "execution_notes": "Warnings: Ensure user has a stable internet connection and sufficient storage space to stream the video.",
+  "chat_id": 7345542163,
+  "user_id": 7345542163,
+  "created_at": "2026-04-09T14:02:09.953Z",
+  "priority": 5,
+  "verify_every_step": true
+}
