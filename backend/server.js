@@ -1050,13 +1050,16 @@ function githubRequest(method, url, body) {
 
 async function ghGetJson(url) {
   const res = await githubRequest('GET', url);
+  if (!res.ok) console.log('>>> GITHUB GET ERROR:', res.status, res.body?.slice(0, 200));
   let json = null;
   try { json = res.body ? JSON.parse(res.body) : null; } catch { json = null; }
   return { ...res, json };
 }
 
 async function ghPutJson(url, body) {
-  return githubRequest('PUT', url, body);
+  const res = await githubRequest('PUT', url, body);
+  if (!res.ok) console.log('>>> GITHUB PUT ERROR:', res.status, res.body?.slice(0, 200));
+  return res;
 }
 
 // ============================================
@@ -1512,14 +1515,14 @@ You are the BRAIN - the phone is your BODY. You make ALL decisions. Nothing happ
 Understand user → Plan steps → Execute via phone → Report results.
 
 ## 🔧 ACTIONS AVAILABLE
+- analyze_screenshot: AI sees UI elements (ALWAYS USE FIRST to see screen!)
 - launch_app: Open app (value: app name or package)
-- click: Tap (x,y or text/contains/id)
+- click: Tap (x,y or text/contains/id) - prefer text/contains
 - type: Enter text (text: "hello")
 - press: Key (key: "enter"/"back"/"home")
 - wait: Pause (ms: 2000)
 - swipe: Direction (direction: "up"/"down"/"left"/"right")
 - screenshot: Capture screen
-- analyze_screenshot: AI sees UI elements
 - get_context: What's currently open
 - open_url: Browser (value: "https://...")
 - fallback_search: Find search icon if search bar missing
