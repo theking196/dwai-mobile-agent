@@ -1,7 +1,7 @@
 {
   "task_id": "Yd-QnTP3eGI2",
   "type": "automation",
-  "status": "executing",
+  "status": "completed",
   "intent": "AUTO",
   "mode": "normal",
   "goal": "Open chrome and search for lion",
@@ -34,5 +34,6 @@
   "validate_steps": true,
   "user_id": 7345542163,
   "started_at": "2026-04-09T01:49:58.892Z",
-  "worker_id": "phone-vivo 1906-720x1544"
+  "worker_id": "phone-vivo 1906-720x1544",
+  "finished_at": "2026-04-09T01:50:11.776Z"
 }
