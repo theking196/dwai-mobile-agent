@@ -1995,6 +1995,8 @@ Generate a natural language report explaining what was attempted, which apps wer
 // TASK CREATION (Complete with All Modes)
 // ============================================
 async function createRegularTask(userText, intent, mode, userId, chatId) {
+  console.log('========================================');
+  console.log('>>> CREATE TASK INPUT:', {userText, intent, mode, userId});
   const taskId = nanoid(12);
   
   // Try route match first
@@ -2003,29 +2005,43 @@ async function createRegularTask(userText, intent, mode, userId, chatId) {
   let slotValues = {};
   let orch = null;
   
+  console.log('>>> Checking stored routes...');
   const matchedRoute = await findMatchingRoute(userText);
+  console.log('>>> Route match:', matchedRoute ? 'FOUND: '+matchedRoute.route_id : 'NOT FOUND');
   if (matchedRoute && matchedRoute.steps) {
     routeMatched = matchedRoute.route_id;
     slotValues = await extractSlotsFromUserInput(matchedRoute, userText);
     steps = fillSlots(matchedRoute.steps, slotValues);
+    console.log('>>> Using ROUTE steps:', steps.length);
   } else {
     // Use LLM Brain
+    console.log('>>> Calling LLM Brain...');
     orch = await llmOrchestrate(userText, { mode, userId });
-    if (orch.error) throw new Error(orch.error);
+    console.log('>>> LLM returned:', JSON.stringify(orch)?.slice(0, 300));
+    if (orch.error) {
+      console.log('>>> LLM ERROR:', orch.error);
+      throw new Error(orch.error);
+    }
     if (!orch.steps || !Array.isArray(orch.steps)) {
+      console.log('>>> LLM returned no steps, checking template...');
       // Fallback to template
       const template = buildTemplateSteps(userText);
-      if (template) steps = template;
+      if (template) {
+        steps = template;
+        console.log('>>> Using TEMPLATE steps:', steps.length);
+      }
     } else {
-      console.log('orch.steps before map:', JSON.stringify(orch.steps)?.slice(0, 100));
+      console.log('>>> LLM returned steps, processing:', orch.steps.length);
+      console.log('>>> orch.steps:', JSON.stringify(orch.steps));
       try {
         steps = orch.steps.map(s => ({
           ...s,
           text: fillSlots(s.text || '', orch.slots),
           value: fillSlots(s.value || '', orch.slots)
         }));
+        console.log('>>> MAPPED steps:', steps.length);
       } catch(mapErr) {
-        console.error('Map error:', mapErr.message);
+        console.error('>>> MAP ERROR:', mapErr.message);
         steps = [];
       }
     }
@@ -2098,6 +2114,9 @@ async function createRegularTask(userText, intent, mode, userId, chatId) {
   
   // Add to queue
   await enqueueTask(taskId, task.priority);
+  
+  console.log('>>> TASK CREATED SUCCESS:', {taskId, steps: steps.length, target: task.target_app});
+  console.log('========================================');
   
   return { taskId, steps, targetApp: task.target_app, intent: orch?.intent || 'route', routeMatched };
 }
