@@ -1,7 +1,7 @@
 {
   "task_id": "IrUl5RXEzIE1",
   "type": "automation",
-  "status": "pending",
+  "status": "executing",
   "intent": "AUTO",
   "mode": "normal",
   "goal": "open maps",
@@ -54,5 +54,7 @@
   "user_id": 7345542163,
   "created_at": "2026-04-09T01:56:35.298Z",
   "priority": 5,
-  "verify_every_step": true
+  "verify_every_step": true,
+  "started_at": "2026-04-09T01:57:23.855Z",
+  "worker_id": "phone-vivo 1906-720x1544"
 }
