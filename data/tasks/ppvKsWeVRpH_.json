@@ -1,7 +1,7 @@
 {
   "task_id": "ppvKsWeVRpH_",
   "type": "automation",
-  "status": "executing",
+  "status": "failed",
   "intent": "AUTO",
   "mode": "normal",
   "goal": "open chrome app",
@@ -107,5 +107,7 @@
   "priority": 5,
   "verify_every_step": true,
   "started_at": "2026-04-09T01:46:51.179Z",
-  "worker_id": "phone-vivo 1906-720x1544"
+  "worker_id": "phone-vivo 1906-720x1544",
+  "finished_at": "2026-04-09T01:47:03.361Z",
+  "error": "Error: Verification failed: Expected com.android.chrome, but in com.vivo.gallery"
 }
