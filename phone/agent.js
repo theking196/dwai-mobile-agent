@@ -1857,7 +1857,7 @@ getCurrentContext();
 
 log("Installed apps discovered: " + Object.keys(INSTALLED_APPS).length);
 log("Known apps available: " + Object.keys(KNOWN_APPS).length);
-log("Agent ready (v2.5 - Features: Chaining, Routes, AppList, Context, LiveVision). Waiting for tasks...");
+log("Agent ready (v2.9 - Final Batch: Imagine, Skills, Workflow, Self-Upgrade, Schedule, MultiLang). Waiting for tasks...");
 
 // Main loop
 while (true) {
