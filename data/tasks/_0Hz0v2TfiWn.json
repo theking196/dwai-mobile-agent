@@ -1,7 +1,7 @@
 {
   "task_id": "_0Hz0v2TfiWn",
   "type": "automation",
-  "status": "pending",
+  "status": "executing",
   "intent": "LIVE",
   "mode": "live",
   "goal": "Open WhatsApp business and open the group teens Kingdom Mandate in 3 steps",
@@ -38,5 +38,7 @@
   "user_id": 7345542163,
   "created_at": "2026-04-09T14:13:32.717Z",
   "priority": 2,
-  "verify_every_step": true
+  "verify_every_step": true,
+  "started_at": "2026-04-09T14:14:17.917Z",
+  "worker_id": "phone-vivo 1906-720x1544"
 }
