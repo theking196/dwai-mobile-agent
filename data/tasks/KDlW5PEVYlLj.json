@@ -1,7 +1,7 @@
 {
   "task_id": "KDlW5PEVYlLj",
   "type": "automation",
-  "status": "executing",
+  "status": "failed",
   "intent": "AUTO",
   "mode": "normal",
   "goal": "Hey",
@@ -101,5 +101,7 @@
   "priority": 5,
   "verify_every_step": true,
   "started_at": "2026-04-09T06:14:25.372Z",
-  "worker_id": "phone-vivo 1906-720x1544"
+  "worker_id": "phone-vivo 1906-720x1544",
+  "finished_at": "2026-04-09T06:14:51.341Z",
+  "error": "Error: Click failed"
 }
