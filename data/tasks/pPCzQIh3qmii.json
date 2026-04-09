@@ -1,0 +1,57 @@
+{
+  "task_id": "pPCzQIh3qmii",
+  "type": "automation",
+  "status": "pending",
+  "intent": "AUTO",
+  "mode": "normal",
+  "goal": "open youtube and search for cats",
+  "target_app": "com.google.android.youtube",
+  "steps": [
+    {
+      "action": "launch_app",
+      "value": "youtube",
+      "verify": true,
+      "description": "Launch youtube",
+      "id": 1,
+      "target_package": "com.google.android.youtube"
+    },
+    {
+      "action": "verify",
+      "package": "com.google.android.youtube",
+      "strict": true,
+      "description": "Verify youtube launched"
+    },
+    {
+      "action": "wait",
+      "ms": 4000,
+      "description": "Wait for app to load"
+    },
+    {
+      "action": "verify",
+      "package": "com.google.android.youtube",
+      "strict": true,
+      "description": "Verify youtube launched"
+    },
+    {
+      "action": "wait",
+      "ms": 4000,
+      "description": "Wait for app to load"
+    },
+    {
+      "action": "verify",
+      "package": "com.google.android.youtube",
+      "description": "Confirm youtube is open",
+      "id": 2
+    }
+  ],
+  "slots": {},
+  "llm_intent": "open_youtube",
+  "llm_confidence": 0.8,
+  "route_matched": null,
+  "execution_notes": "Basic app launch",
+  "chat_id": 7345542163,
+  "user_id": 7345542163,
+  "created_at": "2026-04-09T01:50:35.928Z",
+  "priority": 5,
+  "verify_every_step": true
+}
