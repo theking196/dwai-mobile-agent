@@ -16,7 +16,7 @@ const GROQ_API_KEY = process.env.GROQ_API_KEY;
 const TELEGRAM_BOT_TOKEN = process.env.TELEGRAM_BOT_TOKEN;
 const GITHUB_TOKEN = process.env.GITHUB_TOKEN;
 const GITHUB_REPO = process.env.GITHUB_REPO;
-const GROQ_MODEL = process.env.GROQ_MODEL || 'qwen/qwen3-32b';
+const GROQ_MODEL = process.env.GROQ_MODEL || 'llama-3.1-70b-versatile';
 const GITHUB_BRANCH = process.env.GITHUB_BRANCH || 'main';
 
 // ============================================
@@ -1613,8 +1613,9 @@ Now process: "${userText}";
     
     return parsed;
   } catch (e) {
-    console.error('LLM Error:', e);
-    return fallbackOrchestrate(userText);
+    console.error('LLM Error:', e.message);
+    // Return error so we can see it
+    return { intent: 'error', confidence: 0, steps: [], error: e.message };
   }
 }
 
