@@ -1614,7 +1614,21 @@ Now process: "${userText}";
     return parsed;
   } catch (e) {
     console.error('LLM Error:', e.message);
-    // Return error so we can see it
+    // Save error to GitHub for debugging
+    const errorLog = {
+      time: new Date().toISOString(),
+      type: 'llm_error',
+      message: e.message,
+      userText: userText
+    };
+    try {
+      const logUrl = `${GITHUB_API}/data/error_log.json`;
+      await ghPutJson(logUrl, {
+        message: 'LLM Error log',
+        content: Buffer.from(JSON.stringify(errorLog, null, 2)).toString('base64'),
+        branch: GITHUB_BRANCH
+      });
+    } catch {}
     return { intent: 'error', confidence: 0, steps: [], error: e.message };
   }
 }
