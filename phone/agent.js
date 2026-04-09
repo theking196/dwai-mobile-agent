@@ -1116,6 +1116,25 @@ function execStep(step, stepNum, totalSteps) {
       }
       throw new Error("Swipe requires x1, y1, x2, y2");
       
+    // FEATURE 4: Fallback Search - when element not found, try search icon
+    case "fallback_search":
+      // Try to find search icon/box as fallback
+      try {
+        var searchIcon = descContains("Search").findOne(500) || 
+                        textContains("Search").findOne(500) ||
+                        idContains("search").findOne(500);
+        if (searchIcon && searchIcon.clickable()) {
+          searchIcon.click();
+          log("Fallback: clicked search icon");
+          reportProgress(stepNum, totalSteps, "completed", "Found and clicked search");
+          return true;
+        }
+      } catch (e) {
+        log("Fallback search failed: " + e);
+      }
+      reportProgress(stepNum, totalSteps, "failed", "Could not find search element");
+      return false;
+    
     case "verify":
     case "verify_app":
       reportProgress(stepNum, totalSteps, "verifying", "Verifying app context...");

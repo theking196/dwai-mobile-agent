@@ -1,5 +1,5 @@
-// DWAI Server v2.5 - WITH NEW FEATURES
-// 1. Command Chaining 2. Stored Routes Access 3. App List 4. Context Awareness 5. Live Mode Vision
+// DWAI Server v2.7 - WITH BATCH 3 FEATURES
+// 1. Clarification 2. Route Matching 3. Complex Tasks 4. Fallback Search 5. External API
 
 require('dotenv').config();
 const express = require('express');
@@ -137,6 +137,228 @@ async function analyzeScreenshot(screenshotBase64) {
   }
 }
 
+// ============================================
+// BATCH 3 NEW FEATURES - INTELLIGENCE & EXTERNAL API
+// ============================================
+
+// FEATURE 1: Ask for Clarification when uncertain
+const CONFIDENCE_THRESHOLD = 0.7;
+
+async function askClarification(ctx, userText, options) {
+  const optionsText = options.map((opt, i) => `${i + 1}. ${opt}`).join('\n');
+  const message = `🤔 I'm not entirely sure what you mean. Did you mean:\n\n${optionsText}\n\nOr please clarify your request.`;
+  
+  // Create inline buttons for quick selection
+  const buttons = options.map((opt, i) => ({
+    text: opt,
+    callback_data: `clarify_${i}`
+  }));
+  
+  await ctx.reply(message, {
+    reply_markup: {
+      inline_keyboard: buttons.map(btn => [btn])
+    },
+    parse_mode: 'Markdown'
+  });
+}
+
+// FEATURE 2: Enhanced Route Matching with suggestions
+async function findBestRoute(userText) {
+  const routes = await fetchStoredRoutes();
+  if (routes.length === 0) return null;
+  
+  const lowerText = userText.toLowerCase();
+  let bestMatch = null;
+  let bestScore = 0;
+  
+  for (const route of routes) {
+    const goal = (route.goal || '').toLowerCase();
+    let score = 0;
+    
+    // Exact match
+    if (goal === lowerText) score = 100;
+    // Partial match
+    else if (lowerText.includes(goal) || goal.includes(lowerText)) score = 80;
+    // Word overlap
+    else {
+      const textWords = lowerText.split(/\s+/).filter(w => w.length > 2);
+      const goalWords = goal.split(/\s+/).filter(w => w.length > 2);
+      const overlap = textWords.filter(w => goalWords.some(gw => gw.includes(w) || w.includes(gw))).length;
+      score = (overlap / Math.max(textWords.length, goalWords.length)) * 60;
+    }
+    
+    // Boost score if route has been used before (check keywords)
+    if (route.keywords) {
+      for (const kw of route.keywords) {
+        if (lowerText.includes(kw.toLowerCase())) score += 10;
+      }
+    }
+    
+    if (score > bestScore && score > 30) {
+      bestScore = score;
+      bestMatch = { route, score };
+    }
+  }
+  
+  return bestMatch;
+}
+
+// FEATURE 3: Complex Task Analysis - break down complex tasks
+async function analyzeComplexTask(userText) {
+  const prompt = `Analyze this user request and break it down into simple steps if needed.
+  
+User request: "${userText}"
+
+If this is a COMPLEX task (multiple steps, multiple apps, or conditional), return:
+{"complex": true, "steps": ["step 1", "step 2", ...], "reason": "why it's complex"}
+
+If it's SIMPLE, return:
+{"complex": false, "reason": "why it's simple"}`;
+
+  try {
+    const res = await groq.chat.completions.create({
+      model: GROQ_MODEL,
+      messages: [
+        { role: 'system', content: 'Task analyzer. Output JSON only.' },
+        { role: 'user', content: prompt }
+      ],
+      temperature: 0.1,
+      max_tokens: 300
+    });
+    
+    const result = extractJsonObject(res.choices[0].message.content);
+    return result || { complex: false, reason: 'analysis failed' };
+  } catch (e) {
+    return { complex: false, reason: 'error: ' + e.message };
+  }
+}
+
+// FEATURE 4: Fallback Search - when UI element not found, try search icon
+function buildFallbackSteps(taskDescription, failedAction) {
+  const lowerDesc = (taskDescription || '').toLowerCase();
+  
+  // If searching failed, try finding search icon
+  if (lowerDesc.includes('search') && failedAction === 'element_not_found') {
+    return [
+      { action: 'click', contains: 'Search', desc: 'Search icon', description: 'Find search icon' },
+      { action: 'wait', ms: 1000 }
+    ];
+  }
+  
+  return null;
+}
+
+// FEATURE 5: External API with Security (API Key authentication)
+const API_KEYS = new Map(); // token -> {userId, created, expires}
+const EXTERNAL_API_SECRET = process.env.EXTERNAL_API_SECRET || 'dwai-secret-key-change-me';
+
+function generateApiKey(userId) {
+  const key = 'dwai_' + nanoid(32);
+  const expires = Date.now() + (30 * 24 * 60 * 60 * 1000); // 30 days
+  
+  API_KEYS.set(key, { userId, created: Date.now(), expires });
+  return { key, expires: new Date(expires).toISOString() };
+}
+
+function validateApiKey(key) {
+  const token = API_KEYS.get(key);
+  if (!token) return null;
+  if (token.expires < Date.now()) {
+    API_KEYS.delete(key);
+    return null;
+  }
+  return token;
+}
+
+// External API endpoints
+app.post('/api/key', async (req, res) => {
+  const { secret, user_id } = req.body;
+  
+  if (secret !== EXTERNAL_API_SECRET) {
+    return res.status(401).json({ error: 'Invalid secret' });
+  }
+  
+  const { key, expires } = generateApiKey(user_id);
+  res.json({ key, expires });
+});
+
+app.delete('/api/key/:key', (req, res) => {
+  const { key } = req.params;
+  API_KEYS.delete(key);
+  res.json({ ok: true, message: 'API key revoked' });
+});
+
+// External execution endpoint
+app.post('/api/execute', async (req, res) => {
+  const { key, command, mode } = req.body;
+  
+  // Validate API key
+  const token = validateApiKey(key);
+  if (!token) {
+    return res.status(401).json({ error: 'Invalid or expired API key' });
+  }
+  
+  try {
+    // Execute command like regular text handler
+    const { taskId, steps, targetApp } = await createRegularTask(
+      command, 
+      'API', 
+      mode || 'normal', 
+      token.userId, 
+      token.userId // Use userId as chat_id for external
+    );
+    
+    res.json({ 
+      ok: true, 
+      taskId, 
+      steps: steps.length, 
+      target: targetApp 
+    });
+  } catch (e) {
+    res.status(500).json({ error: e.message });
+  }
+});
+
+// External status check
+app.get('/api/task/:taskId', async (req, res) => {
+  const { key } = req.query;
+  const { taskId } = req.params;
+  
+  const token = validateApiKey(key);
+  if (!token) {
+    return res.status(401).json({ error: 'Invalid or expired API key' });
+  }
+  
+  try {
+    const taskUrl = `${GITHUB_API}/${TASKS_PATH}/${taskId}.json`;
+    const taskRes = await ghGetJson(taskUrl);
+    
+    if (!taskRes.ok || !taskRes.json?.content) {
+      return res.status(404).json({ error: 'Task not found' });
+    }
+    
+    const task = JSON.parse(Buffer.from(taskRes.json.content, 'base64').toString());
+    res.json({ 
+      task_id: task.task_id, 
+      status: task.status,
+      created_at: task.created_at,
+      finished_at: task.finished_at
+    });
+  } catch (e) {
+    res.status(500).json({ error: e.message });
+  }
+});
+
+// Health check for external API
+app.get('/api/health', (req, res) => {
+  res.json({ 
+    status: 'ok', 
+    version: '2.7',
+    features: ['external_api', 'api_keys', 'secure_execution'],
+    active_keys: API_KEYS.size
+  });
+});
+
 if (!GROQ_API_KEY) throw new Error('GROQ_API_KEY required');
 if (!TELEGRAM_BOT_TOKEN) throw new Error('TELEGRAM_BOT_TOKEN required');
 if (!GITHUB_TOKEN || !GITHUB_REPO) throw new Error('GITHUB_TOKEN and GITHUB_REPO required');
@@ -195,7 +417,7 @@ const APP_REGISTRY = {
 };
 
 const ALLOWED_ACTIONS = new Set([
-  'launch_app', 'click', 'type', 'press', 'wait', 'toast', 'swipe', 'verify', 'open_url', 'observe', 'scroll_find', 'screenshot', 'get_context', 'analyze_screenshot'
+  'launch_app', 'click', 'type', 'press', 'wait', 'toast', 'swipe', 'verify', 'open_url', 'observe', 'scroll_find', 'screenshot', 'get_context', 'analyze_screenshot', 'fallback_search'
 ]);
 
 // ============================================
@@ -607,6 +829,8 @@ function isStepValid(step) {
       return true;  // FEATURE 4: Get device context
     case 'analyze_screenshot':
       return true;  // FEATURE 5: AI Vision - analyze screenshot
+    case 'fallback_search':
+      return true;  // FEATURE 4: Fallback to search icon
     case 'open_url':
       return typeof step.value === 'string' && step.value.trim().length > 0;
     default:
@@ -1274,7 +1498,7 @@ async function monitorTaskProgress(taskId, chatId, steps) {
 // TELEGRAM HANDLERS (All Commands)
 // ============================================
 bot.command('start', async (ctx) => {
-  await ctx.reply(`👋 DWAI Mobile Agent v2.6
+  await ctx.reply(`👋 DWAI Mobile Agent v2.7
 
 ✅ LLM Brain - Natural language understanding
 ✅ Step Verification - Every action confirmed
@@ -1467,14 +1691,52 @@ bot.on('text', async (ctx) => {
     // Show typing indicator while processing
     await sendTypingAction(ctx.chat.id);
     
-    const { taskId, steps, targetApp } = await createRegularTask(userMessage, 'AUTO', 'normal', userId, ctx.chat.id);
+    // FEATURE 3: Analyze if this is a complex task
+    const taskAnalysis = await analyzeComplexTask(userMessage);
+    
+    if (taskAnalysis.complex) {
+      await ctx.reply(`📊 *Task Analysis*\n\nThis is a complex task. I'll break it down:\n\n${taskAnalysis.steps.map((s, i) => `${i + 1}. ${s}`).join('\n')}`, { parse_mode: 'Markdown' });
+    }
+    
+    // FEATURE 2: Check for best matching route first
+    const routeMatch = await findBestRoute(userMessage);
+    let routeMatched = null;
+    let steps = [];
+    let targetApp = null;
+    
+    if (routeMatch && routeMatch.score > 60) {
+      // High confidence route match - use it
+      const { taskId, steps: routeSteps, targetApp: app } = await createRegularTask(
+        userMessage, 'ROUTE', 'normal', userId, ctx.chat.id
+      );
+      steps = routeSteps;
+      targetApp = app;
+      routeMatched = routeMatch.route.goal;
+    } else if (routeMatch && routeMatch.score > 30) {
+      // Medium confidence - ask for clarification
+      await askClarification(ctx, userMessage, [
+        routeMatch.route.goal,
+        'Do something else'
+      ]);
+      return;
+    } else {
+      // No route match - use LLM to generate steps
+      const result = await createRegularTask(userMessage, 'AUTO', 'normal', userId, ctx.chat.id);
+      steps = result.steps;
+      targetApp = result.targetApp;
+    }
+    
     const appName = targetApp ? targetApp.split('.').pop() : 'device';
     
     // FEATURE 3: Use rich Telegram-style response
-    const statusMsg = `🤖 *Executing on ${appName}...*\n📋 Steps: ${steps.length}\n⏳ Processing...`;
+    let statusMsg = `🤖 *Executing on ${appName}...*\n📋 Steps: ${steps.length}`;
+    if (routeMatched) statusMsg += `\n📚 Using route: ${routeMatched}`;
+    if (taskAnalysis.complex) statusMsg += `\n🔀 Complex task (${taskAnalysis.steps.length} subtasks)`;
+    statusMsg += `\n⏳ Processing...`;
+    
     await ctx.reply(statusMsg, { parse_mode: 'Markdown' });
     
-    monitorTaskProgress(taskId, ctx.chat.id, steps);
+    monitorTaskProgress(routeMatched ? null : (await createRegularTask(userMessage, 'AUTO', 'normal', userId, ctx.chat.id)).taskId, ctx.chat.id, steps);
     
     // Add assistant response to context
     addToContext(userId, 'assistant', `Task created: ${steps.length} steps`);
@@ -1489,7 +1751,7 @@ bot.on('text', async (ctx) => {
 app.get('/health', (req, res) => {
   res.json({ 
     status: 'ok', 
-    version: '2.6',
+    version: '2.7',
     features: ['llm_brain', 'step_verification', 'priority_queue', 'teach_mode', 'route_matching', 'ai_reports', 'command_chaining', 'stored_routes', 'app_list', 'context_awareness', 'live_vision', 'web_search', 'context_memory', 'telegram_style', 'vision_analysis']
   });
 });
@@ -1547,7 +1809,7 @@ app.post('/report/:taskId', async (req, res) => {
 });
 
 app.listen(PORT, () => {
-  console.log(`DWAI Server v2.6 on port ${PORT}`);
+  console.log(`DWAI Server v2.7 on port ${PORT}`);
   console.log('Features: LLM Brain, Verification, Teach Mode, Routes, Progress');
 });
 
