@@ -1,7 +1,7 @@
 {
   "task_id": "gRITk83BF6pn",
   "type": "automation",
-  "status": "executing",
+  "status": "completed",
   "intent": "AUTO",
   "mode": "normal",
   "goal": "Open YouTube and search for cats",
@@ -38,5 +38,6 @@
   "validate_steps": true,
   "user_id": 7345542163,
   "started_at": "2026-04-09T01:50:39.836Z",
-  "worker_id": "phone-vivo 1906-720x1544"
+  "worker_id": "phone-vivo 1906-720x1544",
+  "finished_at": "2026-04-09T01:50:55.407Z"
 }
