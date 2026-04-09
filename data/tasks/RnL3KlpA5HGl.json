@@ -1,0 +1,63 @@
+{
+  "task_id": "RnL3KlpA5HGl",
+  "type": "automation",
+  "status": "pending",
+  "intent": "AUTO",
+  "mode": "normal",
+  "goal": "Send a message to Daddy saying hi",
+  "target_app": "com.whatsapp",
+  "steps": [
+    {
+      "action": "launch_app",
+      "value": "com.whatsapp",
+      "description": "Open WhatsApp",
+      "id": 1,
+      "verify": true
+    },
+    {
+      "action": "click",
+      "text": "Search",
+      "description": "Tap search bar",
+      "id": 2,
+      "verify": true
+    },
+    {
+      "action": "type",
+      "text": "Daddy",
+      "description": "Enter Daddy's name",
+      "id": 3,
+      "verify": true
+    },
+    {
+      "action": "click",
+      "text": "Daddy",
+      "description": "Select Daddy's chat",
+      "id": 4,
+      "verify": true
+    },
+    {
+      "action": "type",
+      "text": "hi",
+      "description": "Enter message",
+      "id": 5,
+      "verify": true
+    },
+    {
+      "action": "press",
+      "key": "enter",
+      "description": "Send message",
+      "id": 6,
+      "verify": true
+    }
+  ],
+  "slots": {},
+  "llm_intent": "Send message to Daddy",
+  "llm_confidence": 0.9,
+  "route_matched": null,
+  "execution_notes": "No warnings",
+  "chat_id": 7345542163,
+  "user_id": 7345542163,
+  "created_at": "2026-04-09T14:15:30.784Z",
+  "priority": 5,
+  "verify_every_step": true
+}
