@@ -2007,9 +2007,36 @@ async function createRegularTask(userText, intent, mode, userId, chatId) {
   }
   
   if (steps.length === 0) {
-    // Fallback to templates
+    // Fallback to template builder
     const template = buildTemplateSteps(userText);
     if (template) steps = template;
+    else {
+      // Final fallback - basic search templates
+      const lower = userText.toLowerCase();
+      if (lower.includes('youtube')) {
+        steps = [
+          { action: 'launch_app', value: 'youtube', description: 'Open YouTube', id: 1 },
+          { action: 'wait', ms: 4000, description: 'Wait for YouTube', id: 2 },
+          { action: 'click', contains: 'Search', description: 'Tap Search', id: 3 },
+          { action: 'wait', ms: 1000, description: 'Wait', id: 4 },
+          { action: 'type', text: userText.replace(/.*search\s+/i, '').trim(), description: 'Type search', id: 5 },
+          { action: 'press', key: 'enter', description: 'Search', id: 6 }
+        ];
+      } else if (lower.includes('search') || lower.includes('find')) {
+        steps = [
+          { action: 'launch_app', value: 'chrome', description: 'Open Chrome', id: 1 },
+          { action: 'wait', ms: 4000, description: 'Wait', id: 2 },
+          { action: 'click', id: 'com.android.chrome:id/url_bar', description: 'Tap URL bar', id: 3 },
+          { action: 'type', text: userText.replace(/^(search|find)\s+/i, '').trim(), description: 'Type query', id: 4 },
+          { action: 'press', key: 'enter', description: 'Search', id: 5 }
+        ];
+      } else {
+        steps = [
+          { action: 'launch_app', value: 'chrome', description: 'Open browser', id: 1 },
+          { action: 'wait', ms: 3000, description: 'Wait', id: 2 }
+        ];
+      }
+    }
   }
   
   const task = {
