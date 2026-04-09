@@ -1,5 +1,5 @@
-// DWAI Server v2.4 - COMPLETE with ALL Features
-// Original features preserved: Teach mode, Routes, Slots, AI Brain, Verification
+// DWAI Server v2.4 - COMPLETE (All Features Preserved + New Fixes)
+// Includes: All original features + LLM Brain + Step Verification + Progress Reporting
 
 require('dotenv').config();
 const express = require('express');
@@ -11,6 +11,7 @@ const { nanoid } = require('nanoid');
 const app = express();
 const PORT = process.env.PORT || 3000;
 
+// Environment validation
 const GROQ_API_KEY = process.env.GROQ_API_KEY;
 const TELEGRAM_BOT_TOKEN = process.env.TELEGRAM_BOT_TOKEN;
 const GITHUB_TOKEN = process.env.GITHUB_TOKEN;
@@ -37,7 +38,7 @@ const CURRENT_TASK_PATH = 'data/current_task.json';
 const TASK_QUEUE_PATH = 'data/task_queue.json';
 
 // ============================================
-// APP REGISTRY (Complete)
+// COMPLETE APP REGISTRY (All Original Entries)
 // ============================================
 const APP_REGISTRY = {
   youtube: { aliases: ['yt', 'you tube', 'utube'], package: 'com.google.android.youtube', category: 'video' },
@@ -101,7 +102,11 @@ function githubRequest(method, url, body) {
       let d = '';
       res.on('data', (c) => { d += c; });
       res.on('end', () => {
-        resolve({ ok: res.statusCode >= 200 && res.statusCode < 300, statusCode: res.statusCode, body: d });
+        resolve({
+          ok: res.statusCode >= 200 && res.statusCode < 300,
+          statusCode: res.statusCode,
+          body: d
+        });
       });
     });
     req.on('error', reject);
@@ -160,7 +165,7 @@ async function enqueueTask(taskId, priority = 5) {
 }
 
 // ============================================
-// UTILITIES (Complete)
+// UTILITIES (All Original Functions)
 // ============================================
 function escapeRegExp(str) {
   return String(str).replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
@@ -263,7 +268,7 @@ function cleanAiResponse(text) {
 }
 
 // ============================================
-// SLOT EXTRACTION (Preserved)
+// SLOT EXTRACTION (All Original Logic)
 // ============================================
 function extractSlotsFromExample(goal, steps) {
   const slots = [];
@@ -358,7 +363,6 @@ If a slot cannot be filled, omit it or use null.`;
       }
     }
   } catch {
-    // Fallback to regex
     for (const slot of route.slots) {
       if (slot.example) {
         const pattern = new RegExp(slot.example.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'i');
@@ -372,7 +376,7 @@ If a slot cannot be filled, omit it or use null.`;
 }
 
 // ============================================
-// STEP VALIDATION (Preserved)
+// STEP VALIDATION (All Original Logic)
 // ============================================
 function isStepValid(step) {
   if (!step || typeof step !== 'object') return false;
@@ -446,7 +450,7 @@ function sanitizeSteps(rawSteps) {
 }
 
 // ============================================
-// LLM ORCHESTRATION (Brain)
+// LLM ORCHESTRATION (The Brain)
 // ============================================
 async function llmOrchestrate(userText, context = {}) {
   const appList = Object.entries(APP_REGISTRY).map(([name, info]) => {
@@ -560,7 +564,7 @@ function fallbackOrchestrate(userText) {
 }
 
 // ============================================
-// TEMPLATE BUILDERS (Preserved)
+// TEMPLATE BUILDERS (All Original)
 // ============================================
 function buildTemplateSteps(userText) {
   const text = String(userText || '');
@@ -636,7 +640,7 @@ function buildTemplateSteps(userText) {
 }
 
 // ============================================
-// ROUTE SYSTEM (Preserved)
+// ROUTE SYSTEM (All Original)
 // ============================================
 async function saveRoute(routeId, routeData) {
   const fileUrl = `${GITHUB_API}/${ROUTES_PATH}/${routeId}.json`;
@@ -723,7 +727,7 @@ async function findMatchingRoute(userText) {
 }
 
 // ============================================
-// TEACH MODE (Preserved)
+// TEACH MODE (All Original Functions)
 // ============================================
 async function startTeachSession(userId, goal) {
   const taskId = 'teach_' + nanoid(8);
@@ -819,7 +823,7 @@ async function stopTeachSession(userId) {
 }
 
 // ============================================
-// PROGRESS & REPORTING
+// PROGRESS & REPORTING (New but Complete)
 // ============================================
 async function updateStepProgress(taskId, stepNum, totalSteps, status, details, error, appContext) {
   const data = {
@@ -871,7 +875,7 @@ Generate a natural language report explaining what was attempted, which apps wer
 }
 
 // ============================================
-// TASK CREATION (Complete)
+// TASK CREATION (Complete with All Modes)
 // ============================================
 async function createRegularTask(userText, intent, mode, userId, chatId) {
   const taskId = nanoid(12);
@@ -943,7 +947,7 @@ async function createRegularTask(userText, intent, mode, userId, chatId) {
 }
 
 // ============================================
-// MONITORING
+// MONITORING (Complete)
 // ============================================
 const activeMonitors = new Map();
 
@@ -1017,7 +1021,7 @@ async function monitorTaskProgress(taskId, chatId, steps) {
 }
 
 // ============================================
-// TELEGRAM HANDLERS (Complete)
+// TELEGRAM HANDLERS (All Commands)
 // ============================================
 bot.command('start', async (ctx) => {
   await ctx.reply(`👋 DWAI Mobile Agent v2.4 (Complete)
