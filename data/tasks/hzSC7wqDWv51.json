@@ -1,0 +1,103 @@
+{
+  "task_id": "hzSC7wqDWv51",
+  "type": "automation",
+  "status": "pending",
+  "intent": "AUTO",
+  "mode": "normal",
+  "goal": "open youtube and search for chatgpt",
+  "target_app": "com.google.android.youtube",
+  "steps": [
+    {
+      "action": "launch_app",
+      "value": "youtube",
+      "verify": true,
+      "description": "Open YouTube",
+      "id": 1,
+      "target_package": "com.google.android.youtube"
+    },
+    {
+      "action": "verify",
+      "package": "com.google.android.youtube",
+      "strict": true,
+      "description": "Verify youtube launched"
+    },
+    {
+      "action": "wait",
+      "ms": 4000,
+      "description": "Wait for app to load"
+    },
+    {
+      "action": "verify",
+      "package": "com.google.android.youtube",
+      "strict": true,
+      "description": "Verify youtube launched"
+    },
+    {
+      "action": "wait",
+      "ms": 4000,
+      "description": "Wait for app to load"
+    },
+    {
+      "action": "verify",
+      "package": "com.google.android.youtube",
+      "description": "Confirm YouTube",
+      "id": 2,
+      "strict": true
+    },
+    {
+      "action": "click",
+      "id": 3,
+      "verify_change": true,
+      "description": "Focus search bar"
+    },
+    {
+      "action": "verify",
+      "description": "Verify after click"
+    },
+    {
+      "action": "verify",
+      "description": "Verify after click"
+    },
+    {
+      "action": "type",
+      "text": "chatgpt",
+      "verify_appears": true,
+      "verify_app_before_type": true,
+      "description": "Type search query",
+      "id": 4
+    },
+    {
+      "action": "verify",
+      "description": "Verify after type"
+    },
+    {
+      "action": "verify",
+      "description": "Verify after type"
+    },
+    {
+      "action": "press",
+      "key": "enter",
+      "verify_change": true,
+      "description": "Submit search",
+      "id": 5
+    },
+    {
+      "action": "verify",
+      "description": "Verify after press"
+    },
+    {
+      "action": "verify",
+      "description": "Verify after press"
+    }
+  ],
+  "slots": {},
+  "llm_intent": "Open YouTube and search for chatgpt",
+  "llm_confidence": 0.95,
+  "route_matched": null,
+  "execution_notes": "Ensure YouTube search bar ID is valid for current app version",
+  "chat_id": 7345542163,
+  "user_id": 7345542163,
+  "created_at": "2026-04-09T02:05:13.566Z",
+  "priority": 5,
+  "verify_every_step": true
+}
