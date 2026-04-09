@@ -2155,8 +2155,8 @@ async function monitorTaskProgress(taskId, chatId, steps) {
       
       if (!res.ok) {
         console.log('>>> Progress not found yet - task may be queued');
-        continue;
-      }
+        // Skip this check, try again next interval
+      } else {
       
       if (res.json?.content) {
         const progress = JSON.parse(Buffer.from(res.json.content, 'base64').toString());
@@ -2204,6 +2204,7 @@ async function monitorTaskProgress(taskId, chatId, steps) {
             }, 1500);
           }
         }
+      }
       }
     } catch (e) {}
     
