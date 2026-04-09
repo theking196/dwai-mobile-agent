@@ -1,7 +1,7 @@
 {
   "task_id": "tn5MlojmE-M_",
   "type": "automation",
-  "status": "executing",
+  "status": "completed",
   "intent": "AUTO",
   "mode": "normal",
   "goal": "Which model is this",
@@ -27,5 +27,6 @@
   "validate_steps": true,
   "user_id": 7345542163,
   "started_at": "2026-04-09T01:53:39.654Z",
-  "worker_id": "phone-vivo 1906-720x1544"
+  "worker_id": "phone-vivo 1906-720x1544",
+  "finished_at": "2026-04-09T01:53:45.940Z"
 }
