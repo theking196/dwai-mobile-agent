@@ -2150,9 +2150,15 @@ async function monitorTaskProgress(taskId, chatId, steps) {
     
     try {
       const url = `${GITHUB_API}/${PROGRESS_PATH}/${taskId}_progress.json`;
+      console.log('>>> Checking progress:', taskId.slice(0,8));
       const res = await ghGetJson(url);
       
-      if (res.ok && res.json?.content) {
+      if (!res.ok) {
+        console.log('>>> Progress not found yet - task may be queued');
+        continue;
+      }
+      
+      if (res.json?.content) {
         const progress = JSON.parse(Buffer.from(res.json.content, 'base64').toString());
         const currentStep = progress.step_number;
         
