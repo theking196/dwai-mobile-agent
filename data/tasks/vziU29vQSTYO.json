@@ -1,0 +1,109 @@
+{
+  "task_id": "vziU29vQSTYO",
+  "type": "automation",
+  "status": "pending",
+  "intent": "AUTO",
+  "mode": "normal",
+  "goal": "Open chrome",
+  "target_app": "com.android.chrome",
+  "steps": [
+    {
+      "action": "launch_app",
+      "value": "chrome",
+      "verify": true,
+      "description": "Launch Chrome browser",
+      "id": 1,
+      "target_package": "com.android.chrome"
+    },
+    {
+      "action": "verify",
+      "package": "com.android.chrome",
+      "strict": true,
+      "description": "Verify chrome launched"
+    },
+    {
+      "action": "wait",
+      "ms": 4000,
+      "description": "Wait for app to load"
+    },
+    {
+      "action": "verify",
+      "package": "com.android.chrome",
+      "strict": true,
+      "description": "Verify chrome launched"
+    },
+    {
+      "action": "wait",
+      "ms": 4000,
+      "description": "Wait for app to load"
+    },
+    {
+      "action": "verify",
+      "package": "com.android.chrome",
+      "strict": true,
+      "description": "Verify Chrome is open",
+      "id": 2
+    },
+    {
+      "action": "click",
+      "id": 3,
+      "verify_change": true,
+      "description": "Click address bar"
+    },
+    {
+      "action": "verify",
+      "description": "Verify after click"
+    },
+    {
+      "action": "verify",
+      "description": "Verify after click"
+    },
+    {
+      "action": "type",
+      "text": "search",
+      "verify_appears": true,
+      "verify_app_before_type": true,
+      "description": "Type search query",
+      "id": 4
+    },
+    {
+      "action": "verify",
+      "description": "Verify after type"
+    },
+    {
+      "action": "verify",
+      "description": "Verify after type"
+    },
+    {
+      "action": "press",
+      "key": "enter",
+      "verify_change": true,
+      "description": "Press Enter to search",
+      "id": 5
+    },
+    {
+      "action": "verify",
+      "description": "Verify after press"
+    },
+    {
+      "action": "verify",
+      "description": "Verify after press"
+    },
+    {
+      "action": "wait",
+      "ms": 5000,
+      "description": "Wait for results",
+      "id": 6
+    }
+  ],
+  "slots": {},
+  "llm_intent": "chrome_search",
+  "llm_confidence": 0.9,
+  "route_matched": null,
+  "execution_notes": "Strict Chrome context enforcement",
+  "chat_id": 7345542163,
+  "user_id": 7345542163,
+  "created_at": "2026-04-09T05:08:36.051Z",
+  "priority": 5,
+  "verify_every_step": true
+}
