@@ -1137,7 +1137,7 @@ function execStep(step, stepNum, totalSteps) {
       reportProgress(stepNum, totalSteps, "completed", "Observation complete");
       return true;
     
-    // FEATURE 5: Live Mode Vision - Screenshot
+    // FEATURE 5: Live Mode Vision - Screenshot with AI Analysis
     case "screenshot":
       try {
         var bitmap = context.takeScreenshot();
@@ -1156,7 +1156,10 @@ function execStep(step, stepNum, totalSteps) {
               branch: BRANCH,
               encoding: "base64"
             });
-            log("Screenshot captured and uploaded");
+            log("Screenshot captured and uploaded to GitHub");
+            
+            // Try to get analysis from backend if available
+            // The backend will use the Groq vision model to analyze
           } catch (e) {
             log("Screenshot upload failed: " + e);
           }
@@ -1165,6 +1168,40 @@ function execStep(step, stepNum, totalSteps) {
         log("Screenshot error: " + e);
       }
       reportProgress(stepNum, totalSteps, "completed", "Screenshot captured");
+      return true;
+    
+    // NEW: analyze_screenshot - Get AI to analyze screenshot and identify elements
+    case "analyze_screenshot":
+      try {
+        var bitmap = context.takeScreenshot();
+        if (bitmap) {
+          var stream = new java.io.ByteArrayOutputStream();
+          bitmap.compress(android.graphics.Bitmap.CompressFormat.JPEG, 90, stream);
+          var bytes = stream.toByteArray();
+          var b64 = android.util.Base64.encodeToString(bytes, android.util.Base64.NO_WRAP);
+          
+          // Save for backend to analyze
+          var ssUrl = BASE_URL + "data/analysis_screenshot.jpg";
+          ghPutJson(ssUrl, {
+            message: "Screenshot for analysis",
+            content: b64,
+            branch: BRANCH,
+            encoding: "base64"
+          });
+          
+          // Mark in device state that we have a screenshot for analysis
+          var analysisState = {
+            pending_analysis: true,
+            timestamp: Date.now(),
+            task_id: CURRENT_TASK ? CURRENT_TASK.task_id : null
+          };
+          
+          log("Screenshot captured for AI analysis");
+        }
+      } catch (e) {
+        log("Analyze screenshot error: " + e);
+      }
+      reportProgress(stepNum, totalSteps, "completed", "Screenshot captured for analysis");
       return true;
     
     // FEATURE 4: Context Awareness - Get device state

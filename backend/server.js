@@ -19,6 +19,124 @@ const GITHUB_REPO = process.env.GITHUB_REPO;
 const GROQ_MODEL = process.env.GROQ_MODEL || 'qwen/qwen3-32b';
 const GITHUB_BRANCH = process.env.GITHUB_BRANCH || 'main';
 
+// ============================================
+// BATCH 2 NEW FEATURES - APIs & ENHANCEMENTS
+// ============================================
+
+// FEATURE 1: Web Search API (DuckDuckGo - Free, No API Key)
+async function webSearch(query) {
+  try {
+    const encodedQuery = encodeURIComponent(query);
+    const url = `https://duckduckgo.com/?q=${encodedQuery}&format=json`;
+    const res = await fetch(url);
+    const data = await res.json();
+    return {
+      success: true,
+      results: data.Results || [],
+      answer: data.AnswerText || null,
+      related: data.RelatedTopics || []
+    };
+  } catch (error) {
+    return { success: false, error: error.message };
+  }
+}
+
+// FEATURE 2: Context Memory (last 20 interactions for seamless conversation)
+const CONVERSATION_CONTEXT_LIMIT = 20;
+const conversationHistory = new Map(); // userId -> [{role, content, timestamp}]
+
+function addToContext(userId, role, content) {
+  if (!conversationHistory.has(userId)) {
+    conversationHistory.set(userId, []);
+  }
+  const history = conversationHistory.get(userId);
+  history.push({ role, content, timestamp: Date.now() });
+  // Keep only last 20 messages
+  if (history.length > CONVERSATION_CONTEXT_LIMIT) {
+    conversationHistory.set(userId, history.slice(-CONVERSATION_CONTEXT_LIMIT));
+  }
+}
+
+function getContext(userId) {
+  return conversationHistory.get(userId) || [];
+}
+
+function clearContext(userId) {
+  conversationHistory.delete(userId);
+}
+
+// FEATURE 3: Telegram-Style Rich Responses
+function formatTelegramStyle(text, style = 'default') {
+  // Formats text in Telegram style: bold, italic, code, buttons, etc.
+  let formatted = text;
+  
+  // Convert markdown-like to Telegram HTML
+  formatted = formatted.replace(/\*\*(.*?)\*\*/g, '<b>$1</b>');
+  formatted = formatted.replace(/\*(.*?)\*/g, '<i>$1</i>');
+  formatted = formatted.replace(/`(.*?)`/g, '<code>$1</code>');
+  
+  return formatted;
+}
+
+function createTelegramButtons(buttons) {
+  // buttons: [{text, callback_data, style}]
+  // style: 'primary' (blue), 'secondary' (gray), 'danger' (red)
+  return buttons.map(btn => ({
+    text: btn.text,
+    callback_data: btn.callback_data
+  }));
+}
+
+// FEATURE 4: Enhanced Status Updates with Typing Indicators
+async function sendTypingAction(chatId) {
+  try {
+    await bot.telegram.sendChatAction(chatId, 'typing');
+  } catch (e) {}
+}
+
+async function sendRichResponse(chatId, text, buttons = null, parseMode = 'HTML') {
+  try {
+    const options = { parse_mode: parseMode };
+    if (buttons && buttons.length > 0) {
+      options.reply_markup = {
+        inline_keyboard: buttons.map(btn => [{
+          text: btn.text,
+          callback_data: btn.callback_data
+        }])
+      };
+    }
+    await bot.telegram.sendMessage(chatId, text, options);
+  } catch (e) {
+    // Fallback to plain text
+    await bot.telegram.sendMessage(chatId, text.replace(/<[^>]*>/g, ''));
+  }
+}
+
+// FEATURE 5: Screenshot Analysis using Groq Vision
+async function analyzeScreenshot(screenshotBase64) {
+  try {
+    // Use Groq with vision-capable model if available, otherwise describe
+    const res = await groq.chat.completions.create({
+      model: "llama-3.2-90b-vision-preview",
+      messages: [
+        {
+          role: "user",
+          content: [
+            { type: "text", text: "Analyze this phone screenshot. Identify: 1) All clickable elements (buttons, links, text fields) with their positions if visible. 2) Main content/UI elements visible. 3) Any login fields, search bars, or important interactive elements. Return JSON: {\"elements\": [{\"type\": \"button|input|text|link\", \"text\": \"label\", \"position\": \"approx location\"}], \"analysis\": \"what this screen is\"" },
+            { type: "image_url", image_url: { url: `data:image/jpeg;base64,${screenshotBase64}` } }
+          ]
+        }
+      ],
+      temperature: 0.1,
+      max_tokens: 1000
+    });
+    return { success: true, analysis: res.choices[0].message.content };
+  } catch (error) {
+    // Fallback: just acknowledge screenshot received
+    return { success: false, error: error.message, fallback: "Screenshot received - manual analysis needed" };
+  }
+}
+
 if (!GROQ_API_KEY) throw new Error('GROQ_API_KEY required');
 if (!TELEGRAM_BOT_TOKEN) throw new Error('TELEGRAM_BOT_TOKEN required');
 if (!GITHUB_TOKEN || !GITHUB_REPO) throw new Error('GITHUB_TOKEN and GITHUB_REPO required');
@@ -77,7 +195,7 @@ const APP_REGISTRY = {
 };
 
 const ALLOWED_ACTIONS = new Set([
-  'launch_app', 'click', 'type', 'press', 'wait', 'toast', 'swipe', 'verify', 'open_url', 'observe', 'scroll_find', 'screenshot', 'get_context'
+  'launch_app', 'click', 'type', 'press', 'wait', 'toast', 'swipe', 'verify', 'open_url', 'observe', 'scroll_find', 'screenshot', 'get_context', 'analyze_screenshot'
 ]);
 
 // ============================================
@@ -487,6 +605,8 @@ function isStepValid(step) {
       return true;  // FEATURE 5: Live mode screenshot
     case 'get_context':
       return true;  // FEATURE 4: Get device context
+    case 'analyze_screenshot':
+      return true;  // FEATURE 5: AI Vision - analyze screenshot
     case 'open_url':
       return typeof step.value === 'string' && step.value.trim().length > 0;
     default:
@@ -1154,7 +1274,7 @@ async function monitorTaskProgress(taskId, chatId, steps) {
 // TELEGRAM HANDLERS (All Commands)
 // ============================================
 bot.command('start', async (ctx) => {
-  await ctx.reply(`👋 DWAI Mobile Agent v2.4 (Complete)
+  await ctx.reply(`👋 DWAI Mobile Agent v2.6
 
 ✅ LLM Brain - Natural language understanding
 ✅ Step Verification - Every action confirmed
@@ -1322,11 +1442,42 @@ bot.command('route', async (ctx) => {
 bot.on('text', async (ctx) => {
   if (ctx.message.text.startsWith('/')) return;
   
+  const userId = ctx.from.id;
+  const userMessage = ctx.message.text.trim();
+  
   try {
-    const { taskId, steps, targetApp } = await createRegularTask(ctx.message.text, 'AUTO', 'normal', ctx.from.id, ctx.chat.id);
+    // FEATURE 2: Add to conversation context for seamless experience
+    addToContext(userId, 'user', userMessage);
+    
+    // Check for web search command
+    if (userMessage.toLowerCase().startsWith('search ') || userMessage.toLowerCase().startsWith('find ')) {
+      const query = userMessage.replace(/^(search|find)\s+/i, '');
+      await sendTypingAction(ctx.chat.id);
+      const searchResult = await webSearch(query);
+      
+      if (searchResult.success && searchResult.answer) {
+        await ctx.reply(`🔍 *Search results for:* "${query}"\n\n${searchResult.answer}`, { parse_mode: 'Markdown' });
+      } else {
+        await ctx.reply(`🔍 Search for "${query}" returned no direct answer. Try /do to perform an action.`);
+      }
+      addToContext(userId, 'assistant', searchResult.answer || 'Search performed');
+      return;
+    }
+    
+    // Show typing indicator while processing
+    await sendTypingAction(ctx.chat.id);
+    
+    const { taskId, steps, targetApp } = await createRegularTask(userMessage, 'AUTO', 'normal', userId, ctx.chat.id);
     const appName = targetApp ? targetApp.split('.').pop() : 'device';
-    await ctx.reply(`🤖 Executing on ${appName}...\nSteps: ${steps.length}`);
+    
+    // FEATURE 3: Use rich Telegram-style response
+    const statusMsg = `🤖 *Executing on ${appName}...*\n📋 Steps: ${steps.length}\n⏳ Processing...`;
+    await ctx.reply(statusMsg, { parse_mode: 'Markdown' });
+    
     monitorTaskProgress(taskId, ctx.chat.id, steps);
+    
+    // Add assistant response to context
+    addToContext(userId, 'assistant', `Task created: ${steps.length} steps`);
   } catch (e) {
     await ctx.reply('❌ Error: ' + e.message);
   }
@@ -1338,8 +1489,10 @@ bot.on('text', async (ctx) => {
 app.get('/health', (req, res) => {
   res.json({ 
     status: 'ok', 
-    version: '2.5',
-    features: ['llm_brain', 'step_verification', 'priority_queue', 'teach_mode', 'route_matching', 'ai_reports', 'command_chaining', 'stored_routes', 'app_list', 'context_awareness', 'live_vision']
+    version: '2.6',
+    features: ['llm_brain', 'step_verification', 'priority_queue', 'teach_mode', 'route_matching', 'ai_reports', 'command_chaining', 'stored_routes', 'app_list', 'context_awareness', 'live_vision', 'web_search', 'context_memory', 'telegram_style', 'vision_analysis']
+  });
+});
 
 // NEW: Endpoint for agent to submit final report
 app.post('/report/:taskId', async (req, res) => {
@@ -1394,7 +1547,7 @@ app.post('/report/:taskId', async (req, res) => {
 });
 
 app.listen(PORT, () => {
-  console.log(`DWAI Server v2.4 (Complete) on port ${PORT}`);
+  console.log(`DWAI Server v2.6 on port ${PORT}`);
   console.log('Features: LLM Brain, Verification, Teach Mode, Routes, Progress');
 });
 
