@@ -1601,7 +1601,11 @@ Now process: "${userText}";
     });
     
     const parsed = extractJsonObject(res.choices[0].message.content);
-    if (!parsed?.steps) return fallbackOrchestrate(userText);
+    console.log('LLM parsed:', JSON.stringify(parsed)?.slice(0, 200));
+    if (!parsed || !parsed.steps || !Array.isArray(parsed.steps)) {
+      console.log('No valid steps from LLM, using fallback');
+      return fallbackOrchestrate(userText);
+    }
     
     // Normalize steps with IDs and verification flags
     parsed.steps = parsed.steps.map((step, idx) => ({
