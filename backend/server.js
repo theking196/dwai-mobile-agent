@@ -1993,11 +1993,17 @@ async function createRegularTask(userText, intent, mode, userId, chatId) {
     // Use LLM Brain
     orch = await llmOrchestrate(userText, { mode, userId });
     if (orch.error) throw new Error(orch.error);
-    steps = orch.steps.map(s => ({
-      ...s,
-      text: fillSlots(s.text, orch.slots),
-      value: fillSlots(s.value, orch.slots)
-    }));
+    if (!orch.steps || !Array.isArray(orch.steps)) {
+      // Fallback to template
+      const template = buildTemplateSteps(userText);
+      if (template) steps = template;
+    } else {
+      steps = orch.steps.map(s => ({
+        ...s,
+        text: fillSlots(s.text, orch.slots),
+        value: fillSlots(s.value, orch.slots)
+      }));
+    }
   }
   
   if (steps.length === 0) {
