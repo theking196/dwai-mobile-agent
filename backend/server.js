@@ -2472,14 +2472,14 @@ bot.on('text', async (ctx) => {
     let routeMatched = null;
     let steps = [];
     let targetApp = null;
+    let createdTaskId = null;
     
     if (routeMatch && routeMatch.score > 60) {
       // High confidence route match - use it
-      const { taskId, steps: routeSteps, targetApp: app } = await createRegularTask(
-        userMessage, 'ROUTE', 'normal', userId, ctx.chat.id
-      );
-      steps = routeSteps;
-      targetApp = app;
+      const taskResult = await createRegularTask(userMessage, 'ROUTE', 'normal', userId, ctx.chat.id);
+      createdTaskId = taskResult.taskId;
+      steps = taskResult.steps;
+      targetApp = taskResult.targetApp;
       routeMatched = routeMatch.route.goal;
     } else if (routeMatch && routeMatch.score > 30) {
       // Medium confidence - ask for clarification
@@ -2490,9 +2490,10 @@ bot.on('text', async (ctx) => {
       return;
     } else {
       // No route match - use LLM to generate steps
-      const result = await createRegularTask(userMessage, 'AUTO', 'normal', userId, ctx.chat.id);
-      steps = result.steps;
-      targetApp = result.targetApp;
+      const taskResult = await createRegularTask(userMessage, 'AUTO', 'normal', userId, ctx.chat.id);
+      createdTaskId = taskResult.taskId;
+      steps = taskResult.steps;
+      targetApp = taskResult.targetApp;
     }
     
     const appName = targetApp ? targetApp.split('.').pop() : 'device';
@@ -2500,15 +2501,16 @@ bot.on('text', async (ctx) => {
     // FEATURE 3: Use rich Telegram-style response
     let statusMsg = `🤖 *Executing on ${appName}...*\n📋 Steps: ${steps.length}`;
     if (routeMatched) statusMsg += `\n📚 Using route: ${routeMatched}`;
-    if (taskAnalysis.complex) statusMsg += `\n🔀 Complex task (${taskAnalysis.steps.length} subtasks)`;
-    statusMsg += `\n⏳ Processing...`;
+    if (taskAnalysis.complex && taskAnalysis.steps) statusMsg += `\n🔀 Complex task (${taskAnalysis.steps.length} subtasks)`;
+    statusMsg += `\n⏳ Processing ID: ${createdTaskId?.slice(0, 8)}...`;
     
     await ctx.reply(statusMsg, { parse_mode: 'Markdown' });
     
-    monitorTaskProgress(routeMatched ? null : (await createRegularTask(userMessage, 'AUTO', 'normal', userId, ctx.chat.id)).taskId, ctx.chat.id, steps);
+    // Use the already created taskId, don't create again!
+    monitorTaskProgress(createdTaskId, ctx.chat.id, steps);
     
     // Add assistant response to context
-    addToContext(userId, 'assistant', `Task created: ${steps.length} steps`);
+    addToContext(userId, 'assistant', `Task ${createdTaskId?.slice(0,8)}: ${steps.length} steps`);
   } catch (e) {
     await ctx.reply('❌ Error: ' + e.message);
   }
