@@ -16,7 +16,7 @@ const GROQ_API_KEY = process.env.GROQ_API_KEY;
 const TELEGRAM_BOT_TOKEN = process.env.TELEGRAM_BOT_TOKEN;
 const GITHUB_TOKEN = process.env.GITHUB_TOKEN;
 const GITHUB_REPO = process.env.GITHUB_REPO;
-const GROQ_MODEL = process.env.GROQ_MODEL || 'mixtral-8x7b-32768';
+const GROQ_MODEL = process.env.GROQ_MODEL || 'llama-3.3-70b-versatile';
 const GITHUB_BRANCH = process.env.GITHUB_BRANCH || 'main';
 
 // ============================================
