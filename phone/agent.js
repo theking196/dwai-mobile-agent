@@ -327,6 +327,18 @@ function updateTaskQueue(queueData) {
 function reportProgress(stepNum, totalSteps, status, details, error) {
   if (!CURRENT_TASK) return;
   
+  // Add to execution trace for final report
+  if (CURRENT_TASK.steps && CURRENT_TASK.steps[stepNum - 1]) {
+    EXECUTION_TRACE.push({
+      step: stepNum,
+      action: CURRENT_TASK.steps[stepNum - 1].action || 'unknown',
+      status: status,
+      details: details,
+      error: error || null,
+      timestamp: new Date().toISOString()
+    });
+  }
+  
   var data = {
     task_id: CURRENT_TASK.task_id,
     step_number: stepNum,
@@ -346,6 +358,47 @@ function reportProgress(stepNum, totalSteps, status, details, error) {
   });
   
   log("[" + stepNum + "/" + totalSteps + "] " + status + ": " + details + (error ? " ERROR: " + error : ""));
+
+// Submit final report to server
+function submitFinalReport(task, status, errorMsg) {
+  if (!task || !task.task_id) return;
+  
+  // Generate trace summary
+  var traceSummary = EXECUTION_TRACE.map(function(t) {
+    return {
+      step: t.step,
+      action: t.action,
+      status: t.status,
+      error: t.error || null,
+      timestamp: t.timestamp
+    };
+  });
+  
+  // Save to GitHub as backup
+  var ghUrl = BASE_URL + "data/reports/" + task.task_id + "_report.json";
+  var reportData = {
+    task_id: task.task_id,
+    status: status,
+    execution_trace: traceSummary,
+    error: errorMsg || null,
+    device: WORKER_ID,
+    finished_at: new Date().toISOString()
+  };
+  
+  var payload = {
+    message: "Final report " + task.task_id,
+    content: b64Encode(JSON.stringify(reportData, null, 2)),
+    branch: BRANCH
+  };
+  
+  var res = ghPutJson(ghUrl, payload);
+  if (!res.ok) {
+    log("Final report save failed: " + res.statusCode);
+  } else {
+    log("Final report saved to GitHub");
+  }
+}
+
 }
 
 // ============================================
@@ -1059,6 +1112,8 @@ function claimTask(bundle, pointerRef) {
 }
 
 function finishTask(bundle, sha, task, status, errorMsg, pointerRef) {
+  submitFinalReport(task, status, errorMsg);
+  
   task.status = status;
   task.finished_at = new Date().toISOString();
   if (errorMsg) task.error = errorMsg;
@@ -1219,6 +1274,9 @@ function runFastTask(bundle, pointerRef) {
     return;
   }
   
+  // RESET EXECUTION TRACE FOR NEW TASK
+  EXECUTION_TRACE = [];
+  
   isProcessing = true;
   currentTaskId = task.task_id;
   CURRENT_TASK = task;
@@ -1282,6 +1340,9 @@ function runLiveTask(bundle, pointerRef) {
     log("Skipping already processed live task: " + task.task_id);
     return;
   }
+  
+  // RESET EXECUTION TRACE FOR NEW TASK
+  EXECUTION_TRACE = [];
   
   isProcessing = true;
   currentTaskId = task.task_id;
