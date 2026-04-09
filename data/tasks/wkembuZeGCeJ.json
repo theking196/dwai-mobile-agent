@@ -1,0 +1,19 @@
+{
+  "task_id": "wkembuZeGCeJ",
+  "type": "automation",
+  "status": "pending",
+  "intent": "ROUTE",
+  "mode": "normal",
+  "goal": "Hello",
+  "steps": [],
+  "slots": {},
+  "llm_intent": "Greeting",
+  "llm_confidence": 1,
+  "route_matched": null,
+  "execution_notes": "No action required - User sent a greeting",
+  "chat_id": 7345542163,
+  "user_id": 7345542163,
+  "created_at": "2026-04-09T12:58:57.036Z",
+  "priority": 5,
+  "verify_every_step": true
+}
