@@ -1229,13 +1229,30 @@ function execStep(step, stepNum, totalSteps) {
           });
           
           // Mark in device state that we have a screenshot for analysis
+          // Include device dimensions for coordinate conversion
           var analysisState = {
             pending_analysis: true,
             timestamp: Date.now(),
-            task_id: CURRENT_TASK ? CURRENT_TASK.task_id : null
+            task_id: CURRENT_TASK ? CURRENT_TASK.task_id : null,
+            device_width: device.width,
+            device_height: device.height
           };
           
-          log("Screenshot captured for AI analysis");
+          // Also save to device state
+          var deviceStateUrl = BASE_URL + DEVICE_STATE_PATH;
+          var currentState = {
+            pending_analysis: true,
+            screenshot_timestamp: Date.now(),
+            device_width: device.width,
+            device_height: device.height
+          };
+          ghPutJson(deviceStateUrl, {
+            message: "Update with analysis state",
+            content: b64Encode(JSON.stringify(currentState)),
+            branch: BRANCH
+          });
+          
+          log("Screenshot captured for AI analysis - device: " + device.width + "x" + device.height);
         }
       } catch (e) {
         log("Analyze screenshot error: " + e);

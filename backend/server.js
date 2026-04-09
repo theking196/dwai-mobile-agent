@@ -122,7 +122,7 @@ async function analyzeScreenshot(screenshotBase64) {
         {
           role: "user",
           content: [
-            { type: "text", text: "Analyze this phone screenshot. Identify: 1) All clickable elements (buttons, links, text fields) with their positions if visible. 2) Main content/UI elements visible. 3) Any login fields, search bars, or important interactive elements. Return JSON: {\"elements\": [{\"type\": \"button|input|text|link\", \"text\": \"label\", \"position\": \"approx location\"}], \"analysis\": \"what this screen is\"" },
+            { type: "text", text: "Analyze this phone screenshot. Identify ALL clickable elements with EXACT x,y pixel coordinates relative to screen dimensions. \n\nFor each element return: {\"type\": \"button|input|text\", \"text\": \"label\", \"x\": percentage (0-100), \"y\": percentage (0-100), \"description\": \"location description\"}\n\nIMPORTANT: Return ONLY JSON array with elements. Convert positions to percentages: x=50 means center horizontal, y=80 means bottom area. Screen width=100%, height=100%." },
             { type: "image_url", image_url: { url: `data:image/jpeg;base64,${screenshotBase64}` } }
           ]
         }
@@ -1533,6 +1533,13 @@ Web search API is ONLY for: figuring out HOW to do something, getting facts you 
 4. Execute in sequence
 5. Verify each step worked
 6. Use web search only to FIND information, not to DO the task
+
+## 👁️ VISION ANALYSIS - USE EXACT COORDINATES
+When you analyze a screenshot and get elements:
+- x and y are PERCENTAGES (0-100) of screen
+- CONVERT to actual pixels: x_pixels = (x / 100) * device_width
+- Example: x=50, y=80 on 1080x1920 screen = click(540, 1536)
+- ALWAYS use the converted exact coordinates for clicking
 
 ## 🎮 GAME MODE
 If request involves "play", "game", "jump", "slide", etc:
