@@ -25,13 +25,33 @@ var APPS_LIST_PATH = "data/installed_apps.json";
 var FATAL_ERROR_COUNT = 0;
 var FATAL_ERROR_LIMIT = 15;  
 
-var POLL_INTERVAL = 2000;
+// FEATURE 5: Game Mode - Faster polling for games
+var NORMAL_POLL_INTERVAL = 2000;
+var GAME_POLL_INTERVAL = 500;  // 500ms for faster response
+var POLL_INTERVAL = NORMAL_POLL_INTERVAL;
+var GAME_MODE = false;
+
 var BRANCH = "main";
 var WORKER_ID = "phone-" + (device.model || "android") + "-" + device.width + "x" + device.height;
 var BASE_URL = "https://api.github.com/repos/" + REPO_OWNER + "/" + REPO_NAME + "/contents/";
 
-console.log("=== DWAI AGENT v2.0 ROOT-FREE START ===");
-toast("DWAI v2.0 (No Root) starting...");
+// FEATURE 4: Detect if device is rooted
+var IS_ROOTED = false;
+try {
+  var testFile = new java.io.File("/system/app/Superuser.apk");
+  IS_ROOTED = testFile.exists();
+  if (!IS_ROOTED) {
+    var su = java.lang.Runtime.getRuntime().exec("su -c echo test");
+    IS_ROOTED = (su.waitFor() === 0);
+  }
+} catch (e) {
+  IS_ROOTED = false;
+}
+
+console.log("=== DWAI AGENT v2.8 START ===");
+console.log("Game Mode: " + GAME_MODE);
+console.log("Rooted: " + IS_ROOTED);
+toast("DWAI v2.8 starting... Root: " + (IS_ROOTED ? "Yes" : "No"));
 
 // ============================================
 // STATE MANAGEMENT (All Original Variables)
@@ -1456,6 +1476,13 @@ function runFastTask(bundle, pointerRef) {
     return;
   }
   
+  // FEATURE 5: Enable game mode if task is GAME type
+  if (task.mode === 'GAME') {
+    GAME_MODE = true;
+    POLL_INTERVAL = GAME_POLL_INTERVAL;
+    log("GAME MODE ENABLED - Fast polling");
+  }
+  
   // RESET EXECUTION TRACE FOR NEW TASK
   EXECUTION_TRACE = [];
   
@@ -1508,6 +1535,13 @@ function runFastTask(bundle, pointerRef) {
     } catch (inner) {
       log("Finalization error: " + inner);
     }
+  }
+  
+  // Reset game mode after task
+  if (GAME_MODE) {
+    GAME_MODE = false;
+    POLL_INTERVAL = NORMAL_POLL_INTERVAL;
+    log("GAME MODE DISABLED - Normal polling");
   }
   
   isProcessing = false;

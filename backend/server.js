@@ -1,5 +1,5 @@
-// DWAI Server v2.7 - WITH BATCH 3 FEATURES
-// 1. Clarification 2. Route Matching 3. Complex Tasks 4. Fallback Search 5. External API
+// DWAI Server v2.8 - WITH BATCH 4 FEATURES
+// 1. OpenClaw Native 2. Docs 3. BYOK System 4. Root/Routine Support 5. Game Mode
 
 require('dotenv').config();
 const express = require('express');
@@ -270,6 +270,237 @@ function validateApiKey(key) {
   return token;
 }
 
+// ============================================
+// BATCH 4 NEW FEATURES - OPENCLAW, DOCS, BYOK, ROOT, GAMING
+// ============================================
+
+// FEATURE 1: OpenClaw Native Support
+// Allow OpenClaw to control the phone via its protocol
+const OPENCLAW_ENABLED = process.env.OPENCLAW_ENABLED === 'true';
+const OPENCLAW_DEVICE_TOKEN = process.env.OPENCLAW_DEVICE_TOKEN || '';
+
+// OpenClaw device registration endpoint
+app.post('/openclaw/register', async (req, res) => {
+  const { device_id, name, capabilities } = req.body;
+  
+  if (!OPENCLAW_ENABLED) {
+    return res.status(503).json({ error: 'OpenClaw integration disabled' });
+  }
+  
+  // Register this phone as an OpenClaw device
+  const deviceData = {
+    device_id: device_id || 'dwai-phone-' + Date.now(),
+    name: name || 'DWAI Phone',
+    capabilities: capabilities || ['automation', 'screenshot', 'input'],
+    registered_at: new Date().toISOString(),
+    last_seen: new Date().toISOString()
+  };
+  
+  res.json({ ok: true, device: deviceData });
+});
+
+// OpenClaw command execution
+app.post('/openclaw/execute', async (req, res) => {
+  const { device_token, command, action } = req.body;
+  
+  if (!OPENCLAW_ENABLED) {
+    return res.status(503).json({ error: 'OpenClaw integration disabled' });
+  }
+  
+  if (device_token !== OPENCLAW_DEVICE_TOKEN) {
+    return res.status(401).json({ error: 'Invalid device token' });
+  }
+  
+  try {
+    // Execute like a regular task but with OpenClaw context
+    const { taskId, steps, targetApp } = await createRegularTask(
+      command || action, 
+      'OPENCLAW', 
+      'fast', 
+      0, // system user
+      0
+    );
+    
+    res.json({ ok: true, taskId, steps: steps.length });
+  } catch (e) {
+    res.status(500).json({ error: e.message });
+  }
+});
+
+// OpenClaw status endpoint
+app.get('/openclaw/status', (req, res) => {
+  res.json({ 
+    enabled: OPENCLAW_ENABLED,
+    device_token_set: !!OPENCLAW_DEVICE_TOKEN,
+    version: '2.8'
+  });
+});
+
+// FEATURE 2: Documentation Generation
+function generateProjectDocs() {
+  const docs = {
+    project: 'DWAI Mobile Agent',
+    version: '2.8',
+    description: 'AI-powered phone automation via Telegram',
+    architecture: {
+      backend: 'Express.js + Groq LLM + GitHub storage',
+      phone: 'Auto.js automation script',
+      communication: 'GitHub JSON files + polling'
+    },
+    features: [
+      'Command Chaining',
+      'Stored Routes',
+      'App List',
+      'Context Awareness',
+      'Live Vision',
+      'Web Search',
+      'Context Memory (20)',
+      'Telegram Style',
+      'Vision Analysis',
+      'Clarification',
+      'Route Matching',
+      'Complex Tasks',
+      'Fallback Search',
+      'External API',
+      'OpenClaw Native',
+      'Game Mode'
+    ],
+    api_endpoints: {
+      '/api/key': 'Generate API key',
+      '/api/execute': 'Execute command',
+      '/api/task/:id': 'Check task status',
+      '/openclaw/register': 'Register with OpenClaw',
+      '/openclaw/execute': 'Execute via OpenClaw',
+      '/analyze-screenshot': 'Analyze screenshot with AI'
+    },
+    commands: {
+      '/do <task>': 'Execute task',
+      '/teach <goal>': 'Teach new route',
+      '/live <task>': 'Live mode execution',
+      '/status': 'Check system status'
+    }
+  };
+  return docs;
+}
+
+app.get('/docs', (req, res) => {
+  res.json(generateProjectDocs());
+});
+
+app.get('/docs.md', (req, res) => {
+  const docs = generateProjectDocs();
+  let md = `# ${docs.project} v${docs.version}\n\n${docs.description}\n\n## Architecture\n\n`;
+  md += `- **Backend:** ${docs.architecture.backend}\n`;
+  md += `- **Phone:** ${docs.architecture.phone}\n`;
+  md += `- **Communication:** ${docs.architecture.communication}\n\n`;
+  md += `## Features\n\n`;
+  docs.features.forEach(f => md += `- ${f}\n`);
+  md += `\n## API Endpoints\n\n`;
+  Object.entries(docs.api_endpoints).forEach(([path, desc]) => md += `- \`${path}\`: ${desc}\n`);
+  md += `\n## Commands\n\n`;
+  Object.entries(docs.commands).forEach(([cmd, desc]) => md += `- ${cmd}: ${desc}\n`);
+  
+  res.set('Content-Type', 'text/markdown');
+  res.send(md);
+});
+
+// FEATURE 3: BYOK (Bring Your Own Key) - Vision/TTS/STT
+// Allow users to provide their own API keys for optional features
+const BYOK_CONFIG = {
+  vision_model: process.env.BYOK_VISION_MODEL || null,
+  tts_api: process.env.BYOK_TTS_API || null,
+  stt_api: process.env.BYOK_STT_API || null
+};
+
+// TTS (Text-to-Speech) - Optional
+async function textToSpeech(text, voice = 'default') {
+  if (!BYOK_CONFIG.tts_api) {
+    return { success: false, error: 'TTS not configured' };
+  }
+  // Implement TTS based on configured API
+  return { success: false, error: 'TTS not implemented yet' };
+}
+
+// STT (Speech-to-Text) - Optional  
+async function speechToText(audioData) {
+  if (!BYOK_CONFIG.stt_api) {
+    return { success: false, error: 'STT not configured' };
+  }
+  // Implement STT based on configured API
+  return { success: false, error: 'STT not implemented yet' };
+}
+
+// Custom Vision Model - Optional
+async function customVisionAnalyze(imageBase64, modelType) {
+  if (!BYOK_CONFIG.vision_model) {
+    return { success: false, error: 'Custom vision not configured' };
+  }
+  // Use custom model if configured
+  return { success: false, error: 'Custom vision not implemented yet' };
+}
+
+app.get('/byok/status', (req, res) => {
+  res.json({
+    vision_modelConfigured: !!BYOK_CONFIG.vision_model,
+    ttsConfigured: !!BYOK_CONFIG.tts_api,
+    sttConfigured: !!BYOK_CONFIG.stt_api
+  });
+});
+
+// FEATURE 5: Game Mode - Fast execution for gaming
+const GAME_MODE_ENABLED = true;
+const GAME_MODE_CONFIG = {
+  poll_interval: 500,    // Poll every 500ms (faster than normal 2000ms)
+  max_retry: 5,         // More retries
+  verify_steps: false,  // Skip verification for speed
+  max_steps_per_task: 50 // Allow longer chains for games
+};
+
+function createGameTask(userText) {
+  return createRegularTask(userText, 'GAME', 'fast', 0, 0);
+}
+
+// Fast path for game commands
+app.post('/game/execute', async (req, res) => {
+  const { command, key } = req.body;
+  
+  // Validate API key or session
+  const token = validateApiKey(key);
+  if (!token && !GAME_MODE_ENABLED) {
+    return res.status(401).json({ error: 'Game mode disabled or invalid key' });
+  }
+  
+  try {
+    // Execute with game mode settings
+    const { taskId, steps, targetApp } = await createRegularTask(
+      command,
+      'GAME',
+      'fast',
+      token?.userId || 0,
+      token?.userId || 0
+    );
+    
+    res.json({ 
+      ok: true, 
+      taskId, 
+      steps: steps.length,
+      mode: 'game',
+      estimatedTime: steps.length * 500 + 'ms'
+    });
+  } catch (e) {
+    res.status(500).json({ error: e.message });
+  }
+});
+
+// Game mode status
+app.get('/game/status', (req, res) => {
+  res.json({
+    enabled: GAME_MODE_ENABLED,
+    pollInterval: GAME_MODE_CONFIG.poll_interval,
+    maxSteps: GAME_MODE_CONFIG.max_steps_per_task
+  });
+});
+
 // External API endpoints
 app.post('/api/key', async (req, res) => {
   const { secret, user_id } = req.body;
@@ -353,7 +584,7 @@ app.get('/api/task/:taskId', async (req, res) => {
 app.get('/api/health', (req, res) => {
   res.json({ 
     status: 'ok', 
-    version: '2.7',
+    version: '2.8',
     features: ['external_api', 'api_keys', 'secure_execution'],
     active_keys: API_KEYS.size
   });
@@ -1751,7 +1982,7 @@ bot.on('text', async (ctx) => {
 app.get('/health', (req, res) => {
   res.json({ 
     status: 'ok', 
-    version: '2.7',
+    version: '2.8',
     features: ['llm_brain', 'step_verification', 'priority_queue', 'teach_mode', 'route_matching', 'ai_reports', 'command_chaining', 'stored_routes', 'app_list', 'context_awareness', 'live_vision', 'web_search', 'context_memory', 'telegram_style', 'vision_analysis']
   });
 });
