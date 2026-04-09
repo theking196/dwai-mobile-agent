@@ -18,6 +18,9 @@ var PROGRESS_PATH = "data/progress";
 var REPORTS_PATH = "data/reports";
 var CURRENT_TASK_PATH = "data/current_task.json";
 var TASK_QUEUE_PATH = "data/task_queue.json";
+// NEW v2.5 FEATURES PATHS
+var DEVICE_STATE_PATH = "data/device_state.json";
+var APPS_LIST_PATH = "data/installed_apps.json";
 
 var FATAL_ERROR_COUNT = 0;
 var FATAL_ERROR_LIMIT = 15;  
@@ -98,6 +101,7 @@ function buildInstalledAppsMap() {
   try {
     var pm = context.getPackageManager();
     var apps = pm.getInstalledApplications(0);
+    var appList = [];
     for (var i = 0; i < apps.size(); i++) {
       var app = apps.get(i);
       var pkg = app.packageName;
@@ -107,11 +111,30 @@ function buildInstalledAppsMap() {
       } catch (e) {}
       if (label) {
         INSTALLED_APPS[label] = pkg;
+        appList.push(label);
       }
       INSTALLED_APPS[pkg] = pkg;
     }
     APP_CACHE_BUILT = true;
     console.log("App cache built: " + Object.keys(INSTALLED_APPS).length);
+    
+    // FEATURE 3: Report installed apps to GitHub
+    try {
+      var url = BASE_URL + APPS_LIST_PATH;
+      var data = {
+        apps: appList,
+        packages: Object.keys(INSTALLED_APPS),
+        last_updated: Date.now()
+      };
+      ghPutJson(url, {
+        message: "Update installed apps list",
+        content: b64Encode(JSON.stringify(data)),
+        branch: BRANCH
+      });
+      console.log("Apps list reported to GitHub");
+    } catch (e) {
+      log("Failed to report apps: " + e);
+    }
   } catch (e) {
     console.log("App discovery failed: " + e);
     APP_CACHE_BUILT = true;
@@ -436,6 +459,55 @@ function getCurrentPackage() {
   } catch (e) {
     return "";
   }
+}
+
+// FEATURE 4: Context Awareness - Get current device context and report to GitHub
+function getCurrentContext() {
+  var context = {
+    current_app: null,
+    screen_text: "",
+    last_action: null,
+    timestamp: Date.now(),
+    package: null
+  };
+  
+  try {
+    // Get current foreground app
+    var am = context.getSystemService(context.ACTIVITY_SERVICE);
+    var tasks = am.getRunningTasks(1);
+    if (tasks && tasks.size() > 0) {
+      var top = tasks.get(0);
+      context.package = top.topActivity ? top.topActivity.getPackageName() : null;
+      context.current_app = context.package;
+    }
+  } catch (e) {
+    // Permission issues common - fallback
+  }
+  
+  // Get screen text content
+  try {
+    var nodes = className("android.widget.TextView").find();
+    var textContent = [];
+    for (var i = 0; i < Math.min(nodes.size(), 10); i++) {
+      var t = nodes.get(i).text();
+      if (t) textContent.push(String(t));
+    }
+    context.screen_text = textContent.join(" | ");
+  } catch (e) {}
+  
+  // Save to GitHub for backend to read (FEATURE 4)
+  try {
+    var url = BASE_URL + DEVICE_STATE_PATH;
+    ghPutJson(url, {
+      message: "Update device state",
+      content: b64Encode(JSON.stringify(context)),
+      branch: BRANCH
+    });
+  } catch (e) {
+    log("Context upload failed: " + e);
+  }
+  
+  return context;
 }
 
 function currentScreenFingerprint() {
@@ -1064,6 +1136,60 @@ function execStep(step, stepNum, totalSteps) {
       }
       reportProgress(stepNum, totalSteps, "completed", "Observation complete");
       return true;
+    
+    // FEATURE 5: Live Mode Vision - Screenshot
+    case "screenshot":
+      try {
+        var bitmap = context.takeScreenshot();
+        if (bitmap) {
+          var stream = new java.io.ByteArrayOutputStream();
+          bitmap.compress(android.graphics.Bitmap.CompressFormat.JPEG, 80, stream);
+          var bytes = stream.toByteArray();
+          var b64 = android.util.Base64.encodeToString(bytes, android.util.Base64.NO_WRAP);
+          
+          // Upload to GitHub for live viewing
+          try {
+            var ssUrl = BASE_URL + "data/live_screenshot.jpg";
+            ghPutJson(ssUrl, {
+              message: "Live screenshot",
+              content: b64,
+              branch: BRANCH,
+              encoding: "base64"
+            });
+            log("Screenshot captured and uploaded");
+          } catch (e) {
+            log("Screenshot upload failed: " + e);
+          }
+        }
+      } catch (e) {
+        log("Screenshot error: " + e);
+      }
+      reportProgress(stepNum, totalSteps, "completed", "Screenshot captured");
+      return true;
+    
+    // FEATURE 4: Context Awareness - Get device state
+    case "get_context":
+      try {
+        var ctx = getCurrentContext();
+        log("Context: " + JSON.stringify(ctx));
+      } catch (e) {
+        log("Get context error: " + e);
+      }
+      reportProgress(stepNum, totalSteps, "completed", "Context retrieved");
+      return true;
+    
+    // FEATURE 2: Open URL
+    case "open_url":
+      if (step.value) {
+        try {
+          var intent = new android.content.Intent(android.content.Intent.ACTION_VIEW, android.net.Uri.parse(step.value));
+          context.startActivity(intent);
+        } catch (e) {
+          throw new Error("Failed to open URL: " + e);
+        }
+      }
+      reportProgress(stepNum, totalSteps, "completed", "URL opened: " + step.value);
+      return true;
       
     default:
       throw new Error("Unknown action: " + step.action);
@@ -1636,9 +1762,12 @@ function processOneTask() {
 buildInstalledAppsMap();
 tryStartTouchObserver();
 
+// FEATURE 4: Initial context update
+getCurrentContext();
+
 log("Installed apps discovered: " + Object.keys(INSTALLED_APPS).length);
 log("Known apps available: " + Object.keys(KNOWN_APPS).length);
-log("Agent ready (v2.4 Complete). Waiting for tasks...");
+log("Agent ready (v2.5 - Features: Chaining, Routes, AppList, Context, LiveVision). Waiting for tasks...");
 
 // Main loop
 while (true) {

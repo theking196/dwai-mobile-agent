@@ -1,5 +1,5 @@
-// DWAI Server v2.4 - COMPLETE (All Features Preserved + New Fixes)
-// Includes: All original features + LLM Brain + Step Verification + Progress Reporting
+// DWAI Server v2.5 - WITH NEW FEATURES
+// 1. Command Chaining 2. Stored Routes Access 3. App List 4. Context Awareness 5. Live Mode Vision
 
 require('dotenv').config();
 const express = require('express');
@@ -36,6 +36,8 @@ const PROGRESS_PATH = 'data/progress';
 const REPORTS_PATH = 'data/reports';
 const CURRENT_TASK_PATH = 'data/current_task.json';
 const TASK_QUEUE_PATH = 'data/task_queue.json';
+const DEVICE_STATE_PATH = 'data/device_state.json';
+const APPS_LIST_PATH = 'data/installed_apps.json';
 
 // ============================================
 // COMPLETE APP REGISTRY (All Original Entries)
@@ -75,13 +77,20 @@ const APP_REGISTRY = {
 };
 
 const ALLOWED_ACTIONS = new Set([
-  'launch_app', 'click', 'type', 'press', 'wait', 'toast', 'swipe', 'verify', 'open_url', 'observe', 'scroll_find'
+  'launch_app', 'click', 'type', 'press', 'wait', 'toast', 'swipe', 'verify', 'open_url', 'observe', 'scroll_find', 'screenshot', 'get_context'
 ]);
 
 // ============================================
 // TEACH SESSION STATE (Preserved)
 // ============================================
 const activeTeachSessions = new Map();
+
+// ============================================
+// CACHED DATA FOR NEW FEATURES
+// ============================================
+let cachedRoutes = null;
+let cachedAppsList = null;
+let cachedDeviceState = null;
 
 // ============================================
 // GITHUB HELPERS (Complete)
@@ -268,6 +277,78 @@ function cleanAiResponse(text) {
 }
 
 // ============================================
+// NEW FEATURES (v2.5 additions - DO NOT REMOVE EXISTING)
+// ============================================
+
+// FEATURE 3: Fetch Installed Apps List
+async function fetchInstalledApps() {
+  if (cachedAppsList) return cachedAppsList;
+  const url = `${GITHUB_API}/${APPS_LIST_PATH}`;
+  const res = await ghGetJson(url);
+  if (res.ok && res.json?.content) {
+    try {
+      cachedAppsList = JSON.parse(Buffer.from(res.json.content, 'base64').toString('utf8'));
+      return cachedAppsList;
+    } catch { }
+  }
+  return { apps: Object.keys(APP_REGISTRY), timestamp: Date.now() };
+}
+
+// FEATURE 4: Fetch Device State (Context Awareness)
+async function fetchDeviceState() {
+  const url = `${GITHUB_API}/${DEVICE_STATE_PATH}`;
+  const res = await ghGetJson(url);
+  if (res.ok && res.json?.content) {
+    try {
+      cachedDeviceState = JSON.parse(Buffer.from(res.json.content, 'base64').toString('utf8'));
+      return cachedDeviceState;
+    } catch { }
+  }
+  return { current_app: null, screen_text: '', last_action: null, timestamp: Date.now() };
+}
+
+// FEATURE 2: Fetch Stored Routes
+async function fetchStoredRoutes() {
+  if (cachedRoutes) return cachedRoutes;
+  const url = `${GITHUB_API}/${ROUTES_PATH}`;
+  const res = await ghGetJson(url);
+  if (res.ok && res.json) {
+    const routes = [];
+    for (const file of (res.json || [])) {
+      if (file.name?.endsWith('.json') && file.name !== '.gitkeep') {
+        const routeUrl = file.download_url;
+        const routeRes = await ghGetJson(routeUrl);
+        if (routeRes.ok && routeRes.body) {
+          try {
+            routes.push(JSON.parse(routeRes.body));
+          } catch { }
+        }
+      }
+    }
+    cachedRoutes = routes;
+    return routes;
+  }
+  return [];
+}
+
+// Find matching route by keywords
+function findMatchingStoredRoute(routes, userQuery) {
+  const query = userQuery.toLowerCase();
+  for (const route of routes) {
+    const goal = (route.goal || '').toLowerCase();
+    if (goal.includes(query) || query.includes(goal)) {
+      return route;
+    }
+    if (route.keywords) {
+      for (const kw of route.keywords) {
+        if (query.includes(kw.toLowerCase())) return route;
+      }
+    }
+  }
+  return null;
+}
+
+// ============================================
 // SLOT EXTRACTION (All Original Logic)
 // ============================================
 function extractSlotsFromExample(goal, steps) {
@@ -376,7 +457,7 @@ If a slot cannot be filled, omit it or use null.`;
 }
 
 // ============================================
-// STEP VALIDATION (All Original Logic)
+// STEP VALIDATION (All Original Logic - Added screenshot, get_context)
 // ============================================
 function isStepValid(step) {
   if (!step || typeof step !== 'object') return false;
@@ -402,6 +483,12 @@ function isStepValid(step) {
       return true;
     case 'scroll_find':
       return step.strategy && step.target;
+    case 'screenshot':
+      return true;  // FEATURE 5: Live mode screenshot
+    case 'get_context':
+      return true;  // FEATURE 4: Get device context
+    case 'open_url':
+      return typeof step.value === 'string' && step.value.trim().length > 0;
     default:
       return false;
   }
@@ -450,7 +537,7 @@ function sanitizeSteps(rawSteps) {
 }
 
 // ============================================
-// LLM ORCHESTRATION (The Brain)
+// LLM ORCHESTRATION (The Brain - Enhanced with v2.5 Features)
 // ============================================
 async function llmOrchestrate(userText, context = {}) {
   const appList = Object.entries(APP_REGISTRY).map(([name, info]) => {
@@ -460,9 +547,38 @@ async function llmOrchestrate(userText, context = {}) {
     return str;
   }).join(', ');
 
-  const prompt = `You are DWAI Brain v2.4 - Android Automation Orchestrator.
+  // FEATURE 3: Get installed apps from device
+  const installedApps = await fetchInstalledApps();
+  const installedAppsList = installedApps?.apps?.join(', ') || 'Unknown';
+  
+  // FEATURE 4: Get device state (context awareness)
+  const deviceState = await fetchDeviceState();
+  const contextInfo = deviceState ? `
+CURRENT DEVICE CONTEXT:
+- Current App: ${deviceState.current_app || 'Unknown'}
+- Last Action: ${deviceState.last_action || 'None'}
+- Screen Text: ${deviceState.screen_text || 'N/A'}
+- Timestamp: ${deviceState.timestamp ? new Date(deviceState.timestamp).toISOString() : 'N/A'}` : '';
+
+  // FEATURE 2: Get stored routes
+  const storedRoutes = await fetchStoredRoutes();
+  const routesInfo = storedRoutes.length > 0 ? `
+AVAILABLE STORED ROUTES (reuse these if matches):
+${storedRoutes.slice(0, 10).map(r => `- ${r.goal} (${r.steps?.length || 0} steps)`).join('\n')}` : '';
+
+  // FEATURE 5: Live mode info
+  const liveMode = context.mode === 'live';
+  const visionInfo = liveMode ? `
+📸 LIVE MODE: You can request screenshots to see what's on screen. Use action "screenshot" to capture.` : '';
+
+  const prompt = `You are DWAI Brain v2.5 - Android Automation Orchestrator.
 
 AVAILABLE APPS: ${appList}
+
+INSTALLED APPS ON DEVICE: ${installedAppsList}
+${contextInfo}
+${routesInfo}
+${visionInfo}
 
 USER REQUEST: "${userText}"
 
@@ -474,6 +590,20 @@ STRICT RULES:
 3. Chrome search MUST use id selector "com.android.chrome:id/url_bar"
 4. Verify app context before typing to prevent wrong-app typing
 5. Use verify_change after clicks to confirm screen changed
+6. FEATURE 1: You can output MULTIPLE actions as a JSON array to chain commands
+
+FEATURE 1 - COMMAND CHAINING:
+Output multiple actions in sequence:
+[
+  { "action": "launch_app", "value": "chrome" },
+  { "action": "wait", "ms": 2000 },
+  { "action": "click", "x": 500, "y": 1200 },
+  { "action": "type", "text": "{query}" },
+  { "action": "press", "key": "enter" }
+]
+
+FEATURE 5 - LIVE MODE VISION:
+Use "screenshot" action to capture current screen in live mode
 
 Return JSON:
 {
@@ -1208,8 +1338,8 @@ bot.on('text', async (ctx) => {
 app.get('/health', (req, res) => {
   res.json({ 
     status: 'ok', 
-    version: '2.4',
-    features: ['llm_brain', 'step_verification', 'priority_queue', 'teach_mode', 'route_matching', 'ai_reports']
+    version: '2.5',
+    features: ['llm_brain', 'step_verification', 'priority_queue', 'teach_mode', 'route_matching', 'ai_reports', 'command_chaining', 'stored_routes', 'app_list', 'context_awareness', 'live_vision']
 
 // NEW: Endpoint for agent to submit final report
 app.post('/report/:taskId', async (req, res) => {
