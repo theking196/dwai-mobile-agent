@@ -943,14 +943,25 @@ app.get('/api/health', (req, res) => {
 
 if (!GROQ_API_KEY) throw new Error('GROQ_API_KEY required');
 if (!TELEGRAM_BOT_TOKEN) throw new Error('TELEGRAM_BOT_TOKEN required');
-if (!GITHUB_TOKEN || !GITHUB_REPO) throw new Error('GITHUB_TOKEN and GITHUB_REPO required');
+
+// Storage mode: set STORAGE_MODE env var to "github", "local", or "memory"
+const STORAGE_MODE = process.env.STORAGE_MODE || 'github';
+console.log('>>> Storage mode:', STORAGE_MODE);
+
+// Only require GitHub if using github mode
+if (STORAGE_MODE === 'github') {
+  if (!GITHUB_TOKEN || !GITHUB_REPO) throw new Error('GITHUB_TOKEN and GITHUB_REPO required for github mode');
+}
 
 const groq = new Groq({ apiKey: GROQ_API_KEY });
 const bot = new Telegraf(TELEGRAM_BOT_TOKEN);
 
 app.use(express.json());
 
-const GITHUB_API = `https://api.github.com/repos/${GITHUB_REPO}/contents`;
+// In-memory storage
+const memoryStorage = new Map();
+
+const GITHUB_API = STORAGE_MODE === 'github' ? `https://api.github.com/repos/${GITHUB_REPO}/contents` : '';
 const TASKS_PATH = 'data/tasks';
 const LOGS_PATH = 'data/logs';
 const ROUTES_PATH = 'data/routes';
@@ -1049,6 +1060,25 @@ function githubRequest(method, url, body) {
 }
 
 async function ghGetJson(url) {
+  // Use memory storage
+  if (STORAGE_MODE === 'memory') {
+    const key = url;
+    const data = memoryStorage.get(key);
+    return data ? { ok: true, json: data, body: JSON.stringify(data) } : { ok: false, status: 404 };
+  }
+  // Use local file storage
+  if (STORAGE_MODE === 'local') {
+    const key = url.replace(/.*\/contents\//, '').replace(/\?.*/, '');
+    try {
+      const fs = require('fs');
+      if (fs.existsSync(key)) {
+        const content = fs.readFileSync(key, 'utf8');
+        return { ok: true, json: JSON.parse(content), body: content };
+      }
+    } catch {}
+    return { ok: false, status: 404 };
+  }
+  // Use GitHub
   const res = await githubRequest('GET', url);
   if (!res.ok) console.log('>>> GITHUB GET ERROR:', res.status, res.body?.slice(0, 200));
   let json = null;
@@ -1057,6 +1087,21 @@ async function ghGetJson(url) {
 }
 
 async function ghPutJson(url, body) {
+  // Use memory storage
+  if (STORAGE_MODE === 'memory') {
+    memoryStorage.set(url, body);
+    return { ok: true };
+  }
+  // Use local file storage
+  if (STORAGE_MODE === 'local') {
+    const key = url.replace(/.*\/contents\//, '').replace(/\?.*/, '');
+    const fs = require('fs');
+    const dir = key.split('/').slice(0, -1).join('/');
+    if (dir) fs.mkdirSync(dir, { recursive: true });
+    fs.writeFileSync(key, JSON.stringify(body, null, 2));
+    return { ok: true };
+  }
+  // Use GitHub
   const res = await githubRequest('PUT', url, body);
   if (!res.ok) console.log('>>> GITHUB PUT ERROR:', res.status, res.body?.slice(0, 200));
   return res;
