@@ -1,0 +1,63 @@
+{
+  "task_id": "JVZsy7UJzGw1",
+  "type": "automation",
+  "status": "pending",
+  "intent": "ROUTE",
+  "mode": "normal",
+  "goal": "Open WhatsApp business and open the group teens Kingdom Mandate",
+  "target_app": "com.whatsapp.w4b",
+  "steps": [
+    {
+      "action": "launch_app",
+      "value": "com.whatsapp.w4b",
+      "description": "Open WhatsApp Business",
+      "id": 1,
+      "verify": true
+    },
+    {
+      "action": "wait",
+      "ms": 2000,
+      "description": "Wait for WhatsApp Business to load",
+      "id": 2,
+      "verify": true
+    },
+    {
+      "action": "click",
+      "text": "Search",
+      "description": "Tap on the search bar",
+      "id": 3,
+      "verify": true
+    },
+    {
+      "action": "type",
+      "text": "teens Kingdom Mandate",
+      "description": "Enter the group name in the search bar",
+      "id": 4,
+      "verify": true
+    },
+    {
+      "action": "press",
+      "key": "enter",
+      "description": "Search for the group",
+      "id": 5,
+      "verify": true
+    },
+    {
+      "action": "click",
+      "text": "teens Kingdom Mandate",
+      "description": "Open the group chat",
+      "id": 6,
+      "verify": true
+    }
+  ],
+  "slots": {},
+  "llm_intent": "Open WhatsApp Business and access a specific group",
+  "llm_confidence": 0.9,
+  "route_matched": null,
+  "execution_notes": "If the group is not found, a fallback search in the chats list might be necessary. Additionally, if the user is not a member of the group, they will not be able to open it.",
+  "chat_id": 7345542163,
+  "user_id": 7345542163,
+  "created_at": "2026-04-09T14:09:54.152Z",
+  "priority": 5,
+  "verify_every_step": true
+}
