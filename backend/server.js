@@ -1534,12 +1534,20 @@ Web search API is ONLY for: figuring out HOW to do something, getting facts you 
 5. Verify each step worked
 6. Use web search only to FIND information, not to DO the task
 
-## 👁️ VISION ANALYSIS - USE EXACT COORDINATES
+## 👁️ VISION ANALYSIS - TWO WAYS TO CLICK
 When you analyze a screenshot and get elements:
+
+**Option 1: EXACT COORDINATES (Preferred for buttons)**
 - x and y are PERCENTAGES (0-100) of screen
-- CONVERT to actual pixels: x_pixels = (x / 100) * device_width
+- Convert to actual pixels: x_pixels = (x / 100) * device_width
 - Example: x=50, y=80 on 1080x1920 screen = click(540, 1536)
-- ALWAYS use the converted exact coordinates for clicking
+
+**Option 2: TEXT CLICK (Easier, use when element has text)**
+- Use click action with "text" or "contains" property
+- Example: {"action": "click", "text": "Login"} - finds and clicks button with "Login" text
+- This is MORE RELIABLE than coordinates - use when available!
+
+**Priority:** TEXT CLICK > COORDINATES (text is more reliable)
 
 ## 🎮 GAME MODE
 If request involves "play", "game", "jump", "slide", etc:
