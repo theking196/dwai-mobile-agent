@@ -1,0 +1,58 @@
+{
+  "task_id": "IrUl5RXEzIE1",
+  "type": "automation",
+  "status": "pending",
+  "intent": "AUTO",
+  "mode": "normal",
+  "goal": "open maps",
+  "target_app": "maps",
+  "steps": [
+    {
+      "action": "launch_app",
+      "value": "maps",
+      "verify": true,
+      "description": "Open Maps App",
+      "id": 1,
+      "target_package": "com.google.android.apps.maps"
+    },
+    {
+      "action": "verify",
+      "package": "com.google.android.apps.maps",
+      "strict": true,
+      "description": "Verify maps launched"
+    },
+    {
+      "action": "wait",
+      "ms": 4000,
+      "description": "Wait for app to load"
+    },
+    {
+      "action": "verify",
+      "package": "com.google.android.apps.maps",
+      "strict": true,
+      "description": "Verify maps launched"
+    },
+    {
+      "action": "wait",
+      "ms": 4000,
+      "description": "Wait for app to load"
+    },
+    {
+      "action": "verify",
+      "package": "com.google.android.apps.maps",
+      "description": "Confirm Maps Launched",
+      "id": 2,
+      "strict": true
+    }
+  ],
+  "slots": {},
+  "llm_intent": "Open Google Maps application",
+  "llm_confidence": 0.95,
+  "route_matched": null,
+  "execution_notes": "Direct app launch with no search required",
+  "chat_id": 7345542163,
+  "user_id": 7345542163,
+  "created_at": "2026-04-09T01:56:35.298Z",
+  "priority": 5,
+  "verify_every_step": true
+}
