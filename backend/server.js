@@ -2017,11 +2017,17 @@ async function createRegularTask(userText, intent, mode, userId, chatId) {
       const template = buildTemplateSteps(userText);
       if (template) steps = template;
     } else {
-      steps = orch.steps.map(s => ({
-        ...s,
-        text: fillSlots(s.text, orch.slots),
-        value: fillSlots(s.value, orch.slots)
-      }));
+      console.log('orch.steps before map:', JSON.stringify(orch.steps)?.slice(0, 100));
+      try {
+        steps = orch.steps.map(s => ({
+          ...s,
+          text: fillSlots(s.text || '', orch.slots),
+          value: fillSlots(s.value || '', orch.slots)
+        }));
+      } catch(mapErr) {
+        console.error('Map error:', mapErr.message);
+        steps = [];
+      }
     }
   }
   
