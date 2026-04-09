@@ -1210,6 +1210,56 @@ app.get('/health', (req, res) => {
     status: 'ok', 
     version: '2.4',
     features: ['llm_brain', 'step_verification', 'priority_queue', 'teach_mode', 'route_matching', 'ai_reports']
+
+// NEW: Endpoint for agent to submit final report
+app.post('/report/:taskId', async (req, res) => {
+  const { taskId } = req.params;
+  const { status, trace, error, ai_report } = req.body;
+  
+  try {
+    // Save report to GitHub
+    const reportUrl = `${GITHUB_API}/${REPORTS_PATH}/${taskId}_report.json`;
+    const reportData = {
+      task_id: taskId,
+      status,
+      execution_trace: trace,
+      error: error || null,
+      ai_report: ai_report || null,
+      reported_at: new Date().toISOString()
+    };
+    
+    const existing = await ghGetJson(reportUrl);
+    const payload = {
+      message: `Report ${taskId}`,
+      content: Buffer.from(JSON.stringify(reportData, null, 2)).toString('base64'),
+      branch: GITHUB_BRANCH
+    };
+    if (existing.ok && existing.json?.sha) payload.sha = existing.json.sha;
+    
+    await ghPutJson(reportUrl, payload);
+    
+    // Notify Telegram if chat_id exists
+    const taskUrl = `${GITHUB_API}/${TASKS_PATH}/${taskId}.json`;
+    const taskRes = await ghGetJson(taskUrl);
+    if (taskRes.ok && taskRes.json?.content) {
+      const task = JSON.parse(Buffer.from(taskRes.json.content, 'base64').toString());
+      if (task.chat_id) {
+        let message = '';
+        if (status === 'completed') {
+          message = `✅ **Task Complete!**\n\n${ai_report || 'All steps executed successfully.'}`;
+        } else {
+          message = `❌ **Task Failed**\n\n${ai_report || `Error: ${error || 'Unknown error'}`}`;
+        }
+        await bot.telegram.sendMessage(task.chat_id, message.substring(0, 4000), { parse_mode: 'Markdown' });
+      }
+    }
+    
+    res.json({ ok: true });
+  } catch (e) {
+    res.status(500).json({ ok: false, error: e.message });
+  }
+});
+
   });
 });
 
