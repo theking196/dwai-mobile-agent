@@ -2471,7 +2471,7 @@ bot.on('text', async (ctx) => {
     const taskAnalysis = await analyzeComplexTask(userMessage);
     
     if (taskAnalysis.complex && taskAnalysis.steps && Array.isArray(taskAnalysis.steps)) {
-      await ctx.reply(`📊 *Task Analysis*\n\nThis is a complex task. I'll break it down:\n\n${taskAnalysis.steps.map((s, i) => `${i + 1}. ${s}`).join('\n')}`, { parse_mode: 'Markdown' });
+      await ctx.reply(`Task Analysis\n\nThis is a complex task:\n\n${taskAnalysis.steps.map((s, i) => `${i + 1}. ${s}`).join('\n')}`);
     }
     
     // FEATURE 2: Check for best matching route first
