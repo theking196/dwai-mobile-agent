@@ -1,0 +1,28 @@
+{
+  "task_id": "k83SXZx3z_wN",
+  "type": "automation",
+  "status": "pending",
+  "intent": "AUTO",
+  "mode": "normal",
+  "goal": "Open WhatsApp business",
+  "target_app": "com.whatsapp.w4b",
+  "steps": [
+    {
+      "action": "launch_app",
+      "value": "com.whatsapp.w4b",
+      "description": "Open WhatsApp Business",
+      "id": 1,
+      "verify": true
+    }
+  ],
+  "slots": {},
+  "llm_intent": "Open WhatsApp Business",
+  "llm_confidence": 0.9,
+  "route_matched": null,
+  "execution_notes": "If WhatsApp Business is not installed, the app will not launch. Please ensure the app is installed on the device.",
+  "chat_id": 7345542163,
+  "user_id": 7345542163,
+  "created_at": "2026-04-09T14:08:30.802Z",
+  "priority": 5,
+  "verify_every_step": true
+}
