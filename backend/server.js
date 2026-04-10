@@ -1338,7 +1338,12 @@ function extractJsonObject(text) {
   const start = raw.indexOf('{');
   const end = raw.lastIndexOf('}');
   if (start === -1 || end === -1 || end < start) return null;
-  try { return JSON.parse(raw.slice(start, end + 1)); } catch { return null; }
+  try { 
+    const parsed = JSON.parse(raw.slice(start, end + 1));
+    // Basic validation - ensure it's an object
+    if (!parsed || typeof parsed !== 'object') return null;
+    return parsed;
+  } catch { return null; }
 }
 
 function extractJsonArray(text) {
