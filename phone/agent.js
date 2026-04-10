@@ -45,7 +45,7 @@ var WORKER_ID = "phone-" + (device.model || "android") + "-" + device.width + "x
 // ============================================
 // Set this to your server URL - phone will use server API (works with ALL storage modes!)
 // Example: var SERVER_URL = "https://dwai-mobile-agent.onrender.com";
-var SERVER_URL = ""; // ← CHANGE THIS to your server URL
+var SERVER_URL = "https://dwai-mobile-agent.onrender.com"; // Using Supabase to your server URL
 
 // Auto-detect storage mode from server
 var STORAGE_MODE_USING = "github";
