@@ -7,7 +7,6 @@ const { Telegraf } = require('telegraf');
 const Groq = require('groq-sdk');
 const https = require('https');
 const { nanoid } = require('nanoid');
-const fetch = (...args) => import('node-fetch').then(({default: f}) => f(...args));
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -17,7 +16,7 @@ const GROQ_API_KEY = process.env.GROQ_API_KEY;
 const TELEGRAM_BOT_TOKEN = process.env.TELEGRAM_BOT_TOKEN;
 const GITHUB_TOKEN = process.env.GITHUB_TOKEN;
 const GITHUB_REPO = process.env.GITHUB_REPO;
-const GROQ_MODEL = process.env.GROQ_MODEL || 'llama-3.3-70b-versatile';
+const GROQ_MODEL = process.env.GROQ_MODEL || 'qwen/qwen3-32b';
 const GITHUB_BRANCH = process.env.GITHUB_BRANCH || 'main';
 
 // ============================================
@@ -82,20 +81,17 @@ function formatTelegramStyle(text, style = 'default') {
 function createTelegramButtons(buttons) {
   // buttons: [{text, callback_data, style}]
   // style: 'primary' (blue), 'secondary' (gray), 'danger' (red)
-  if (!Array.isArray(buttons)) return [];
-  return buttons
-    .filter(btn => btn && typeof btn === 'object')
-    .map(btn => ({
-      text: btn?.text || '',
-      callback_data: btn?.callback_data || ''
-    }));
+  return buttons.map(btn => ({
+    text: btn.text,
+    callback_data: btn.callback_data
+  }));
 }
 
 // FEATURE 4: Enhanced Status Updates with Typing Indicators
 async function sendTypingAction(chatId) {
   try {
     await bot.telegram.sendChatAction(chatId, 'typing');
-  } catch (e) { console.error("Error:", e.message || e); }
+  } catch (e) {}
 }
 
 async function sendRichResponse(chatId, text, buttons = null, parseMode = 'HTML') {
@@ -417,85 +413,38 @@ const BYOK_CONFIG = {
 };
 
 // TTS (Text-to-Speech) - Optional
-// TTS using free REST API
 async function textToSpeech(text, voice = 'default') {
-  if (!text) return { success: false, error: 'No text provided' };
-  try {
-    // Use Google TTS free API
-    const encodedText = encodeURIComponent(text);
-    const url = `https://translate.google.com/translate_tts?ie=UTF-8&q=${encodedText}&tl=en&client=tw-ob`;
-    return { success: true, audioUrl: url, note: 'Google TTS' };
-  } catch(e) { return { success: false, error: e.message }; }
+  if (!BYOK_CONFIG.tts_api) {
+    return { success: false, error: 'TTS not configured' };
+  }
+  // Implement TTS based on configured API
+  return { success: false, error: 'TTS not implemented yet' };
 }
 
-// STT using Groq Whisper
-async function speechToText(audioBase64, language = 'en') {
-  if (!audioBase64) return { success: false, error: 'No audio provided' };
-  try {
-    // Convert base64 to buffer
-    const audioBuffer = Buffer.from(audioBase64, 'base64');
-    // Use Groq Whisper
-    const formData = new FormData();
-    formData.append('file', new Blob([audioBuffer]), 'audio.wav');
-    formData.append('model', 'whisper-1');
-    formData.append('language', language);
-    
-    const res = await fetch('https://api.groq.com/openai/v1/audio/transcriptions', {
-      method: 'POST',
-      headers: { 'Authorization': `Bearer ${GROQ_API_KEY}` },
-      body: formData
-    });
-    
-    if (res.ok) {
-      const json = await res.json();
-      return { success: true, text: json.text };
-    }
-    return { success: false, error: 'Whisper transcription failed' };
-  } catch(e) { return { success: false, error: e.message }; }
+// STT (Speech-to-Text) - Optional  
+async function speechToText(audioData) {
+  if (!BYOK_CONFIG.stt_api) {
+    return { success: false, error: 'STT not configured' };
+  }
+  // Implement STT based on configured API
+  return { success: false, error: 'STT not implemented yet' };
 }
 
-// Custom Vision multiple provider support
-async function customVisionAnalyze(imageBase64, modelType = 'default') {
-  if (!imageBase64) return { success: false, error: 'No image provided' };
-  try {
-    // Default: use local vision analysis
-    // Can extend to use other vision APIs (Claude, GPT-4V, etc.)
-    const result = await analyzeScreenshotLocal(imageBase64);
-    return { success: true, elements: result, model: modelType };
-  } catch(e) { return { success: false, error: e.message }; }
-}
-
-// Local screenshot analyzer
-async function analyzeScreenshotLocal(imageBase64) {
-  // Return basic analysis structure
-  return {
-    elements: [],
-    summary: "Image analysis requires phone screenshot upload",
-    note: "Use analyze_screenshot action on phone"
-  };
+// Custom Vision Model - Optional
+async function customVisionAnalyze(imageBase64, modelType) {
+  if (!BYOK_CONFIG.vision_model) {
+    return { success: false, error: 'Custom vision not configured' };
+  }
+  // Use custom model if configured
+  return { success: false, error: 'Custom vision not implemented yet' };
 }
 
 app.get('/byok/status', (req, res) => {
   res.json({
-    vision_modelConfigured: true,
-    ttsConfigured: true,
-    sttConfigured: true, // Groq Whisper
-    features: ['textToSpeech', 'speechToText', 'customVision']
+    vision_modelConfigured: !!BYOK_CONFIG.vision_model,
+    ttsConfigured: !!BYOK_CONFIG.tts_api,
+    sttConfigured: !!BYOK_CONFIG.stt_api
   });
-});
-
-// TTS endpoint - converts text to speech URL
-app.post('/tts', async (req, res) => {
-  const { text, voice } = req.body;
-  const result = await textToSpeech(text, voice);
-  res.json(result);
-});
-
-// STT endpoint - converts audio to text
-app.post('/stt', async (req, res) => {
-  const { audio, language } = req.body;
-  const result = await speechToText(audio, language);
-  res.json(result);
 });
 
 // FEATURE 5: Game Mode - Fast execution for gaming
@@ -609,7 +558,7 @@ app.post('/imagine', async (req, res) => {
 const SKILLS_PATH = 'data/skills';
 
 async function saveSkill(skillId, skillData) {
-  const url = getStorageUrl(SKILLS_PATH + '/' + skillId + '.json');
+  const url = `${GITHUB_API}/${SKILLS_PATH}/${skillId}.json`;
   const content = Buffer.from(JSON.stringify(skillData, null, 2)).toString('base64');
   const existing = await ghGetJson(url);
   const payload = { message: `Skill ${skillId}`, content, branch: GITHUB_BRANCH };
@@ -618,14 +567,14 @@ async function saveSkill(skillId, skillData) {
 }
 
 async function getSkill(skillId) {
-  const url = getStorageUrl(SKILLS_PATH + '/' + skillId + '.json');
+  const url = `${GITHUB_API}/${SKILLS_PATH}/${skillId}.json`;
   const res = await ghGetJson(url);
   if (!res.ok || !res.json?.content) return null;
   return JSON.parse(Buffer.from(res.json.content, 'base64').toString('utf8'));
 }
 
 async function listSkills() {
-  const url = getStorageUrl(SKILLS_PATH);
+  const url = `${GITHUB_API}/${SKILLS_PATH}`;
   const res = await ghGetJson(url);
   if (!res.ok || !Array.isArray(res.json)) return [];
   return res.json.filter(f => f.type === 'file' && f.name.endsWith('.json')).map(f => f.name.replace('.json', ''));
@@ -692,7 +641,7 @@ const WORKFLOWS_PATH = 'data/workflows';
 const activeWorkflows = new Map();
 
 async function saveWorkflow(workflowId, workflowData) {
-  const url = getStorageUrl(WORKFLOWS_PATH + '/' + workflowId + '.json');
+  const url = `${GITHUB_API}/${WORKFLOWS_PATH}/${workflowId}.json`;
   const content = Buffer.from(JSON.stringify(workflowData, null, 2)).toString('base64');
   const existing = await ghGetJson(url);
   const payload = { message: `Workflow ${workflowId}`, content, branch: GITHUB_BRANCH };
@@ -827,7 +776,7 @@ app.post('/schedule/create', async (req, res) => {
   };
   
   // Save to GitHub
-  const url = getStorageUrl(SCHEDULES_PATH + '/sched_' + Date.now() + '.json');
+  const url = `${GITHUB_API}/${SCHEDULES_PATH}/sched_${Date.now()}.json`;
   await ghPutJson(url, {
     message: 'Schedule created',
     content: Buffer.from(JSON.stringify(scheduleData, null, 2)).toString('base64'),
@@ -962,7 +911,7 @@ app.get('/api/task/:taskId', async (req, res) => {
   }
   
   try {
-    const taskUrl = getStorageUrl(TASKS_PATH + '/' + taskId + '.json');
+    const taskUrl = `${GITHUB_API}/${TASKS_PATH}/${taskId}.json`;
     const taskRes = await ghGetJson(taskUrl);
     
     if (!taskRes.ok || !taskRes.json?.content) {
@@ -986,7 +935,6 @@ app.get('/api/health', (req, res) => {
   res.json({ 
     status: 'ok', 
     version: '2.9',
-    storage_mode: STORAGE_MODE,
     features: ['external_api', 'api_keys', 'secure_execution'],
     active_keys: API_KEYS.size
   });
@@ -994,39 +942,14 @@ app.get('/api/health', (req, res) => {
 
 if (!GROQ_API_KEY) throw new Error('GROQ_API_KEY required');
 if (!TELEGRAM_BOT_TOKEN) throw new Error('TELEGRAM_BOT_TOKEN required');
-
-// Storage mode: set STORAGE_MODE env var to:
-// - "github" (default) - GitHub API
-// - "local" - Local filesystem  
-// - "memory" - In-memory (resets on restart)
-// - "firebase" - Firebase Firestore
-// - "supabase" - Supabase
-// - "s3" - AWS S3
-const STORAGE_MODE = process.env.STORAGE_MODE || 'github';
-
-// Required configs per mode
-if (STORAGE_MODE === 'github' && (!GITHUB_TOKEN || !GITHUB_REPO)) {
-  throw new Error('GITHUB_TOKEN and GITHUB_REPO required for github mode');
-}
-if (STORAGE_MODE === 'firebase' && !process.env.FIREBASE_PROJECT_ID) {
-  throw new Error('FIREBASE_PROJECT_ID required for firebase mode');
-}
-if (STORAGE_MODE === 'supabase' && (!process.env.SUPABASE_URL || !process.env.SUPABASE_KEY)) {
-  throw new Error('SUPABASE_URL and SUPABASE_KEY required for supabase mode');
-}
-if (STORAGE_MODE === 's3' && !process.env.AWS_S3_BUCKET) {
-  throw new Error('AWS_S3_BUCKET required for s3 mode');
-}
+if (!GITHUB_TOKEN || !GITHUB_REPO) throw new Error('GITHUB_TOKEN and GITHUB_REPO required');
 
 const groq = new Groq({ apiKey: GROQ_API_KEY });
 const bot = new Telegraf(TELEGRAM_BOT_TOKEN);
 
 app.use(express.json());
 
-// In-memory storage
-const memoryStorage = new Map();
-
-const GITHUB_API = STORAGE_MODE === 'github' ? `https://api.github.com/repos/${GITHUB_REPO}/contents` : '';
+const GITHUB_API = `https://api.github.com/repos/${GITHUB_REPO}/contents`;
 const TASKS_PATH = 'data/tasks';
 const LOGS_PATH = 'data/logs';
 const ROUTES_PATH = 'data/routes';
@@ -1036,20 +959,6 @@ const CURRENT_TASK_PATH = 'data/current_task.json';
 const TASK_QUEUE_PATH = 'data/task_queue.json';
 const DEVICE_STATE_PATH = 'data/device_state.json';
 const APPS_LIST_PATH = 'data/installed_apps.json';
-
-// Helper to get correct storage URL based on mode
-function getStorageUrl(path) {
-  if (STORAGE_MODE === 'supabase') {
-    const table = path.replace('data/', '').replace('.json', '');
-    return `${process.env.SUPABASE_URL}/rest/v1/${table}`;
-  }
-  if (STORAGE_MODE === 'firebase') {
-    const doc = path.replace('data/', '').replace('.json', '');
-    return `https://firestore.googleapis.com/v1/projects/${process.env.FIREBASE_PROJECT_ID}/databases/(default)/documents/${doc}`;
-  }
-  // GitHub/Local/Memory uses GitHub API format
-  return `${GITHUB_API}/${path}`;
-}
 
 // ============================================
 // COMPLETE APP REGISTRY (All Original Entries)
@@ -1138,200 +1047,22 @@ function githubRequest(method, url, body) {
   });
 }
 
-// ====================== NEW ghGetJson ======================
-async function ghGetJson(urlOrPath) {
-  const url = urlOrPath.includes('http') ? urlOrPath : getStorageUrl(urlOrPath);
-
-  console.log(`>>> \( {STORAGE_MODE.toUpperCase()} GET → \){url}`);
-
-  // ==================== SUPABASE ====================
-  if (STORAGE_MODE === 'supabase') {
-    try {
-      const res = await fetch(url, {
-        headers: {
-          'apikey': process.env.SUPABASE_KEY,
-          'Authorization': `Bearer ${process.env.SUPABASE_KEY}`,
-          'Content-Type': 'application/json'
-        }
-      });
-      if (res.ok) {
-        const data = await res.json();
-        return {
-          ok: true,
-          statusCode: res.status,
-          json: { content: Buffer.from(JSON.stringify(data)).toString('base64') },
-          body: JSON.stringify(data)
-        };
-      }
-      return { ok: false, statusCode: res.status };
-    } catch (e) {
-      console.error('Supabase GET error:', e.message);
-      return { ok: false, statusCode: 500 };
-    }
-  }
-
-  // ==================== FIREBASE ====================
-  if (STORAGE_MODE === 'firebase') {
-    try {
-      const res = await fetch(url, {
-        headers: { 'Authorization': `Bearer ${process.env.FIREBASE_TOKEN}` }
-      });
-      if (res.ok) {
-        const json = await res.json();
-        const fields = {};
-        if (json.fields) {
-          Object.keys(json.fields).forEach(k => {
-            fields[k] = json.fields[k].stringValue || json.fields[k].integerValue || json.fields[k].booleanValue || "";
-          });
-        }
-        return {
-          ok: true,
-          json: { content: Buffer.from(JSON.stringify(fields)).toString('base64') },
-          body: JSON.stringify(fields)
-        };
-      }
-    } catch (e) { console.error('Firebase GET error:', e.message); }
-    return { ok: false, statusCode: 500 };
-  }
-
-  // ==================== S3 ====================
-  if (STORAGE_MODE === 's3') {
-    try {
-      const { S3Client, GetObjectCommand } = require('@aws-sdk/client-s3');
-      const s3 = new S3Client({ region: process.env.AWS_REGION || 'us-east-1' });
-      const command = new GetObjectCommand({
-        Bucket: process.env.AWS_S3_BUCKET,
-        Key: urlOrPath.split('/').pop().replace('.json', '')
-      });
-      const response = await s3.send(command);
-      const bodyStr = await response.Body.transformToString();
-      return { ok: true, json: JSON.parse(bodyStr), body: bodyStr };
-    } catch (e) {
-      console.error('S3 GET error:', e.message);
-      return { ok: false, statusCode: 404 };
-    }
-  }
-
-  // ==================== LOCAL & MEMORY ====================
-  if (STORAGE_MODE === 'local') {
-    try {
-      const fs = require('fs');
-      const key = 'data/' + urlOrPath.split('/').pop();
-      if (fs.existsSync(key)) {
-        const content = fs.readFileSync(key, 'utf8');
-        return { ok: true, json: JSON.parse(content), body: content };
-      }
-    } catch (e) { console.error('Local GET error:', e.message); }
-    return { ok: false, statusCode: 404 };
-  }
-
-  if (STORAGE_MODE === 'memory') {
-    const data = memoryStorage.get(urlOrPath);
-    return data ? { ok: true, json: data, body: JSON.stringify(data) } : { ok: false, statusCode: 404 };
-  }
-
-  // ==================== GITHUB (default) ====================
-  const res = await githubRequest('GET', urlOrPath);
+async function ghGetJson(url) {
+  const res = await githubRequest('GET', url);
   let json = null;
-  try { json = res.body ? JSON.parse(res.body) : null; } catch {}
+  try { json = res.body ? JSON.parse(res.body) : null; } catch { json = null; }
   return { ...res, json };
-    }
-
-// ====================== NEW ghPutJson ======================
-async function ghPutJson(urlOrPath, bodyObj) {
-  const url = urlOrPath.includes('http') ? urlOrPath : getStorageUrl(urlOrPath);
-
-  console.log(`>>> \( {STORAGE_MODE.toUpperCase()} PUT → \){url}`);
-
-  // ==================== SUPABASE ====================
-  if (STORAGE_MODE === 'supabase') {
-    try {
-      const res = await fetch(url, {
-        method: 'POST',
-        headers: {
-          'apikey': process.env.SUPABASE_KEY,
-          'Authorization': `Bearer ${process.env.SUPABASE_KEY}`,
-          'Content-Type': 'application/json',
-          'Prefer': 'resolution=merge-duplicates'
-        },
-        body: JSON.stringify(bodyObj)
-      });
-      return { ok: res.ok, statusCode: res.status };
-    } catch (e) {
-      console.error('Supabase PUT error:', e.message);
-      return { ok: false, statusCode: 500 };
-    }
-  }
-
-  // ==================== FIREBASE ====================
-  if (STORAGE_MODE === 'firebase') {
-    try {
-      const fields = {};
-      Object.keys(bodyObj).forEach(k => {
-        fields[k] = { stringValue: String(bodyObj[k]) };
-      });
-      const res = await fetch(url, {
-        method: 'PATCH',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${process.env.FIREBASE_TOKEN}`
-        },
-        body: JSON.stringify({ fields })
-      });
-      return { ok: res.ok, statusCode: res.status };
-    } catch (e) {
-      console.error('Firebase PUT error:', e.message);
-      return { ok: false, statusCode: 500 };
-    }
-  }
-
-  // ==================== S3 ====================
-  if (STORAGE_MODE === 's3') {
-    try {
-      const { S3Client, PutObjectCommand } = require('@aws-sdk/client-s3');
-      const s3 = new S3Client({ region: process.env.AWS_REGION || 'us-east-1' });
-      const key = urlOrPath.split('/').pop().replace('.json', '');
-      await s3.send(new PutObjectCommand({
-        Bucket: process.env.AWS_S3_BUCKET,
-        Key: key,
-        Body: JSON.stringify(bodyObj),
-        ContentType: 'application/json'
-      }));
-      return { ok: true, statusCode: 200 };
-    } catch (e) {
-      console.error('S3 PUT error:', e.message);
-      return { ok: false, statusCode: 500 };
-    }
-  }
-
-  // ==================== LOCAL & MEMORY ====================
-  if (STORAGE_MODE === 'local') {
-    try {
-      const fs = require('fs');
-      const key = 'data/' + urlOrPath.split('/').pop();
-      fs.mkdirSync('data', { recursive: true });
-      fs.writeFileSync(key, JSON.stringify(bodyObj, null, 2));
-      return { ok: true, statusCode: 200 };
-    } catch (e) {
-      console.error('Local PUT error:', e.message);
-      return { ok: false, statusCode: 500 };
-    }
-  }
-
-  if (STORAGE_MODE === 'memory') {
-    memoryStorage.set(urlOrPath, bodyObj);
-    return { ok: true, statusCode: 200 };
-  }
-
-  // ==================== GITHUB (default) ====================
-  const res = await githubRequest('PUT', urlOrPath, bodyObj);
-  return res;
 }
+
+async function ghPutJson(url, body) {
+  return githubRequest('PUT', url, body);
+}
+
 // ============================================
 // QUEUE SYSTEM (O(1) Performance)
 // ============================================
 async function getTaskQueue() {
-  const url = getStorageUrl(TASK_QUEUE_PATH);
+  const url = `${GITHUB_API}/${TASK_QUEUE_PATH}`;
   const res = await ghGetJson(url);
   if (!res.ok || !res.json?.content) {
     return { queue: [], processing: null, last_updated: Date.now() };
@@ -1345,18 +1076,11 @@ async function getTaskQueue() {
 }
 
 async function updateTaskQueue(queueData) {
-  const url = getStorageUrl(TASK_QUEUE_PATH);
+  const url = `${GITHUB_API}/${TASK_QUEUE_PATH}`;
   const content = Buffer.from(JSON.stringify(queueData, null, 2)).toString('base64');
-  
   const existing = await ghGetJson(url);
-  const payload = { 
-    message: 'Update queue', 
-    content, 
-    branch: GITHUB_BRANCH 
-  };
-  
+  const payload = { message: 'Update queue', content, branch: GITHUB_BRANCH };
   if (existing.ok && existing.json?.sha) payload.sha = existing.json.sha;
-  
   const result = await ghPutJson(url, payload);
   if (!result.ok) throw new Error(`Queue update failed: ${result.statusCode}`);
   return result;
@@ -1454,12 +1178,7 @@ function extractJsonObject(text) {
   const start = raw.indexOf('{');
   const end = raw.lastIndexOf('}');
   if (start === -1 || end === -1 || end < start) return null;
-  try { 
-    const parsed = JSON.parse(raw.slice(start, end + 1));
-    // Basic validation - ensure it's an object
-    if (!parsed || typeof parsed !== 'object') return null;
-    return parsed;
-  } catch { return null; }
+  try { return JSON.parse(raw.slice(start, end + 1)); } catch { return null; }
 }
 
 function extractJsonArray(text) {
@@ -1485,7 +1204,7 @@ function cleanAiResponse(text) {
 // FEATURE 3: Fetch Installed Apps List
 async function fetchInstalledApps() {
   if (cachedAppsList) return cachedAppsList;
-  const url = getStorageUrl(APPS_LIST_PATH);
+  const url = `${GITHUB_API}/${APPS_LIST_PATH}`;
   const res = await ghGetJson(url);
   if (res.ok && res.json?.content) {
     try {
@@ -1498,7 +1217,7 @@ async function fetchInstalledApps() {
 
 // FEATURE 4: Fetch Device State (Context Awareness)
 async function fetchDeviceState() {
-  const url = getStorageUrl(DEVICE_STATE_PATH);
+  const url = `${GITHUB_API}/${DEVICE_STATE_PATH}`;
   const res = await ghGetJson(url);
   if (res.ok && res.json?.content) {
     try {
@@ -1512,12 +1231,11 @@ async function fetchDeviceState() {
 // FEATURE 2: Fetch Stored Routes
 async function fetchStoredRoutes() {
   if (cachedRoutes) return cachedRoutes;
-  const url = getStorageUrl(ROUTES_PATH);
+  const url = `${GITHUB_API}/${ROUTES_PATH}`;
   const res = await ghGetJson(url);
-  console.log('>>> fetchStoredRoutes res.ok:', res.ok, 'isArray:', Array.isArray(res.json));
-  if (res.ok && Array.isArray(res.json)) {
+  if (res.ok && res.json) {
     const routes = [];
-    for (const file of res.json) {
+    for (const file of (res.json || [])) {
       if (file.name?.endsWith('.json') && file.name !== '.gitkeep') {
         const routeUrl = file.download_url;
         const routeRes = await ghGetJson(routeUrl);
@@ -1529,10 +1247,8 @@ async function fetchStoredRoutes() {
       }
     }
     cachedRoutes = routes;
-    console.log('>>> fetchStoredRoutes found:', routes.length, 'routes');
     return routes;
   }
-  console.log('>>> fetchStoredRoutes: NO routes folder or empty');
   return [];
 }
 
@@ -1604,18 +1320,14 @@ function extractSlotsFromExample(goal, steps) {
 }
 
 function fillSlots(steps, slotValues) {
-  if (!Array.isArray(steps)) return [];
-  if (!slotValues || Object.keys(slotValues).length === 0) return steps;
-  
   return steps.map(step => {
-    if (!step || typeof step !== 'object') return step;
     const newStep = { ...step };
     for (const [slotName, value] of Object.entries(slotValues)) {
       const placeholder = `{${slotName}}`;
-      if (newStep.text && typeof newStep.text === 'string' && newStep.text.includes(placeholder)) {
+      if (newStep.text && newStep.text.includes(placeholder)) {
         newStep.text = newStep.text.replace(placeholder, value);
       }
-      if (newStep.value && typeof newStep.value === 'string' && newStep.value.includes(placeholder)) {
+      if (newStep.value && newStep.value.includes(placeholder)) {
         newStep.value = newStep.value.replace(placeholder, value);
       }
     }
@@ -1792,14 +1504,14 @@ You are the BRAIN - the phone is your BODY. You make ALL decisions. Nothing happ
 Understand user → Plan steps → Execute via phone → Report results.
 
 ## 🔧 ACTIONS AVAILABLE
-- analyze_screenshot: AI sees UI elements (ALWAYS USE FIRST to see screen!)
 - launch_app: Open app (value: app name or package)
-- click: Tap (x,y or text/contains/id) - prefer text/contains
+- click: Tap (x,y or text/contains/id)
 - type: Enter text (text: "hello")
 - press: Key (key: "enter"/"back"/"home")
 - wait: Pause (ms: 2000)
 - swipe: Direction (direction: "up"/"down"/"left"/"right")
 - screenshot: Capture screen
+- analyze_screenshot: AI sees UI elements
 - get_context: What's currently open
 - open_url: Browser (value: "https://...")
 - fallback_search: Find search icon if search bar missing
@@ -1873,7 +1585,8 @@ Return JSON:
   ]
 }
 
-Now process: "${userText}";
+Now process: "${userText}"`;
+  ],
   "execution_notes": "Warnings"
 }`;
 
@@ -1889,11 +1602,7 @@ Now process: "${userText}";
     });
     
     const parsed = extractJsonObject(res.choices[0].message.content);
-    console.log('LLM parsed:', JSON.stringify(parsed)?.slice(0, 200));
-    if (!parsed || !parsed.steps || !Array.isArray(parsed.steps)) {
-      console.log('No valid steps from LLM, using fallback');
-      return fallbackOrchestrate(userText);
-    }
+    if (!parsed?.steps) return fallbackOrchestrate(userText);
     
     // Normalize steps with IDs and verification flags
     parsed.steps = parsed.steps.map((step, idx) => ({
@@ -1905,23 +1614,8 @@ Now process: "${userText}";
     
     return parsed;
   } catch (e) {
-    console.error('LLM Error:', e.message);
-    // Save error to GitHub for debugging
-    const errorLog = {
-      time: new Date().toISOString(),
-      type: 'llm_error',
-      message: e.message,
-      userText: userText
-    };
-    try {
-      const logUrl = getStorageUrl('data/error_log.json');
-      await ghPutJson(logUrl, {
-        message: 'LLM Error log',
-        content: Buffer.from(JSON.stringify(errorLog, null, 2)).toString('base64'),
-        branch: GITHUB_BRANCH
-      });
-    } catch (e) { console.error("Error:", e.message || e); }
-    return { intent: 'error', confidence: 0, steps: [], error: e.message };
+    console.error('LLM Error:', e);
+    return fallbackOrchestrate(userText);
   }
 }
 
@@ -2048,10 +1742,10 @@ function buildTemplateSteps(userText) {
 // ROUTE SYSTEM (All Original)
 // ============================================
 async function saveRoute(routeId, routeData) {
-  const fileUrl = getStorageUrl(`\( {ROUTES_PATH}/ \){routeId}.json`);
+  const fileUrl = `${GITHUB_API}/${ROUTES_PATH}/${routeId}.json`;
   const contentBase64 = Buffer.from(JSON.stringify(routeData, null, 2)).toString('base64');
-  
   const existing = await ghGetJson(fileUrl);
+  
   const payload = {
     message: `Route ${routeId}`,
     content: contentBase64,
@@ -2066,7 +1760,7 @@ async function saveRoute(routeId, routeData) {
 }
 
 async function getRouteById(routeId) {
-  const fileUrl = getStorageUrl(ROUTES_PATH + '/' + routeId + '.json');
+  const fileUrl = `${GITHUB_API}/${ROUTES_PATH}/${routeId}.json`;
   const res = await ghGetJson(fileUrl);
   if (!res.ok || !res.json?.content) return null;
   try {
@@ -2075,13 +1769,8 @@ async function getRouteById(routeId) {
 }
 
 async function listRouteSummaries(limit = 50) {
-  console.log('>>> listRouteSummaries: fetching...');
-  const folder = await ghGetJson(getStorageUrl(ROUTES_PATH));
-  console.log('>>> listRouteSummaries folder:', folder.ok, Array.isArray(folder.json));
-  if (!folder.ok || !Array.isArray(folder.json)) {
-    console.log('>>> listRouteSummaries: NO routes');
-    return [];
-  }
+  const folder = await ghGetJson(`${GITHUB_API}/${ROUTES_PATH}`);
+  if (!folder.ok || !Array.isArray(folder.json)) return [];
   
   const files = folder.json.filter(f => f.type === 'file' && f.name !== '.gitkeep').slice(0, limit);
   const out = [];
@@ -2096,7 +1785,7 @@ async function listRouteSummaries(limit = 50) {
           app: route.app || ''
         });
       }
-    } catch (e) { console.error("Error:", e.message || e); }
+    } catch {}
   }
   return out;
 }
@@ -2155,8 +1844,7 @@ async function startTeachSession(userId, goal) {
     priority: 1
   };
   
-  const fileUrl = getStorageUrl(`\( {TASKS_PATH}/ \){taskId}.json`);
-  
+  const fileUrl = `${GITHUB_API}/${TASKS_PATH}/${taskId}.json`;
   await ghPutJson(fileUrl, {
     message: `Teach ${taskId}`,
     content: Buffer.from(JSON.stringify(teachTask, null, 2)).toString('base64'),
@@ -2165,8 +1853,8 @@ async function startTeachSession(userId, goal) {
   
   await enqueueTask(taskId, 1);
   
-  const pointerUrl = getStorageUrl(CURRENT_TASK_PATH);
-  await ghPutJson(pointerUrl, {
+  // Update current pointer
+  await ghPutJson(`${GITHUB_API}/${CURRENT_TASK_PATH}`, {
     message: `current ${taskId}`,
     content: Buffer.from(JSON.stringify({
       task_id: taskId,
@@ -2178,7 +1866,14 @@ async function startTeachSession(userId, goal) {
     branch: GITHUB_BRANCH
   });
   
-  activeTeachSessions.set(userId, { taskId, goal, app, startedAt: Date.now(), fileUrl });
+  activeTeachSessions.set(userId, {
+    taskId,
+    goal,
+    app,
+    startedAt: Date.now(),
+    fileUrl
+  });
+  
   return { taskId, fileUrl };
 }
 
@@ -2201,8 +1896,7 @@ async function stopTeachSession(userId) {
     priority: 1
   };
   
-  const fileUrl = getStorageUrl(`\( {TASKS_PATH}/ \){taskId}.json`);
-  
+  const fileUrl = `${GITHUB_API}/${TASKS_PATH}/${taskId}.json`;
   await ghPutJson(fileUrl, {
     message: `StopTeach ${taskId}`,
     content: Buffer.from(JSON.stringify(stopTask, null, 2)).toString('base64'),
@@ -2211,8 +1905,7 @@ async function stopTeachSession(userId) {
   
   await enqueueTask(taskId, 1);
   
-  const pointerUrl = getStorageUrl(CURRENT_TASK_PATH);
-  await ghPutJson(pointerUrl, {
+  await ghPutJson(`${GITHUB_API}/${CURRENT_TASK_PATH}`, {
     message: `current ${taskId}`,
     content: Buffer.from(JSON.stringify({
       task_id: taskId,
@@ -2243,7 +1936,7 @@ async function updateStepProgress(taskId, stepNum, totalSteps, status, details, 
     timestamp: new Date().toISOString()
   };
   
-  const url = getStorageUrl(PROGRESS_PATH + '/' + taskId + '_progress.json');
+  const url = `${GITHUB_API}/${PROGRESS_PATH}/${taskId}_progress.json`;
   await ghPutJson(url, {
     message: `Step ${stepNum}/${totalSteps} ${status}`,
     content: Buffer.from(JSON.stringify(data, null, 2)).toString('base64'),
@@ -2284,48 +1977,34 @@ Generate a natural language report explaining what was attempted, which apps wer
 // TASK CREATION (Complete with All Modes)
 // ============================================
 async function createRegularTask(userText, intent, mode, userId, chatId) {
-  console.log('========================================');
-  console.log('>>> CREATE TASK INPUT:', {userText, intent, mode, userId});
-
   const taskId = nanoid(12);
   
+  // Try route match first
   let steps = [];
   let routeMatched = null;
   let slotValues = {};
   let orch = null;
   
-  console.log('>>> Checking stored routes...');
   const matchedRoute = await findMatchingRoute(userText);
-  
   if (matchedRoute && matchedRoute.steps) {
-    routeMatched = matchedRoute.route_id || matchedRoute.id;
+    routeMatched = matchedRoute.route_id;
     slotValues = await extractSlotsFromUserInput(matchedRoute, userText);
     steps = fillSlots(matchedRoute.steps, slotValues);
-    console.log('>>> Using ROUTE steps:', steps.length);
   } else {
-    console.log('>>> Calling LLM Brain...');
+    // Use LLM Brain
     orch = await llmOrchestrate(userText, { mode, userId });
-    
     if (orch.error) throw new Error(orch.error);
-    
-    if (orch.steps && Array.isArray(orch.steps)) {
-      steps = fillSlots(orch.steps, orch.slots || {});
-    } else {
-      const template = buildTemplateSteps(userText);
-      if (template) steps = template;
-    }
+    steps = orch.steps.map(s => ({
+      ...s,
+      text: fillSlots(s.text, orch.slots),
+      value: fillSlots(s.value, orch.slots)
+    }));
   }
   
   if (steps.length === 0) {
+    // Fallback to templates
     const template = buildTemplateSteps(userText);
     if (template) steps = template;
-    else {
-      // final safe fallback
-      steps = [
-        { action: 'launch_app', value: 'chrome', description: 'Open Chrome' },
-        { action: 'wait', ms: 3000 }
-      ];
-    }
   }
   
   const task = {
@@ -2349,22 +2028,19 @@ async function createRegularTask(userText, intent, mode, userId, chatId) {
     verify_every_step: true
   };
   
-  // === USING getStorageUrl FOR ALL STORAGE MODES ===
-  const taskUrl = getStorageUrl(`${TASKS_PATH}/${taskId}.json`);
-  console.log('>>> Saving task, mode:', STORAGE_MODE, 'url:', taskUrl?.slice(0, 50));
-  
+  // Save task
+  const taskUrl = `${GITHUB_API}/${TASKS_PATH}/${taskId}.json`;
   await ghPutJson(taskUrl, {
     message: `Task ${taskId}`,
     content: Buffer.from(JSON.stringify(task, null, 2)).toString('base64'),
     branch: GITHUB_BRANCH
   });
   
+  // Init progress
   await updateStepProgress(taskId, 0, steps.length, 'queued', 'Waiting for device...', null, null);
   
+  // Add to queue
   await enqueueTask(taskId, task.priority);
-  
-  console.log('>>> TASK CREATED SUCCESS:', {taskId, steps: steps.length, target: task.target_app});
-  console.log('========================================');
   
   return { taskId, steps, targetApp: task.target_app, intent: orch?.intent || 'route', routeMatched };
 }
@@ -2384,16 +2060,10 @@ async function monitorTaskProgress(taskId, chatId, steps) {
     if (completed) return;
     
     try {
-      const url = getStorageUrl(PROGRESS_PATH + '/' + taskId + '_progress.json');
-      console.log('>>> Checking progress:', taskId.slice(0,8));
+      const url = `${GITHUB_API}/${PROGRESS_PATH}/${taskId}_progress.json`;
       const res = await ghGetJson(url);
       
-      if (!res.ok) {
-        console.log('>>> Progress not found yet - task may be queued');
-        // Skip this check, try again next interval
-      } else {
-      
-      if (res.json?.content) {
+      if (res.ok && res.json?.content) {
         const progress = JSON.parse(Buffer.from(res.json.content, 'base64').toString());
         const currentStep = progress.step_number;
         
@@ -2422,7 +2092,7 @@ async function monitorTaskProgress(taskId, chatId, steps) {
             
             // Final report
             setTimeout(async () => {
-              const reportUrl = getStorageUrl(REPORTS_PATH + '/' + taskId + '_report.json');
+              const reportUrl = `${GITHUB_API}/${REPORTS_PATH}/${taskId}_report.json`;
               const reportRes = await ghGetJson(reportUrl);
               
               let finalMsg;
@@ -2440,8 +2110,7 @@ async function monitorTaskProgress(taskId, chatId, steps) {
           }
         }
       }
-      }
-    } catch (e) { console.error("Error:", e.message || e); }
+    } catch (e) {}
     
     if (!completed) setTimeout(check, 3000);
   };
@@ -2568,12 +2237,10 @@ bot.command('do', async (ctx) => {
     
     let msg = `⚡ Task Created\nIntent: ${intent}\nTarget: ${appName}\nSteps: ${steps.length}\n`;
     if (routeMatched) msg += `📚 Using route: ${routeMatched}\n`;
-    msg += `⏳ ID: ${createdTaskId.slice(0, 8)}...\n\n🔄 Executing...`;
+    msg += `ID: ${taskId.slice(0, 8)}...\n\nStarting...`;
     
-    const replyMsg = await ctx.reply(msg);
-    // React with hourglass while running
-    replyMsg?.react('⏳').catch(() => {});
-    monitorTaskProgress(createdTaskId, ctx.chat.id, steps);
+    await ctx.reply(msg);
+    monitorTaskProgress(taskId, ctx.chat.id, steps);
   } catch (e) {
     await ctx.reply('❌ Error: ' + e.message);
   }
@@ -2673,7 +2340,7 @@ bot.on('text', async (ctx) => {
         created_at: new Date().toISOString()
       };
       
-      const url = getStorageUrl(SCHEDULES_PATH + '/sched_' + Date.now() + '.json');
+      const url = `${GITHUB_API}/${SCHEDULES_PATH}/sched_${Date.now()}.json`;
       await ghPutJson(url, {
         message: 'Schedule created',
         content: Buffer.from(JSON.stringify(scheduleData, null, 2)).toString('base64'),
@@ -2707,8 +2374,8 @@ bot.on('text', async (ctx) => {
     // FEATURE 3: Analyze if this is a complex task
     const taskAnalysis = await analyzeComplexTask(userMessage);
     
-    if (taskAnalysis.complex && taskAnalysis.steps && Array.isArray(taskAnalysis.steps)) {
-      await ctx.reply(`Task Analysis\n\nThis is a complex task:\n\n${taskAnalysis.steps.map((s, i) => `${i + 1}. ${s}`).join('\n')}`);
+    if (taskAnalysis.complex) {
+      await ctx.reply(`📊 *Task Analysis*\n\nThis is a complex task. I'll break it down:\n\n${taskAnalysis.steps.map((s, i) => `${i + 1}. ${s}`).join('\n')}`, { parse_mode: 'Markdown' });
     }
     
     // FEATURE 2: Check for best matching route first
@@ -2716,14 +2383,14 @@ bot.on('text', async (ctx) => {
     let routeMatched = null;
     let steps = [];
     let targetApp = null;
-    let createdTaskId = null;
     
     if (routeMatch && routeMatch.score > 60) {
       // High confidence route match - use it
-      const taskResult = await createRegularTask(userMessage, 'ROUTE', 'normal', userId, ctx.chat.id);
-      createdTaskId = taskResult.taskId;
-      steps = taskResult.steps;
-      targetApp = taskResult.targetApp;
+      const { taskId, steps: routeSteps, targetApp: app } = await createRegularTask(
+        userMessage, 'ROUTE', 'normal', userId, ctx.chat.id
+      );
+      steps = routeSteps;
+      targetApp = app;
       routeMatched = routeMatch.route.goal;
     } else if (routeMatch && routeMatch.score > 30) {
       // Medium confidence - ask for clarification
@@ -2734,10 +2401,9 @@ bot.on('text', async (ctx) => {
       return;
     } else {
       // No route match - use LLM to generate steps
-      const taskResult = await createRegularTask(userMessage, 'AUTO', 'normal', userId, ctx.chat.id);
-      createdTaskId = taskResult.taskId;
-      steps = taskResult.steps;
-      targetApp = taskResult.targetApp;
+      const result = await createRegularTask(userMessage, 'AUTO', 'normal', userId, ctx.chat.id);
+      steps = result.steps;
+      targetApp = result.targetApp;
     }
     
     const appName = targetApp ? targetApp.split('.').pop() : 'device';
@@ -2745,16 +2411,15 @@ bot.on('text', async (ctx) => {
     // FEATURE 3: Use rich Telegram-style response
     let statusMsg = `🤖 *Executing on ${appName}...*\n📋 Steps: ${steps.length}`;
     if (routeMatched) statusMsg += `\n📚 Using route: ${routeMatched}`;
-    if (taskAnalysis.complex && taskAnalysis.steps) statusMsg += `\n🔀 Complex task (${taskAnalysis.steps.length} subtasks)`;
-    statusMsg += `\n⏳ Processing ID: ${createdTaskId?.slice(0, 8)}...`;
+    if (taskAnalysis.complex) statusMsg += `\n🔀 Complex task (${taskAnalysis.steps.length} subtasks)`;
+    statusMsg += `\n⏳ Processing...`;
     
     await ctx.reply(statusMsg, { parse_mode: 'Markdown' });
     
-    // Use the already created taskId, don't create again!
-    monitorTaskProgress(createdTaskId, ctx.chat.id, steps);
+    monitorTaskProgress(routeMatched ? null : (await createRegularTask(userMessage, 'AUTO', 'normal', userId, ctx.chat.id)).taskId, ctx.chat.id, steps);
     
     // Add assistant response to context
-    addToContext(userId, 'assistant', `Task ${createdTaskId?.slice(0,8)}: ${steps.length} steps`);
+    addToContext(userId, 'assistant', `Task created: ${steps.length} steps`);
   } catch (e) {
     await ctx.reply('❌ Error: ' + e.message);
   }
@@ -2778,7 +2443,7 @@ app.post('/report/:taskId', async (req, res) => {
   
   try {
     // Save report to GitHub
-    const reportUrl = getStorageUrl(REPORTS_PATH + '/' + taskId + '_report.json');
+    const reportUrl = `${GITHUB_API}/${REPORTS_PATH}/${taskId}_report.json`;
     const reportData = {
       task_id: taskId,
       status,
@@ -2799,7 +2464,7 @@ app.post('/report/:taskId', async (req, res) => {
     await ghPutJson(reportUrl, payload);
     
     // Notify Telegram if chat_id exists
-    const taskUrl = getStorageUrl(TASKS_PATH + '/' + taskId + '.json');
+    const taskUrl = `${GITHUB_API}/${TASKS_PATH}/${taskId}.json`;
     const taskRes = await ghGetJson(taskUrl);
     if (taskRes.ok && taskRes.json?.content) {
       const task = JSON.parse(Buffer.from(taskRes.json.content, 'base64').toString());
@@ -2819,14 +2484,19 @@ app.post('/report/:taskId', async (req, res) => {
     res.status(500).json({ ok: false, error: e.message });
   }
 });
-// ============================================// SCHEDULER - Run tasks at scheduled times
+
+  });
+});
+
+// ============================================
+// SCHEDULER - Run tasks at scheduled times
 // ============================================
 const SCHEDULER_INTERVAL = 60000; // Check every minute
 const schedules = new Map(); // In-memory cache of active schedules
 
 async function loadSchedules() {
   try {
-    const url = getStorageUrl(SCHEDULES_PATH);
+    const url = `${GITHUB_API}/${SCHEDULES_PATH}`;
     const res = await ghGetJson(url);
     if (res.ok && Array.isArray(res.json)) {
       res.json.filter(f => f.type === 'file' && f.name.endsWith('.json')).forEach(f => {
@@ -2863,7 +2533,7 @@ function startScheduler() {
   
   setInterval(async () => {
     try {
-      const url = getStorageUrl(SCHEDULES_PATH);
+      const url = `${GITHUB_API}/${SCHEDULES_PATH}`;
       const res = await ghGetJson(url);
       
       if (!res.ok || !Array.isArray(res.json)) return;
@@ -2876,13 +2546,8 @@ function startScheduler() {
         
         if (!scheduleRes.ok || !scheduleRes.body) continue;
         
-        let schedule;
         try {
-          schedule = JSON.parse(scheduleRes.body);
-        } catch(e) {
-          console.log("Invalid schedule JSON:", e.message);
-          continue;
-        }
+          const schedule = JSON.parse(scheduleRes.body);
           
           if (!schedule.enabled) continue;
           
@@ -2890,8 +2555,9 @@ function startScheduler() {
             console.log("Running scheduled: " + schedule.task);
             await createRegularTask(schedule.task, 'SCHEDULED', 'normal', 0, 0);
           }
-        }
-      } catch (e) { console.error("Schedule error:", e.message || e); }
+        } catch (e) {}
+      }
+    } catch (e) {}
   }, SCHEDULER_INTERVAL);
 }
 
@@ -2900,7 +2566,3 @@ app.listen(PORT, () => {
   console.log('Features: LLM Brain, Verification, Teach Mode, Routes, Progress');
 });
 
-
-
-bot.launch();
-console.log('Bot started');

@@ -2396,11 +2396,14 @@ function connectToServer() {
     var res = httpGet(healthUrl);
     if (res && res.contains('"status"')) {
       log("✓ Connected to server: " + SERVER_URL);
+      try {
+        var health = JSON.parse(res);
+        if (health.storage_mode) {
+          log("Storage backend: " + health.storage_mode);
+        }
+      } catch(e) {}
     }
     
-    // Try to get device state to know storage mode
-    var stateUrl = SERVER_URL + "/api/" + DEVICE_STATE_PATH;
-    var stateRes = httpGet(stateUrl);
     log("Storage: via server API (supports all modes!)");
   } catch(e) {
     log("Server connection issue: " + e);
