@@ -1002,6 +1002,24 @@ if (!TELEGRAM_BOT_TOKEN) throw new Error('TELEGRAM_BOT_TOKEN required');
 // - "supabase" - Supabase
 // - "s3" - AWS S3
 const STORAGE_MODE = process.env.STORAGE_MODE || 'github';
+function getStorageUrl(path) {
+  if (STORAGE_MODE === 'supabase') {
+    const table = path.split('/').pop().replace('.json', '');
+    return `\( {process.env.SUPABASE_URL}/rest/v1/ \){table}`;
+  }
+  if (STORAGE_MODE === 'firebase') {
+    const docId = path.split('/').pop().replace('.json', '');
+    return `https://firestore.googleapis.com/v1/projects/\( {process.env.FIREBASE_PROJECT_ID}/databases/(default)/documents/ \){docId}`;
+  }
+  if (STORAGE_MODE === 's3') {
+    return path; // S3 uses key only
+  }
+  if (STORAGE_MODE === 'local' || STORAGE_MODE === 'memory') {
+    return path;
+  }
+  // GitHub default
+  return `\( {GITHUB_API}/ \){path}`;
+}
 console.log('>>> Storage mode:', STORAGE_MODE);
 
 // Required configs per mode
@@ -1124,172 +1142,195 @@ function githubRequest(method, url, body) {
   });
 }
 
-async function ghGetJson(url) {
-  // Memory storage
-  if (STORAGE_MODE === 'memory') {
-    const data = memoryStorage.get(url);
-    return data ? { ok: true, json: data, body: JSON.stringify(data) } : { ok: false, status: 404 };
-  }
-  // Local file storage
-  if (STORAGE_MODE === 'local') {
-    const key = 'data/' + url.split('/').pop();
+// ====================== NEW ghGetJson ======================
+async function ghGetJson(urlOrPath) {
+  const url = urlOrPath.includes('http') ? urlOrPath : getStorageUrl(urlOrPath);
+
+  console.log(`>>> \( {STORAGE_MODE.toUpperCase()} GET → \){url}`);
+
+  // ==================== SUPABASE ====================
+  if (STORAGE_MODE === 'supabase') {
     try {
-      const fs = require('fs');
-      if (fs.existsSync(key)) {
-        const content = fs.readFileSync(key, 'utf8');
-        return { ok: true, json: JSON.parse(content), body: content };
+      const res = await fetch(url, {
+        headers: {
+          'apikey': process.env.SUPABASE_KEY,
+          'Authorization': `Bearer ${process.env.SUPABASE_KEY}`,
+          'Content-Type': 'application/json'
+        }
+      });
+      if (res.ok) {
+        const data = await res.json();
+        return {
+          ok: true,
+          statusCode: res.status,
+          json: { content: Buffer.from(JSON.stringify(data)).toString('base64') },
+          body: JSON.stringify(data)
+        };
       }
-    } catch (e) { console.error("Error:", e.message || e); }
-    return { ok: false, status: 404 };
+      return { ok: false, statusCode: res.status };
+    } catch (e) {
+      console.error('Supabase GET error:', e.message);
+      return { ok: false, statusCode: 500 };
+    }
   }
-  // Firebase Firestore - FULL implementation
+
+  // ==================== FIREBASE ====================
   if (STORAGE_MODE === 'firebase') {
-    const docId = url.split('/').pop().replace('.json', '');
-    const project = process.env.FIREBASE_PROJECT_ID;
     try {
-      // GET - read document
-      const res = await fetch(`https://firestore.googleapis.com/v1/projects/${project}/databases/(default)/documents/${docId}`, {
+      const res = await fetch(url, {
         headers: { 'Authorization': `Bearer ${process.env.FIREBASE_TOKEN}` }
       });
       if (res.ok) {
         const json = await res.json();
         const fields = {};
         if (json.fields) {
-          for (const [k, v] of Object.entries(json.fields)) {
-            fields[k] = v.stringValue || v.integerValue || v.booleanValue || "";
-          }
+          Object.keys(json.fields).forEach(k => {
+            fields[k] = json.fields[k].stringValue || json.fields[k].integerValue || json.fields[k].booleanValue || "";
+          });
         }
-        return { ok: true, json: { content: Buffer.from(JSON.stringify(fields)).toString('base64') }, body: JSON.stringify(fields) };
+        return {
+          ok: true,
+          json: { content: Buffer.from(JSON.stringify(fields)).toString('base64') },
+          body: JSON.stringify(fields)
+        };
       }
-    } catch(e) { console.log('>>> Firebase GET error:', e.message); }
-    return { ok: false, status: 500 };
+    } catch (e) { console.error('Firebase GET error:', e.message); }
+    return { ok: false, statusCode: 500 };
   }
-  // Supabase - proper DB implementation
-  if (STORAGE_MODE === 'supabase') {
-    try {
-      const table = url.split('/').pop().replace('.json', '');
-      const key = body?.task_id || table;
-      // GET - read record by key
-      const res = await fetch(`${process.env.SUPABASE_URL}/rest/v1/${table}?key=eq.${key}`, {
-        headers: { 'apikey': process.env.SUPABASE_KEY, 'Authorization': `Bearer ${process.env.SUPABASE_KEY}` }
-      });
-      if (res.ok) {
-        const json = await res.json();
-        return { ok: true, json: { content: Buffer.from(JSON.stringify(json[0] || {})).toString('base64') }, body: JSON.stringify(json[0] || {}) };
-      }
-    } catch(e) { console.log('>>> Supabase GET error:', e.message); }
-    console.log('>>> Supabase URL:', process.env.SUPABASE_URL?.slice(0,30));
-    console.log('>>> Supabase key starts with:', process.env.SUPABASE_KEY?.slice(0,10));
-    return { ok: false, status: 500 };
-  }
-  // S3 (placeholder)
-  // AWS S3 GET
+
+  // ==================== S3 ====================
   if (STORAGE_MODE === 's3') {
-    const key = url.split('/').pop().replace('.json', '');
     try {
       const { S3Client, GetObjectCommand } = require('@aws-sdk/client-s3');
       const s3 = new S3Client({ region: process.env.AWS_REGION || 'us-east-1' });
-      const res = await s3.send(new GetObjectCommand({ Bucket: process.env.AWS_S3_BUCKET, Key: key }));
-      const bodyStr = await res.Body.transformToString();
+      const command = new GetObjectCommand({
+        Bucket: process.env.AWS_S3_BUCKET,
+        Key: urlOrPath.split('/').pop().replace('.json', '')
+      });
+      const response = await s3.send(command);
+      const bodyStr = await response.Body.transformToString();
       return { ok: true, json: JSON.parse(bodyStr), body: bodyStr };
-    } catch(e) { 
-      // Fallback: check memory
-      const data = memoryStorage.get(url);
-      return data ? { ok: true, json: data, body: JSON.stringify(data) } : { ok: false, status: 404 };
+    } catch (e) {
+      console.error('S3 GET error:', e.message);
+      return { ok: false, statusCode: 404 };
     }
   }
-  // GitHub (default)
-  const res = await githubRequest('GET', url);
-  if (!res.ok) console.log('>>> GITHUB GET ERROR:', res.status);
-  let json = null;
-  try { json = res.body ? JSON.parse(res.body) : null; } catch { json = null; }
-  return { ...res, json };
-}
 
-async function ghPutJson(url, body) {
-  // Memory storage
-  if (STORAGE_MODE === 'memory') {
-    memoryStorage.set(url, body);
-    return { ok: true };
-  }
-  // Local file storage
+  // ==================== LOCAL & MEMORY ====================
   if (STORAGE_MODE === 'local') {
-    const key = 'data/' + url.split('/').pop();
-    const fs = require('fs');
-    fs.mkdirSync('data', { recursive: true });
-    fs.writeFileSync(key, JSON.stringify(body, null, 2));
-    return { ok: true };
-  }
-  // Firebase Firestore PUT - FULL
-  if (STORAGE_MODE === 'firebase') {
-    const docId = url.split('/').pop().replace('.json', '');
-    const project = process.env.FIREBASE_PROJECT_ID;
     try {
-      // Convert body to Firestore fields format
-      const fields = {};
-      for (const [k, v] of Object.entries(body)) {
-        fields[k] = { stringValue: String(v) };
+      const fs = require('fs');
+      const key = 'data/' + urlOrPath.split('/').pop();
+      if (fs.existsSync(key)) {
+        const content = fs.readFileSync(key, 'utf8');
+        return { ok: true, json: JSON.parse(content), body: content };
       }
-      const res = await fetch(`https://firestore.googleapis.com/v1/projects/${project}/databases/(default)/documents/${docId}`, {
-        method: 'PATCH',
-        headers: { 
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${process.env.FIREBASE_TOKEN}` 
-        },
-        body: JSON.stringify({ fields })
-      });
-      return { ok: res.ok, status: res.status };
-    } catch(e) { console.log('>>> Firebase PUT error:', e.message); }
-    return { ok: false, status: 500 };
+    } catch (e) { console.error('Local GET error:', e.message); }
+    return { ok: false, statusCode: 404 };
   }
-  // Supabase - proper DB implementation
+
+  if (STORAGE_MODE === 'memory') {
+    const data = memoryStorage.get(urlOrPath);
+    return data ? { ok: true, json: data, body: JSON.stringify(data) } : { ok: false, statusCode: 404 };
+  }
+
+  // ==================== GITHUB (default) ====================
+  const res = await githubRequest('GET', urlOrPath);
+  let json = null;
+  try { json = res.body ? JSON.parse(res.body) : null; } catch {}
+  return { ...res, json };
+    }
+
+// ====================== NEW ghPutJson ======================
+async function ghPutJson(urlOrPath, bodyObj) {
+  const url = urlOrPath.includes('http') ? urlOrPath : getStorageUrl(urlOrPath);
+
+  console.log(`>>> \( {STORAGE_MODE.toUpperCase()} PUT → \){url}`);
+
+  // ==================== SUPABASE ====================
   if (STORAGE_MODE === 'supabase') {
     try {
-      const table = url.split('/').pop().replace('.json', '');
-      const key = body?.task_id || body?.id || table;
-      // UPSERT - insert or update
-      const res = await fetch(`${process.env.SUPABASE_URL}/rest/v1/${table}`, {
+      const res = await fetch(url, {
         method: 'POST',
-        headers: { 
-          'apikey': process.env.SUPABASE_KEY, 
+        headers: {
+          'apikey': process.env.SUPABASE_KEY,
           'Authorization': `Bearer ${process.env.SUPABASE_KEY}`,
           'Content-Type': 'application/json',
           'Prefer': 'resolution=merge-duplicates'
         },
-        body: JSON.stringify({ key, ...body })
+        body: JSON.stringify(bodyObj)
       });
-      return { ok: res.ok, status: res.status };
-    } catch(e) { console.log('>>> Supabase PUT error:', e.message); }
-    console.log('>>> Using Supabase mode:', STORAGE_MODE);
-    return { ok: false, status: 500 };
-  }
-  // AWS S3
-  if (STORAGE_MODE === 's3') {
-    const key = url.split('/').pop().replace('.json', '');
-    try {
-      constAws = require('@aws-sdk/client-s3');
-      const s3 = new Aws.S3({ region: process.env.AWS_REGION || 'us-east-1' });
-      // PUT - upload object
-      await s3.putObject({
-        Bucket: process.env.AWS_S3_BUCKET,
-        Key: key,
-        Body: JSON.stringify(body),
-        ContentType: 'application/json'
-      }).promise();
-      return { ok: true };
-    } catch(e) { 
-      console.log('>>> S3 PUT error:', e.message); 
-      // Fallback: use in-memory for S3 key tracking
-      memoryStorage.set(url, body);
-      return { ok: true };
+      return { ok: res.ok, statusCode: res.status };
+    } catch (e) {
+      console.error('Supabase PUT error:', e.message);
+      return { ok: false, statusCode: 500 };
     }
   }
-  // GitHub (default)
-  const res = await githubRequest('PUT', url, body);
-  if (!res.ok) console.log('>>> GITHUB PUT ERROR:', res.status);
+
+  // ==================== FIREBASE ====================
+  if (STORAGE_MODE === 'firebase') {
+    try {
+      const fields = {};
+      Object.keys(bodyObj).forEach(k => {
+        fields[k] = { stringValue: String(bodyObj[k]) };
+      });
+      const res = await fetch(url, {
+        method: 'PATCH',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${process.env.FIREBASE_TOKEN}`
+        },
+        body: JSON.stringify({ fields })
+      });
+      return { ok: res.ok, statusCode: res.status };
+    } catch (e) {
+      console.error('Firebase PUT error:', e.message);
+      return { ok: false, statusCode: 500 };
+    }
+  }
+
+  // ==================== S3 ====================
+  if (STORAGE_MODE === 's3') {
+    try {
+      const { S3Client, PutObjectCommand } = require('@aws-sdk/client-s3');
+      const s3 = new S3Client({ region: process.env.AWS_REGION || 'us-east-1' });
+      const key = urlOrPath.split('/').pop().replace('.json', '');
+      await s3.send(new PutObjectCommand({
+        Bucket: process.env.AWS_S3_BUCKET,
+        Key: key,
+        Body: JSON.stringify(bodyObj),
+        ContentType: 'application/json'
+      }));
+      return { ok: true, statusCode: 200 };
+    } catch (e) {
+      console.error('S3 PUT error:', e.message);
+      return { ok: false, statusCode: 500 };
+    }
+  }
+
+  // ==================== LOCAL & MEMORY ====================
+  if (STORAGE_MODE === 'local') {
+    try {
+      const fs = require('fs');
+      const key = 'data/' + urlOrPath.split('/').pop();
+      fs.mkdirSync('data', { recursive: true });
+      fs.writeFileSync(key, JSON.stringify(bodyObj, null, 2));
+      return { ok: true, statusCode: 200 };
+    } catch (e) {
+      console.error('Local PUT error:', e.message);
+      return { ok: false, statusCode: 500 };
+    }
+  }
+
+  if (STORAGE_MODE === 'memory') {
+    memoryStorage.set(urlOrPath, bodyObj);
+    return { ok: true, statusCode: 200 };
+  }
+
+  // ==================== GITHUB (default) ====================
+  const res = await githubRequest('PUT', urlOrPath, bodyObj);
   return res;
 }
-
 // ============================================
 // QUEUE SYSTEM (O(1) Performance)
 // ============================================
