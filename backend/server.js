@@ -1178,6 +1178,8 @@ async function ghGetJson(url) {
         return { ok: true, json: { content: Buffer.from(JSON.stringify(json[0] || {})).toString('base64') }, body: JSON.stringify(json[0] || {}) };
       }
     } catch(e) { console.log('>>> Supabase GET error:', e.message); }
+    console.log('>>> Supabase URL:', process.env.SUPABASE_URL?.slice(0,30));
+    console.log('>>> Supabase key starts with:', process.env.SUPABASE_KEY?.slice(0,10));
     return { ok: false, status: 500 };
   }
   // S3 (placeholder)
@@ -1258,6 +1260,7 @@ async function ghPutJson(url, body) {
       });
       return { ok: res.ok, status: res.status };
     } catch(e) { console.log('>>> Supabase PUT error:', e.message); }
+    console.log('>>> Using Supabase mode:', STORAGE_MODE);
     return { ok: false, status: 500 };
   }
   // AWS S3
