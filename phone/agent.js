@@ -2378,17 +2378,10 @@ function connectToServer() {
       log("✓ Connected to server: " + SERVER_URL);
     }
     
-    // Try to get task queue to verify data access
-    var taskUrl = SERVER_URL + "/api/" + TASK_QUEUE_PATH;
-    var taskRes = httpGet(taskUrl);
-    log("✓ Task queue accessible: " + (taskRes ? "YES" : "NO"));
-    
-    // Try to get device state
+    // Try to get device state to know storage mode
     var stateUrl = SERVER_URL + "/api/" + DEVICE_STATE_PATH;
     var stateRes = httpGet(stateUrl);
-    log("✓ Device state accessible: " + (stateRes ? "YES" : "NO"));
-    
-    log("Storage: via server API (Supabase compatible!)");
+    log("Storage: via server API (supports all modes!)");
   } catch(e) {
     log("Server connection issue: " + e);
   }
