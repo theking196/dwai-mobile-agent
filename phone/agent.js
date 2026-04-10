@@ -76,10 +76,13 @@ try {
   IS_ROOTED = false;
 }
 
-console.log("=== DWAI AGENT v2.8 START ===");
+console.log("=== DWAI AGENT v2.10 START ===");
+console.log("Server: " + SERVER_URL);
+console.log("Storage Mode: " + STORAGE_MODE_USING);
+console.log("Base URL: " + BASE_URL);
 console.log("Game Mode: " + GAME_MODE);
 console.log("Rooted: " + IS_ROOTED);
-toast("DWAI v2.8 starting... Root: " + (IS_ROOTED ? "Yes" : "No"));
+toast("DWAI v2.10 connecting to " + SERVER_URL);
 
 // ============================================
 // STATE MANAGEMENT (All Original Variables)
