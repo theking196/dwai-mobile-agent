@@ -339,6 +339,10 @@ function httpRequest(method, url, body, extraHeaders) {
   }
 }
 
+function httpPut(url, body) {
+  return httpRequest("PUT", url, body, { "Content-Type": "application/json" });
+}
+
 function ghGetJson(url) {
   var res = httpRequest("GET", url, null, null);
   var parsed = null;
@@ -384,11 +388,21 @@ function ghPutJson(url, bodyObj) {
 function getTaskQueue() {
   var url = BASE_URL + TASK_QUEUE_PATH;
   var res = ghGetJson(url);
-  if (!res.ok || !res.json || !res.json.content) {
+  
+  // Server API returns plain JSON
+  if (STORAGE_MODE_USING === "server") {
+    if (!res.ok || !res.json) {
+      return { queue: [], processing: null };
+    }
+    return res.json;
+  }
+  
+  // GitHub returns base64-encoded content
+  if (!res.ok || !res.json || !res.content) {
     return { queue: [], processing: null };
   }
   try {
-    return JSON.parse(b64Decode(res.json.content));
+    return JSON.parse(b64Decode(res.content));
   } catch (e) {
     return { queue: [], processing: null };
   }
@@ -396,6 +410,17 @@ function getTaskQueue() {
 
 function updateTaskQueue(queueData) {
   var url = BASE_URL + TASK_QUEUE_PATH;
+  
+  // Server API - plain JSON
+  if (STORAGE_MODE_USING === "server") {
+    var res = httpPut(url, JSON.stringify(queueData));
+    if (!res.ok) {
+      log("Queue update failed: " + res.statusCode);
+    }
+    return res;
+  }
+  
+  // GitHub - base64-encoded
   var content = b64Encode(JSON.stringify(queueData, null, 2));
   
   var existing = ghGetJson(url);
@@ -1993,6 +2018,17 @@ function runLiveTask(bundle, pointerRef) {
 function getTaskList() {
   var url = BASE_URL + TASKS_PATH;
   var res = ghGetJson(url);
+  
+  // Server API returns plain array
+  if (STORAGE_MODE_USING === "server") {
+    if (!res.ok || !res.json) {
+      log("Failed to fetch task list: " + res.statusCode);
+      return [];
+    }
+    return res.json;
+  }
+  
+  // GitHub returns array in .json
   if (!res.ok || !Array.isArray(res.json)) {
     log("Failed to fetch task list: " + res.statusCode);
     return [];
@@ -2003,9 +2039,17 @@ function getTaskList() {
 function getCurrentPointer() {
   var url = BASE_URL + CURRENT_TASK_PATH;
   var res = ghGetJson(url);
-  if (!res.ok || !res.json || !res.json.content) return null;
+  
+  // Server API returns plain JSON
+  if (STORAGE_MODE_USING === "server") {
+    if (!res.ok || !res.json) return null;
+    return res.json;
+  }
+  
+  // GitHub returns base64-encoded content
+  if (!res.ok || !res.json || !res.content) return null;
   try {
-    return JSON.parse(b64Decode(res.json.content));
+    return JSON.parse(b64Decode(res.content));
   } catch (e) {
     log("current_task parse error: " + e);
     return null;
@@ -2014,14 +2058,24 @@ function getCurrentPointer() {
 
 function getTask(fileUrl) {
   var res = ghGetJson(fileUrl);
-  if (!res.ok || !res.json || !res.json.content) {
+  
+  // Server API returns plain JSON
+  if (STORAGE_MODE_USING === "server") {
+    if (!res.ok || !res.json) {
+      log("Failed to fetch task file: " + res.statusCode);
+      return null;
+    }
+    return { task: res.json, fileUrl: fileUrl };
+  }
+  
+  // GitHub returns base64-encoded content
+  if (!res.ok || !res.json || !res.content) {
     log("Failed to fetch task file: " + res.statusCode);
     return null;
   }
   try {
-    var file = res.json;
-    var task = JSON.parse(b64Decode(file.content));
-    return { file: file, task: task, fileUrl: fileUrl };
+    var task = JSON.parse(b64Decode(res.content));
+    return { file: res.json, task: task, fileUrl: fileUrl, sha: res.sha };
   } catch (e) {
     log("Task parse error: " + e);
     return null;
