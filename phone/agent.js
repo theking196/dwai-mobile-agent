@@ -2160,3 +2160,143 @@ while (true) {
   
   waitMs(POLL_INTERVAL);
 }
+
+// ============================================
+// 🚀 IMPROVED TASK EXECUTION (v2.10)
+// ============================================
+
+// Get next pending task - prioritize newest
+function getNextTaskImproved(tasksData) {
+  if (!tasksData || !tasksData.tasks || !tasksData.tasks.length) return null;
+  
+  var pending = tasksData.tasks.filter(function(t) {
+    return t.status === "pending" || t.status === "queued";
+  });
+  
+  // Sort by createdAt descending - newest first
+  pending.sort(function(a, b) {
+    return (b.created_at || 0) - (a.created_at || 0);
+  });
+  
+  return pending[0] || null;
+}
+
+// Get UI snapshot for fallback
+function getUISnapshot() {
+  var nodes = [];
+  
+  function traverse(node) {
+    if (!node) return;
+    try {
+      nodes.push({
+        text: node.text() || "",
+        desc: node.desc() || "",
+        id: node.id() || "",
+        bounds: node.bounds()
+      });
+    } catch(e) {}
+    
+    try {
+      for (var i = 0; i < node.childCount(); i++) {
+        traverse(node.child(i));
+      }
+    } catch(e) {}
+  }
+  
+  try {
+    var root = depth(0).findOne(2000);
+    if (root) traverse(root);
+  } catch(e) {}
+  
+  return nodes;
+}
+
+// Safe vision with fallback
+async function safeVision() {
+  // Try AI vision first
+  try {
+    var visionResult = await runTaskByRoute("vision_analyze", {}, true);
+    if (visionResult && visionResult.elements && visionResult.elements.length > 0) {
+      return { type: "ai", data: visionResult };
+    }
+  } catch(e) {
+    log("AI vision failed: " + e);
+  }
+  
+  // Fallback to snapshot
+  var snapshot = getUISnapshot();
+  return { type: "snapshot", data: snapshot };
+}
+
+// Smart click with vision + snapshot + retry
+async function smartClick(target) {
+  target = target.toLowerCase();
+  
+  // Get current vision
+  var vision = await safeVision();
+  
+  // Try AI vision first
+  if (vision.type === "ai" && vision.data.elements) {
+    var el = vision.data.elements.find(function(e) {
+      return e.text && e.text.toLowerCase().includes(target);
+    });
+    
+    if (el) {
+      click(el.x, el.y);
+      return true;
+    }
+  }
+  
+  // Try snapshot fallback
+  if (vision.type === "snapshot" && vision.data) {
+    var node = vision.data.find(function(n) {
+      return (n.text && n.text.toLowerCase().includes(target)) ||
+             (n.desc && n.desc.toLowerCase().includes(target));
+    });
+    
+    if (node && node.bounds) {
+      var b = node.bounds;
+      click(b.centerX(), b.centerY());
+      return true;
+    }
+  }
+  
+  // Retry with scroll
+  for (var i = 0; i < 2; i++) {
+    swipe(500, 1500, 500, 500, 500);
+    sleep(1000);
+    
+    var retryVision = await safeVision();
+    
+    if (retryVision.type === "snapshot" && retryVision.data) {
+      var retryNode = retryVision.data.find(function(n) {
+        return (n.text && n.text.toLowerCase().includes(target)) ||
+               (n.desc && n.desc.toLowerCase().includes(target));
+      });
+      
+      if (retryNode && retryNode.bounds) {
+        var rb = retryNode.bounds;
+        click(rb.centerX(), rb.centerY());
+        return true;
+      }
+    }
+  }
+  
+  throw new Error("Element not found: " + target);
+}
+
+// Save debug screenshot
+function saveDebugScreenshot() {
+  try {
+    var img = captureScreen();
+    var path = "/sdcard/debug_" + Date.now() + ".png";
+    images.save(img, path);
+    log("Debug screenshot saved: " + path);
+  } catch(e) {
+    log("Screenshot failed: " + e);
+  }
+}
+
+// ============================================
+// END IMPROVEMENTS
+// ============================================
