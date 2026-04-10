@@ -356,8 +356,8 @@ function ghGetJson(url) {
     statusCode: res.statusCode,
     body: res.body,
     json: parsed,
-    content: parsed?.content || null,
-    sha: parsed?.sha || null
+    content: parsed && parsed.content ? parsed.content : null,
+    sha: parsed && parsed.sha ? parsed.sha : null
   };
 }
 
