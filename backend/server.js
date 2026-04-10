@@ -1095,10 +1095,27 @@ async function ghGetJson(url) {
     } catch (e) { console.error("Error:", e.message || e); }
     return { ok: false, status: 404 };
   }
-  // Firebase (placeholder for now)
+  // Firebase Firestore - FULL implementation
   if (STORAGE_MODE === 'firebase') {
-    console.log('>>> Firebase not implemented yet');
-    return { ok: false, status: 501 };
+    const docId = url.split('/').pop().replace('.json', '');
+    const project = process.env.FIREBASE_PROJECT_ID;
+    try {
+      // GET - read document
+      const res = await fetch(`https://firestore.googleapis.com/v1/projects/${project}/databases/(default)/documents/${docId}`, {
+        headers: { 'Authorization': `Bearer ${process.env.FIREBASE_TOKEN}` }
+      });
+      if (res.ok) {
+        const json = await res.json();
+        const fields = {};
+        if (json.fields) {
+          for (const [k, v] of Object.entries(json.fields)) {
+            fields[k] = v.stringValue || v.integerValue || v.booleanValue || "";
+          }
+        }
+        return { ok: true, json: { content: Buffer.from(JSON.stringify(fields)).toString('base64') }, body: JSON.stringify(fields) };
+      }
+    } catch(e) { console.log('>>> Firebase GET error:', e.message); }
+    return { ok: false, status: 500 };
   }
   // Supabase - proper DB implementation
   if (STORAGE_MODE === 'supabase') {
@@ -1154,21 +1171,26 @@ async function ghPutJson(url, body) {
     fs.writeFileSync(key, JSON.stringify(body, null, 2));
     return { ok: true };
   }
-  // Firebase Firestore
+  // Firebase Firestore PUT - FULL
   if (STORAGE_MODE === 'firebase') {
-    // Simple Firestore via REST API
     const docId = url.split('/').pop().replace('.json', '');
     const project = process.env.FIREBASE_PROJECT_ID;
     try {
-      // GET - read document
-      const res = await fetch(`https://firestore.googleapis.com/v1/projects/${project}/databases/(default)/documents/${docId}`, {
-        headers: { 'Authorization': `Bearer ${process.env.FIREBASE_TOKEN}` }
-      });
-      if (res.ok) {
-        const json = await res.json();
-        return { ok: true, json: { content: Buffer.from(JSON.stringify(json.fields)).toString('base64') }, body: JSON.stringify(json) };
+      // Convert body to Firestore fields format
+      const fields = {};
+      for (const [k, v] of Object.entries(body)) {
+        fields[k] = { stringValue: String(v) };
       }
-    } catch(e) { console.log('>>> Firebase GET error:', e.message); }
+      const res = await fetch(`https://firestore.googleapis.com/v1/projects/${project}/databases/(default)/documents/${docId}`, {
+        method: 'PATCH',
+        headers: { 
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${process.env.FIREBASE_TOKEN}` 
+        },
+        body: JSON.stringify({ fields })
+      });
+      return { ok: res.ok, status: res.status };
+    } catch(e) { console.log('>>> Firebase PUT error:', e.message); }
     return { ok: false, status: 500 };
   }
   // Supabase - proper DB implementation
