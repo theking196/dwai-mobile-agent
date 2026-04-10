@@ -1055,6 +1055,20 @@ const TASK_QUEUE_PATH = 'data/task_queue.json';
 const DEVICE_STATE_PATH = 'data/device_state.json';
 const APPS_LIST_PATH = 'data/installed_apps.json';
 
+// Helper to get correct storage URL based on mode
+function getStorageUrl(path) {
+  if (STORAGE_MODE === 'supabase') {
+    const table = path.replace('data/', '').replace('.json', '');
+    return `${process.env.SUPABASE_URL}/rest/v1/${table}`;
+  }
+  if (STORAGE_MODE === 'firebase') {
+    const doc = path.replace('data/', '').replace('.json', '');
+    return `https://firestore.googleapis.com/v1/projects/${process.env.FIREBASE_PROJECT_ID}/databases/(default)/documents/${doc}`;
+  }
+  // GitHub/Local/Memory uses GitHub API format
+  return `${GITHUB_API}/${path}`;
+}
+
 // ============================================
 // COMPLETE APP REGISTRY (All Original Entries)
 // ============================================
@@ -2353,8 +2367,9 @@ async function createRegularTask(userText, intent, mode, userId, chatId) {
     verify_every_step: true
   };
   
-  // === UPDATED STORAGE CALLS (no more hardcoded GitHub) ===
-  const taskUrl = getStorageUrl(`\( {TASKS_PATH}/ \){taskId}.json`);
+  // === USING getStorageUrl FOR ALL STORAGE MODES ===
+  const taskUrl = getStorageUrl(`${TASKS_PATH}/${taskId}.json`);
+  console.log('>>> Saving task, mode:', STORAGE_MODE, 'url:', taskUrl?.slice(0, 50));
   
   await ghPutJson(taskUrl, {
     message: `Task ${taskId}`,
