@@ -8,6 +8,12 @@ var GITHUB_TOKEN = ""; // ← REPLACE WITH YOUR GITHUB TOKEN
 var REPO_OWNER = "theking196";            // Your GitHub username
 var REPO_NAME = "dwai-mobile-agent";      // Your repo name
 
+// STORAGE MODE (same as server)
+// github - GitHub API (default)
+// local - Filesystem (for local dev)
+// memory - Keep in memory (for testing)
+var STORAGE_MODE = "github";  // ← Change to match server if using supabase/firebase/S3
+
 // ============================================
 // PATHS & CONSTANTS (All Original)
 // ============================================
@@ -2299,4 +2305,36 @@ function saveDebugScreenshot() {
 
 // ============================================
 // END IMPROVEMENTS
+// ============================================
+
+// ============================================
+// STORAGE MODE SUPPORT (v2.10)
+// ============================================
+// Auto-detect storage mode from server
+var STORAGE_MODE = "github";
+
+function detectStorageMode() {
+  try {
+    var stateUrl = BASE_URL + DEVICE_STATE_PATH;
+    var res = httpGet(stateUrl);
+    if (res && res.length > 0) {
+      try {
+        var state = JSON.parse(res);
+        if (state.storage_mode) {
+          STORAGE_MODE = state.storage_mode;
+          log("Storage mode: " + STORAGE_MODE);
+        }
+      } catch(e) {}
+    }
+  } catch(e) {
+    log("Using github storage");
+  }
+}
+
+// Auto-detect on startup
+detectStorageMode();
+
+// Note: Phone reads tasks via server API (works with all storage modes!)
+// Server handles all storage - phone just reads from /api/task or device state
+// This design ensures compatibility with github/local/memory/supabase/firebase/S3
 // ============================================
