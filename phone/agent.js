@@ -169,7 +169,7 @@ function buildInstalledAppsMap() {
     APP_CACHE_BUILT = true;
     console.log("App cache built: " + Object.keys(INSTALLED_APPS).length);
     
-    // FEATURE 3: Report installed apps to GitHub
+    // FEATURE 3: Report installed apps (to server API or GitHub)
     try {
       var url = BASE_URL + APPS_LIST_PATH;
       var data = {
@@ -177,12 +177,19 @@ function buildInstalledAppsMap() {
         packages: Object.keys(INSTALLED_APPS),
         last_updated: Date.now()
       };
-      ghPutJson(url, {
-        message: "Update installed apps list",
-        content: b64Encode(JSON.stringify(data)),
-        branch: BRANCH
-      });
-      console.log("Apps list reported to GitHub");
+      
+      // Use server API if available, else GitHub
+      if (STORAGE_MODE_USING === "server") {
+        httpPut(url, JSON.stringify(data));
+        console.log("Apps list reported to server");
+      } else {
+        ghPutJson(url, {
+          message: "Update installed apps list",
+          content: b64Encode(JSON.stringify(data)),
+          branch: BRANCH
+        });
+        console.log("Apps list reported to GitHub");
+      }
     } catch (e) {
       log("Failed to report apps: " + e);
     }
@@ -344,11 +351,25 @@ function ghGetJson(url) {
     ok: res.statusCode >= 200 && res.statusCode < 300,
     statusCode: res.statusCode,
     body: res.body,
-    json: parsed
+    json: parsed,
+    content: parsed?.content || null,
+    sha: parsed?.sha || null
   };
 }
 
 function ghPutJson(url, bodyObj) {
+  // Use server API if available - sends plain JSON
+  if (STORAGE_MODE_USING === "server") {
+    var res = httpRequest("PUT", url, JSON.stringify(bodyObj), {
+      "Content-Type": "application/json"
+    });
+    return {
+      ok: res.statusCode === 200 || res.statusCode === 201,
+      statusCode: res.statusCode,
+      body: res.body
+    };
+  }
+  // Direct GitHub - uses GitHub format
   var res = httpRequest("PUT", url, JSON.stringify(bodyObj), null);
   return {
     ok: res.statusCode === 200 || res.statusCode === 201,
