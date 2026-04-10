@@ -44,8 +44,8 @@ var WORKER_ID = "phone-" + (device.model || "android") + "-" + device.width + "x
 // SERVER CONFIG (IMPORTANT!)
 // ============================================
 // Set this to your server URL - phone will use server API (works with ALL storage modes!)
-// Example: var SERVER_URL = "https://dwai-mobile-agent.onrender.com";
-var SERVER_URL = "https://dwai-mobile-agent.onrender.com"; // Using Supabase to your server URL
+// Example: var SERVER_URL = "https://a17796-0262.g.jrnm.app";
+var SERVER_URL = "https://a17796-0262.g.jrnm.app"; // Using Supabase to your server URL
 
 // Auto-detect storage mode from server
 var STORAGE_MODE_USING = "github";
@@ -2378,10 +2378,17 @@ function connectToServer() {
       log("✓ Connected to server: " + SERVER_URL);
     }
     
-    // Try to get device state to know storage mode
+    // Try to get task queue to verify data access
+    var taskUrl = SERVER_URL + "/api/" + TASK_QUEUE_PATH;
+    var taskRes = httpGet(taskUrl);
+    log("✓ Task queue accessible: " + (taskRes ? "YES" : "NO"));
+    
+    // Try to get device state
     var stateUrl = SERVER_URL + "/api/" + DEVICE_STATE_PATH;
     var stateRes = httpGet(stateUrl);
-    log("Storage: via server API (supports all modes!)");
+    log("✓ Device state accessible: " + (stateRes ? "YES" : "NO"));
+    
+    log("Storage: via server API (Supabase compatible!)");
   } catch(e) {
     log("Server connection issue: " + e);
   }
