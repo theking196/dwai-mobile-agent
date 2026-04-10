@@ -39,7 +39,29 @@ var GAME_MODE = false;
 
 var BRANCH = "main";
 var WORKER_ID = "phone-" + (device.model || "android") + "-" + device.width + "x" + device.height;
-var BASE_URL = "https://api.github.com/repos/" + REPO_OWNER + "/" + REPO_NAME + "/contents/";
+
+// ============================================
+// SERVER CONFIG (IMPORTANT!)
+// ============================================
+// Set this to your server URL - phone will use server API (works with ALL storage modes!)
+// Example: var SERVER_URL = "https://dwai-mobile-agent.onrender.com";
+var SERVER_URL = ""; // ← CHANGE THIS to your server URL
+
+// Auto-detect storage mode from server
+var STORAGE_MODE_USING = "github";
+
+// Get BASE_URL based on server config
+function initBaseUrl() {
+  if (SERVER_URL && SERVER_URL.length > 0) {
+    STORAGE_MODE_USING = "server";
+    return SERVER_URL + "/api/";
+  } else {
+    // Fallback to direct GitHub (only works with github storage)
+    return "https://api.github.com/repos/" + REPO_OWNER + "/" + REPO_NAME + "/contents/";
+  }
+}
+
+var BASE_URL = initBaseUrl();
 
 // FEATURE 4: Detect if device is rooted
 var IS_ROOTED = false;
@@ -2337,4 +2359,34 @@ detectStorageMode();
 // Note: Phone reads tasks via server API (works with all storage modes!)
 // Server handles all storage - phone just reads from /api/task or device state
 // This design ensures compatibility with github/local/memory/supabase/firebase/S3
+// ============================================
+
+// ============================================
+// Detect server storage mode on startup
+// ============================================
+function connectToServer() {
+  if (!SERVER_URL) {
+    log("No server URL - using GitHub storage direct");
+    return;
+  }
+  
+  try {
+    // Get server health and storage info
+    var healthUrl = SERVER_URL + "/health";
+    var res = httpGet(healthUrl);
+    if (res && res.contains('"status"')) {
+      log("✓ Connected to server: " + SERVER_URL);
+    }
+    
+    // Try to get device state to know storage mode
+    var stateUrl = SERVER_URL + "/api/" + DEVICE_STATE_PATH;
+    var stateRes = httpGet(stateUrl);
+    log("Storage: via server API (supports all modes!)");
+  } catch(e) {
+    log("Server connection issue: " + e);
+  }
+}
+
+// Auto-connect on startup
+setTimeout(connectToServer, 3000);
 // ============================================
