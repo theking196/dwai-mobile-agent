@@ -961,8 +961,8 @@ if (STORAGE_MODE === 'github' && (!GITHUB_TOKEN || !GITHUB_REPO)) {
 if (STORAGE_MODE === 'firebase' && !process.env.FIREBASE_PROJECT_ID) {
   throw new Error('FIREBASE_PROJECT_ID required for firebase mode');
 }
-if (STORAGE_MODE === 'supabase' && !process.env.SUPABASE_URL) {
-  throw new Error('SUPABASE_URL required for supabase mode');
+if (STORAGE_MODE === 'supabase' && (!process.env.SUPABASE_URL || !process.env.SUPABASE_KEY)) {
+  throw new Error('SUPABASE_URL and SUPABASE_KEY required for supabase mode');
 }
 if (STORAGE_MODE === 's3' && !process.env.AWS_S3_BUCKET) {
   throw new Error('AWS_S3_BUCKET required for s3 mode');
@@ -1097,10 +1097,19 @@ async function ghGetJson(url) {
     console.log('>>> Firebase not implemented yet');
     return { ok: false, status: 501 };
   }
-  // Supabase (placeholder)
+  // Supabase
   if (STORAGE_MODE === 'supabase') {
-    console.log('>>> Supabase not implemented yet');
-    return { ok: false, status: 501 };
+    try {
+      const table = url.split('/').pop().replace('.json', '');
+      const res = await fetch(`${process.env.SUPABASE_URL}/rest/v1/${table}?select=*`, {
+        headers: { 'apikey': process.env.SUPABASE_KEY, 'Authorization': `Bearer ${process.env.SUPABASE_KEY}` }
+      });
+      if (res.ok) {
+        const json = await res.json();
+        return { ok: true, json: { content: Buffer.from(JSON.stringify(json)).toString('base64') }, body: JSON.stringify(json) };
+      }
+    } catch(e) { console.log('>>> Supabase GET error:', e.message); }
+    return { ok: false, status: 500 };
   }
   // S3 (placeholder)
   if (STORAGE_MODE === 's3') {
@@ -1133,9 +1142,23 @@ async function ghPutJson(url, body) {
   if (STORAGE_MODE === 'firebase') {
     return { ok: false, status: 501 };
   }
-  // Supabase (placeholder)
+  // Supabase
   if (STORAGE_MODE === 'supabase') {
-    return { ok: false, status: 501 };
+    try {
+      const table = url.split('/').pop().replace('.json', '');
+      const res = await fetch(`${process.env.SUPABASE_URL}/rest/v1/${table}`, {
+        method: 'POST',
+        headers: { 
+          'apikey': process.env.SUPABASE_KEY, 
+          'Authorization': `Bearer ${process.env.SUPABASE_KEY}`,
+          'Content-Type': 'application/json',
+          'Prefer': 'resolution=merge-duplicates'
+        },
+        body: JSON.stringify(body)
+      });
+      return { ok: res.ok, status: res.status };
+    } catch(e) { console.log('>>> Supabase PUT error:', e.message); }
+    return { ok: false, status: 500 };
   }
   // S3 (placeholder)
   if (STORAGE_MODE === 's3') {
