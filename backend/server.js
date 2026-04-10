@@ -1335,7 +1335,7 @@ async function ghPutJson(urlOrPath, bodyObj) {
 // QUEUE SYSTEM (O(1) Performance)
 // ============================================
 async function getTaskQueue() {
-  const url = `${GITHUB_API}/${TASK_QUEUE_PATH}`;
+  const url = getStorageUrl(TASK_QUEUE_PATH);
   const res = await ghGetJson(url);
   if (!res.ok || !res.json?.content) {
     return { queue: [], processing: null, last_updated: Date.now() };
@@ -1349,11 +1349,18 @@ async function getTaskQueue() {
 }
 
 async function updateTaskQueue(queueData) {
-  const url = `${GITHUB_API}/${TASK_QUEUE_PATH}`;
+  const url = getStorageUrl(TASK_QUEUE_PATH);
   const content = Buffer.from(JSON.stringify(queueData, null, 2)).toString('base64');
+  
   const existing = await ghGetJson(url);
-  const payload = { message: 'Update queue', content, branch: GITHUB_BRANCH };
+  const payload = { 
+    message: 'Update queue', 
+    content, 
+    branch: GITHUB_BRANCH 
+  };
+  
   if (existing.ok && existing.json?.sha) payload.sha = existing.json.sha;
+  
   const result = await ghPutJson(url, payload);
   if (!result.ok) throw new Error(`Queue update failed: ${result.statusCode}`);
   return result;
@@ -2045,10 +2052,10 @@ function buildTemplateSteps(userText) {
 // ROUTE SYSTEM (All Original)
 // ============================================
 async function saveRoute(routeId, routeData) {
-  const fileUrl = `${GITHUB_API}/${ROUTES_PATH}/${routeId}.json`;
+  const fileUrl = getStorageUrl(`\( {ROUTES_PATH}/ \){routeId}.json`);
   const contentBase64 = Buffer.from(JSON.stringify(routeData, null, 2)).toString('base64');
-  const existing = await ghGetJson(fileUrl);
   
+  const existing = await ghGetJson(fileUrl);
   const payload = {
     message: `Route ${routeId}`,
     content: contentBase64,
@@ -2152,7 +2159,8 @@ async function startTeachSession(userId, goal) {
     priority: 1
   };
   
-  const fileUrl = `${GITHUB_API}/${TASKS_PATH}/${taskId}.json`;
+  const fileUrl = getStorageUrl(`\( {TASKS_PATH}/ \){taskId}.json`);
+  
   await ghPutJson(fileUrl, {
     message: `Teach ${taskId}`,
     content: Buffer.from(JSON.stringify(teachTask, null, 2)).toString('base64'),
@@ -2161,8 +2169,8 @@ async function startTeachSession(userId, goal) {
   
   await enqueueTask(taskId, 1);
   
-  // Update current pointer
-  await ghPutJson(`${GITHUB_API}/${CURRENT_TASK_PATH}`, {
+  const pointerUrl = getStorageUrl(CURRENT_TASK_PATH);
+  await ghPutJson(pointerUrl, {
     message: `current ${taskId}`,
     content: Buffer.from(JSON.stringify({
       task_id: taskId,
@@ -2174,14 +2182,7 @@ async function startTeachSession(userId, goal) {
     branch: GITHUB_BRANCH
   });
   
-  activeTeachSessions.set(userId, {
-    taskId,
-    goal,
-    app,
-    startedAt: Date.now(),
-    fileUrl
-  });
-  
+  activeTeachSessions.set(userId, { taskId, goal, app, startedAt: Date.now(), fileUrl });
   return { taskId, fileUrl };
 }
 
@@ -2204,7 +2205,8 @@ async function stopTeachSession(userId) {
     priority: 1
   };
   
-  const fileUrl = `${GITHUB_API}/${TASKS_PATH}/${taskId}.json`;
+  const fileUrl = getStorageUrl(`\( {TASKS_PATH}/ \){taskId}.json`);
+  
   await ghPutJson(fileUrl, {
     message: `StopTeach ${taskId}`,
     content: Buffer.from(JSON.stringify(stopTask, null, 2)).toString('base64'),
@@ -2213,7 +2215,8 @@ async function stopTeachSession(userId) {
   
   await enqueueTask(taskId, 1);
   
-  await ghPutJson(`${GITHUB_API}/${CURRENT_TASK_PATH}`, {
+  const pointerUrl = getStorageUrl(CURRENT_TASK_PATH);
+  await ghPutJson(pointerUrl, {
     message: `current ${taskId}`,
     content: Buffer.from(JSON.stringify({
       task_id: taskId,
@@ -2287,9 +2290,9 @@ Generate a natural language report explaining what was attempted, which apps wer
 async function createRegularTask(userText, intent, mode, userId, chatId) {
   console.log('========================================');
   console.log('>>> CREATE TASK INPUT:', {userText, intent, mode, userId});
+
   const taskId = nanoid(12);
   
-  // Try route match first
   let steps = [];
   let routeMatched = null;
   let slotValues = {};
@@ -2297,73 +2300,35 @@ async function createRegularTask(userText, intent, mode, userId, chatId) {
   
   console.log('>>> Checking stored routes...');
   const matchedRoute = await findMatchingRoute(userText);
-  console.log('>>> Route match:', matchedRoute ? 'FOUND: '+matchedRoute.route_id : 'NOT FOUND');
+  
   if (matchedRoute && matchedRoute.steps) {
-    routeMatched = matchedRoute.route_id;
+    routeMatched = matchedRoute.route_id || matchedRoute.id;
     slotValues = await extractSlotsFromUserInput(matchedRoute, userText);
     steps = fillSlots(matchedRoute.steps, slotValues);
     console.log('>>> Using ROUTE steps:', steps.length);
   } else {
-    // Use LLM Brain
     console.log('>>> Calling LLM Brain...');
     orch = await llmOrchestrate(userText, { mode, userId });
-    console.log('>>> LLM returned:', JSON.stringify(orch)?.slice(0, 300));
-    if (orch.error) {
-      console.log('>>> LLM ERROR:', orch.error);
-      throw new Error(orch.error);
-    }
-    if (!orch.steps || !Array.isArray(orch.steps)) {
-      console.log('>>> LLM returned no steps, checking template...');
-      // Fallback to template
-      const template = buildTemplateSteps(userText);
-      if (template) {
-        steps = template;
-        console.log('>>> Using TEMPLATE steps:', steps.length);
-      }
+    
+    if (orch.error) throw new Error(orch.error);
+    
+    if (orch.steps && Array.isArray(orch.steps)) {
+      steps = fillSlots(orch.steps, orch.slots || {});
     } else {
-      console.log('>>> LLM returned steps, processing:', orch.steps.length);
-      console.log('>>> orch.steps:', JSON.stringify(orch.steps));
-      try {
-        // Fix: Use fillSlots on the whole array, not individual properties
-        steps = fillSlots(orch.steps, orch.slots || {});
-        console.log('>>> FILL SLOTS steps:', steps.length);
-      } catch(mapErr) {
-        console.error('>>> FILL SLOTS ERROR:', mapErr.message);
-        steps = [];
-      }
+      const template = buildTemplateSteps(userText);
+      if (template) steps = template;
     }
   }
   
   if (steps.length === 0) {
-    // Fallback to template builder
     const template = buildTemplateSteps(userText);
     if (template) steps = template;
     else {
-      // Final fallback - basic search templates
-      const lower = userText.toLowerCase();
-      if (lower.includes('youtube')) {
-        steps = [
-          { action: 'launch_app', value: 'youtube', description: 'Open YouTube', id: 1 },
-          { action: 'wait', ms: 4000, description: 'Wait for YouTube', id: 2 },
-          { action: 'click', contains: 'Search', description: 'Tap Search', id: 3 },
-          { action: 'wait', ms: 1000, description: 'Wait', id: 4 },
-          { action: 'type', text: userText.replace(/.*search\s+/i, '').trim(), description: 'Type search', id: 5 },
-          { action: 'press', key: 'enter', description: 'Search', id: 6 }
-        ];
-      } else if (lower.includes('search') || lower.includes('find')) {
-        steps = [
-          { action: 'launch_app', value: 'chrome', description: 'Open Chrome', id: 1 },
-          { action: 'wait', ms: 4000, description: 'Wait', id: 2 },
-          { action: 'click', id: 'com.android.chrome:id/url_bar', description: 'Tap URL bar', id: 3 },
-          { action: 'type', text: userText.replace(/^(search|find)\s+/i, '').trim(), description: 'Type query', id: 4 },
-          { action: 'press', key: 'enter', description: 'Search', id: 5 }
-        ];
-      } else {
-        steps = [
-          { action: 'launch_app', value: 'chrome', description: 'Open browser', id: 1 },
-          { action: 'wait', ms: 3000, description: 'Wait', id: 2 }
-        ];
-      }
+      // final safe fallback
+      steps = [
+        { action: 'launch_app', value: 'chrome', description: 'Open Chrome' },
+        { action: 'wait', ms: 3000 }
+      ];
     }
   }
   
@@ -2388,18 +2353,17 @@ async function createRegularTask(userText, intent, mode, userId, chatId) {
     verify_every_step: true
   };
   
-  // Save task
-  const taskUrl = `${GITHUB_API}/${TASKS_PATH}/${taskId}.json`;
+  // === UPDATED STORAGE CALLS (no more hardcoded GitHub) ===
+  const taskUrl = getStorageUrl(`\( {TASKS_PATH}/ \){taskId}.json`);
+  
   await ghPutJson(taskUrl, {
     message: `Task ${taskId}`,
     content: Buffer.from(JSON.stringify(task, null, 2)).toString('base64'),
     branch: GITHUB_BRANCH
   });
   
-  // Init progress
   await updateStepProgress(taskId, 0, steps.length, 'queued', 'Waiting for device...', null, null);
   
-  // Add to queue
   await enqueueTask(taskId, task.priority);
   
   console.log('>>> TASK CREATED SUCCESS:', {taskId, steps: steps.length, target: task.target_app});
