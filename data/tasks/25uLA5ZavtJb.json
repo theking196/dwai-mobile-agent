@@ -1,0 +1,32 @@
+{
+  "task_id": "25uLA5ZavtJb",
+  "type": "automation",
+  "status": "pending",
+  "intent": "ROUTE",
+  "mode": "normal",
+  "goal": "Continue",
+  "steps": [
+    {
+      "action": "get_context",
+      "description": "Get current app context",
+      "id": 1,
+      "verify": true
+    },
+    {
+      "action": "analyze_screenshot",
+      "description": "Analyze current screen",
+      "id": 2,
+      "verify": true
+    }
+  ],
+  "slots": {},
+  "llm_intent": "Continue with current task",
+  "llm_confidence": 0.8,
+  "route_matched": null,
+  "execution_notes": "No specific warnings at this time. Will continue based on current context.",
+  "chat_id": 7345542163,
+  "user_id": 7345542163,
+  "created_at": "2026-04-10T00:26:57.438Z",
+  "priority": 5,
+  "verify_every_step": true
+}
