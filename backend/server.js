@@ -1002,25 +1002,6 @@ if (!TELEGRAM_BOT_TOKEN) throw new Error('TELEGRAM_BOT_TOKEN required');
 // - "supabase" - Supabase
 // - "s3" - AWS S3
 const STORAGE_MODE = process.env.STORAGE_MODE || 'github';
-function getStorageUrl(path) {
-  if (STORAGE_MODE === 'supabase') {
-    const table = path.split('/').pop().replace('.json', '');
-    return `\( {process.env.SUPABASE_URL}/rest/v1/ \){table}`;
-  }
-  if (STORAGE_MODE === 'firebase') {
-    const docId = path.split('/').pop().replace('.json', '');
-    return `https://firestore.googleapis.com/v1/projects/\( {process.env.FIREBASE_PROJECT_ID}/databases/(default)/documents/ \){docId}`;
-  }
-  if (STORAGE_MODE === 's3') {
-    return path; // S3 uses key only
-  }
-  if (STORAGE_MODE === 'local' || STORAGE_MODE === 'memory') {
-    return path;
-  }
-  // GitHub default
-  return `\( {GITHUB_API}/ \){path}`;
-}
-console.log('>>> Storage mode:', STORAGE_MODE);
 
 // Required configs per mode
 if (STORAGE_MODE === 'github' && (!GITHUB_TOKEN || !GITHUB_REPO)) {
