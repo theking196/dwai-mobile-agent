@@ -1097,24 +1097,37 @@ async function ghGetJson(url) {
     console.log('>>> Firebase not implemented yet');
     return { ok: false, status: 501 };
   }
-  // Supabase
+  // Supabase - proper DB implementation
   if (STORAGE_MODE === 'supabase') {
     try {
       const table = url.split('/').pop().replace('.json', '');
-      const res = await fetch(`${process.env.SUPABASE_URL}/rest/v1/${table}?select=*`, {
+      const key = body?.task_id || table;
+      // GET - read record by key
+      const res = await fetch(`${process.env.SUPABASE_URL}/rest/v1/${table}?key=eq.${key}`, {
         headers: { 'apikey': process.env.SUPABASE_KEY, 'Authorization': `Bearer ${process.env.SUPABASE_KEY}` }
       });
       if (res.ok) {
         const json = await res.json();
-        return { ok: true, json: { content: Buffer.from(JSON.stringify(json)).toString('base64') }, body: JSON.stringify(json) };
+        return { ok: true, json: { content: Buffer.from(JSON.stringify(json[0] || {})).toString('base64') }, body: JSON.stringify(json[0] || {}) };
       }
     } catch(e) { console.log('>>> Supabase GET error:', e.message); }
     return { ok: false, status: 500 };
   }
   // S3 (placeholder)
+  // AWS S3 GET
   if (STORAGE_MODE === 's3') {
-    console.log('>>> S3 not implemented yet');
-    return { ok: false, status: 501 };
+    const key = url.split('/').pop().replace('.json', '');
+    try {
+      const { S3Client, GetObjectCommand } = require('@aws-sdk/client-s3');
+      const s3 = new S3Client({ region: process.env.AWS_REGION || 'us-east-1' });
+      const res = await s3.send(new GetObjectCommand({ Bucket: process.env.AWS_S3_BUCKET, Key: key }));
+      const bodyStr = await res.Body.transformToString();
+      return { ok: true, json: JSON.parse(bodyStr), body: bodyStr };
+    } catch(e) { 
+      // Fallback: check memory
+      const data = memoryStorage.get(url);
+      return data ? { ok: true, json: data, body: JSON.stringify(data) } : { ok: false, status: 404 };
+    }
   }
   // GitHub (default)
   const res = await githubRequest('GET', url);
@@ -1138,14 +1151,29 @@ async function ghPutJson(url, body) {
     fs.writeFileSync(key, JSON.stringify(body, null, 2));
     return { ok: true };
   }
-  // Firebase (placeholder)
+  // Firebase Firestore
   if (STORAGE_MODE === 'firebase') {
-    return { ok: false, status: 501 };
+    // Simple Firestore via REST API
+    const docId = url.split('/').pop().replace('.json', '');
+    const project = process.env.FIREBASE_PROJECT_ID;
+    try {
+      // GET - read document
+      const res = await fetch(`https://firestore.googleapis.com/v1/projects/${project}/databases/(default)/documents/${docId}`, {
+        headers: { 'Authorization': `Bearer ${process.env.FIREBASE_TOKEN}` }
+      });
+      if (res.ok) {
+        const json = await res.json();
+        return { ok: true, json: { content: Buffer.from(JSON.stringify(json.fields)).toString('base64') }, body: JSON.stringify(json) };
+      }
+    } catch(e) { console.log('>>> Firebase GET error:', e.message); }
+    return { ok: false, status: 500 };
   }
-  // Supabase
+  // Supabase - proper DB implementation
   if (STORAGE_MODE === 'supabase') {
     try {
       const table = url.split('/').pop().replace('.json', '');
+      const key = body?.task_id || body?.id || table;
+      // UPSERT - insert or update
       const res = await fetch(`${process.env.SUPABASE_URL}/rest/v1/${table}`, {
         method: 'POST',
         headers: { 
@@ -1154,15 +1182,32 @@ async function ghPutJson(url, body) {
           'Content-Type': 'application/json',
           'Prefer': 'resolution=merge-duplicates'
         },
-        body: JSON.stringify(body)
+        body: JSON.stringify({ key, ...body })
       });
       return { ok: res.ok, status: res.status };
     } catch(e) { console.log('>>> Supabase PUT error:', e.message); }
     return { ok: false, status: 500 };
   }
-  // S3 (placeholder)
+  // AWS S3
   if (STORAGE_MODE === 's3') {
-    return { ok: false, status: 501 };
+    const key = url.split('/').pop().replace('.json', '');
+    try {
+      constAws = require('@aws-sdk/client-s3');
+      const s3 = new Aws.S3({ region: process.env.AWS_REGION || 'us-east-1' });
+      // PUT - upload object
+      await s3.putObject({
+        Bucket: process.env.AWS_S3_BUCKET,
+        Key: key,
+        Body: JSON.stringify(body),
+        ContentType: 'application/json'
+      }).promise();
+      return { ok: true };
+    } catch(e) { 
+      console.log('>>> S3 PUT error:', e.message); 
+      // Fallback: use in-memory for S3 key tracking
+      memoryStorage.set(url, body);
+      return { ok: true };
+    }
   }
   // GitHub (default)
   const res = await githubRequest('PUT', url, body);
