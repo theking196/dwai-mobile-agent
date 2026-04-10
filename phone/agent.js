@@ -2242,6 +2242,23 @@ function getUISnapshot() {
   return nodes;
 }
 
+// Run task by route (stub - returns null for fallback)
+function runTaskByRoute(routeName, params, waitForResult) {
+  // Vision analyze via server API
+  if (routeName === "vision_analyze") {
+    try {
+      var url = BASE_URL + "routes/" + routeName + ".json";
+      var res = ghGetJson(url);
+      if (res.ok && res.json && res.json.content) {
+        var route = JSON.parse(b64Decode(res.json.content));
+        // Execute the route and return result
+        return { elements: [] }; // Stub - actual AI vision
+      }
+    } catch(e) {}
+  }
+  return null;
+}
+
 // Safe vision with fallback
 function safeVisionSync() {
   // Try AI vision first
