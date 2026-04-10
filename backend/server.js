@@ -7,6 +7,7 @@ const { Telegraf } = require('telegraf');
 const Groq = require('groq-sdk');
 const https = require('https');
 const { nanoid } = require('nanoid');
+const fetch = (...args) => import('node-fetch').then(({default: f}) => f(...args));
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -82,17 +83,19 @@ function createTelegramButtons(buttons) {
   // buttons: [{text, callback_data, style}]
   // style: 'primary' (blue), 'secondary' (gray), 'danger' (red)
   if (!Array.isArray(buttons)) return [];
-  return buttons.map(btn => ({
-    text: btn?.text || '',
-    callback_data: btn?.callback_data || ''
-  }));
+  return buttons
+    .filter(btn => btn && typeof btn === 'object')
+    .map(btn => ({
+      text: btn?.text || '',
+      callback_data: btn?.callback_data || ''
+    }));
 }
 
 // FEATURE 4: Enhanced Status Updates with Typing Indicators
 async function sendTypingAction(chatId) {
   try {
     await bot.telegram.sendChatAction(chatId, 'typing');
-  } catch (e) {}
+  } catch (e) { console.error("Error:", e.message || e); }
 }
 
 async function sendRichResponse(chatId, text, buttons = null, parseMode = 'HTML') {
@@ -1089,7 +1092,7 @@ async function ghGetJson(url) {
         const content = fs.readFileSync(key, 'utf8');
         return { ok: true, json: JSON.parse(content), body: content };
       }
-    } catch {}
+    } catch (e) { console.error("Error:", e.message || e); }
     return { ok: false, status: 404 };
   }
   // Firebase (placeholder for now)
@@ -1796,7 +1799,7 @@ Now process: "${userText}";
         content: Buffer.from(JSON.stringify(errorLog, null, 2)).toString('base64'),
         branch: GITHUB_BRANCH
       });
-    } catch {}
+    } catch (e) { console.error("Error:", e.message || e); }
     return { intent: 'error', confidence: 0, steps: [], error: e.message };
   }
 }
@@ -1972,7 +1975,7 @@ async function listRouteSummaries(limit = 50) {
           app: route.app || ''
         });
       }
-    } catch {}
+    } catch (e) { console.error("Error:", e.message || e); }
   }
   return out;
 }
@@ -2359,7 +2362,7 @@ async function monitorTaskProgress(taskId, chatId, steps) {
         }
       }
       }
-    } catch (e) {}
+    } catch (e) { console.error("Error:", e.message || e); }
     
     if (!completed) setTimeout(check, 3000);
   };
@@ -2794,8 +2797,13 @@ function startScheduler() {
         
         if (!scheduleRes.ok || !scheduleRes.body) continue;
         
+        let schedule;
         try {
-          const schedule = JSON.parse(scheduleRes.body);
+          schedule = JSON.parse(scheduleRes.body);
+        } catch(e) {
+          console.log("Invalid schedule JSON:", e.message);
+          continue;
+        }
           
           if (!schedule.enabled) continue;
           
@@ -2803,9 +2811,8 @@ function startScheduler() {
             console.log("Running scheduled: " + schedule.task);
             await createRegularTask(schedule.task, 'SCHEDULED', 'normal', 0, 0);
           }
-        } catch (e) {}
-      }
-    } catch (e) {}
+        }
+      } catch (e) { console.error("Schedule error:", e.message || e); }
   }, SCHEDULER_INTERVAL);
 }
 
