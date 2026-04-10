@@ -2243,10 +2243,10 @@ function getUISnapshot() {
 }
 
 // Safe vision with fallback
-async function safeVision() {
+function safeVisionSync() {
   // Try AI vision first
   try {
-    var visionResult = await runTaskByRoute("vision_analyze", {}, true);
+    var visionResult = runTaskByRoute("vision_analyze", {}, true);
     if (visionResult && visionResult.elements && visionResult.elements.length > 0) {
       return { type: "ai", data: visionResult };
     }
@@ -2260,11 +2260,11 @@ async function safeVision() {
 }
 
 // Smart click with vision + snapshot + retry
-async function smartClick(target) {
+function smartClickSync(target) {
   target = target.toLowerCase();
   
   // Get current vision
-  var vision = await safeVision();
+  var vision = safeVisionSync();
   
   // Try AI vision first
   if (vision.type === "ai" && vision.data.elements) {
@@ -2297,7 +2297,7 @@ async function smartClick(target) {
     swipe(500, 1500, 500, 500, 500);
     sleep(1000);
     
-    var retryVision = await safeVision();
+    var retryVision = safeVisionSync();
     
     if (retryVision.type === "snapshot" && retryVision.data) {
       var retryNode = retryVision.data.find(function(n) {
