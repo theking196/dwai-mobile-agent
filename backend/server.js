@@ -609,7 +609,7 @@ app.post('/imagine', async (req, res) => {
 const SKILLS_PATH = 'data/skills';
 
 async function saveSkill(skillId, skillData) {
-  const url = `${GITHUB_API}/${SKILLS_PATH}/${skillId}.json`;
+  const url = getStorageUrl(SKILLS_PATH + '/' + skillId + '.json');
   const content = Buffer.from(JSON.stringify(skillData, null, 2)).toString('base64');
   const existing = await ghGetJson(url);
   const payload = { message: `Skill ${skillId}`, content, branch: GITHUB_BRANCH };
@@ -618,14 +618,14 @@ async function saveSkill(skillId, skillData) {
 }
 
 async function getSkill(skillId) {
-  const url = `${GITHUB_API}/${SKILLS_PATH}/${skillId}.json`;
+  const url = getStorageUrl(SKILLS_PATH + '/' + skillId + '.json');
   const res = await ghGetJson(url);
   if (!res.ok || !res.json?.content) return null;
   return JSON.parse(Buffer.from(res.json.content, 'base64').toString('utf8'));
 }
 
 async function listSkills() {
-  const url = `${GITHUB_API}/${SKILLS_PATH}`;
+  const url = getStorageUrl(SKILLS_PATH);
   const res = await ghGetJson(url);
   if (!res.ok || !Array.isArray(res.json)) return [];
   return res.json.filter(f => f.type === 'file' && f.name.endsWith('.json')).map(f => f.name.replace('.json', ''));
@@ -692,7 +692,7 @@ const WORKFLOWS_PATH = 'data/workflows';
 const activeWorkflows = new Map();
 
 async function saveWorkflow(workflowId, workflowData) {
-  const url = `${GITHUB_API}/${WORKFLOWS_PATH}/${workflowId}.json`;
+  const url = getStorageUrl(WORKFLOWS_PATH + '/' + workflowId + '.json');
   const content = Buffer.from(JSON.stringify(workflowData, null, 2)).toString('base64');
   const existing = await ghGetJson(url);
   const payload = { message: `Workflow ${workflowId}`, content, branch: GITHUB_BRANCH };
@@ -827,7 +827,7 @@ app.post('/schedule/create', async (req, res) => {
   };
   
   // Save to GitHub
-  const url = `${GITHUB_API}/${SCHEDULES_PATH}/sched_${Date.now()}.json`;
+  const url = getStorageUrl(SCHEDULES_PATH + '/sched_' + Date.now() + '.json');
   await ghPutJson(url, {
     message: 'Schedule created',
     content: Buffer.from(JSON.stringify(scheduleData, null, 2)).toString('base64'),
@@ -962,7 +962,7 @@ app.get('/api/task/:taskId', async (req, res) => {
   }
   
   try {
-    const taskUrl = `${GITHUB_API}/${TASKS_PATH}/${taskId}.json`;
+    const taskUrl = getStorageUrl(TASKS_PATH + '/' + taskId + '.json');
     const taskRes = await ghGetJson(taskUrl);
     
     if (!taskRes.ok || !taskRes.json?.content) {
@@ -1484,7 +1484,7 @@ function cleanAiResponse(text) {
 // FEATURE 3: Fetch Installed Apps List
 async function fetchInstalledApps() {
   if (cachedAppsList) return cachedAppsList;
-  const url = `${GITHUB_API}/${APPS_LIST_PATH}`;
+  const url = getStorageUrl(APPS_LIST_PATH);
   const res = await ghGetJson(url);
   if (res.ok && res.json?.content) {
     try {
@@ -1497,7 +1497,7 @@ async function fetchInstalledApps() {
 
 // FEATURE 4: Fetch Device State (Context Awareness)
 async function fetchDeviceState() {
-  const url = `${GITHUB_API}/${DEVICE_STATE_PATH}`;
+  const url = getStorageUrl(DEVICE_STATE_PATH);
   const res = await ghGetJson(url);
   if (res.ok && res.json?.content) {
     try {
@@ -1511,7 +1511,7 @@ async function fetchDeviceState() {
 // FEATURE 2: Fetch Stored Routes
 async function fetchStoredRoutes() {
   if (cachedRoutes) return cachedRoutes;
-  const url = `${GITHUB_API}/${ROUTES_PATH}`;
+  const url = getStorageUrl(ROUTES_PATH);
   const res = await ghGetJson(url);
   console.log('>>> fetchStoredRoutes res.ok:', res.ok, 'isArray:', Array.isArray(res.json));
   if (res.ok && Array.isArray(res.json)) {
@@ -1913,7 +1913,7 @@ Now process: "${userText}";
       userText: userText
     };
     try {
-      const logUrl = `${GITHUB_API}/data/error_log.json`;
+      const logUrl = getStorageUrl('data/error_log.json');
       await ghPutJson(logUrl, {
         message: 'LLM Error log',
         content: Buffer.from(JSON.stringify(errorLog, null, 2)).toString('base64'),
@@ -2065,7 +2065,7 @@ async function saveRoute(routeId, routeData) {
 }
 
 async function getRouteById(routeId) {
-  const fileUrl = `${GITHUB_API}/${ROUTES_PATH}/${routeId}.json`;
+  const fileUrl = getStorageUrl(ROUTES_PATH + '/' + routeId + '.json');
   const res = await ghGetJson(fileUrl);
   if (!res.ok || !res.json?.content) return null;
   try {
@@ -2075,7 +2075,7 @@ async function getRouteById(routeId) {
 
 async function listRouteSummaries(limit = 50) {
   console.log('>>> listRouteSummaries: fetching...');
-  const folder = await ghGetJson(`${GITHUB_API}/${ROUTES_PATH}`);
+  const folder = await ghGetJson(getStorageUrl(ROUTES_PATH));
   console.log('>>> listRouteSummaries folder:', folder.ok, Array.isArray(folder.json));
   if (!folder.ok || !Array.isArray(folder.json)) {
     console.log('>>> listRouteSummaries: NO routes');
@@ -2242,7 +2242,7 @@ async function updateStepProgress(taskId, stepNum, totalSteps, status, details, 
     timestamp: new Date().toISOString()
   };
   
-  const url = `${GITHUB_API}/${PROGRESS_PATH}/${taskId}_progress.json`;
+  const url = getStorageUrl(PROGRESS_PATH + '/' + taskId + '_progress.json');
   await ghPutJson(url, {
     message: `Step ${stepNum}/${totalSteps} ${status}`,
     content: Buffer.from(JSON.stringify(data, null, 2)).toString('base64'),
@@ -2383,7 +2383,7 @@ async function monitorTaskProgress(taskId, chatId, steps) {
     if (completed) return;
     
     try {
-      const url = `${GITHUB_API}/${PROGRESS_PATH}/${taskId}_progress.json`;
+      const url = getStorageUrl(PROGRESS_PATH + '/' + taskId + '_progress.json');
       console.log('>>> Checking progress:', taskId.slice(0,8));
       const res = await ghGetJson(url);
       
@@ -2421,7 +2421,7 @@ async function monitorTaskProgress(taskId, chatId, steps) {
             
             // Final report
             setTimeout(async () => {
-              const reportUrl = `${GITHUB_API}/${REPORTS_PATH}/${taskId}_report.json`;
+              const reportUrl = getStorageUrl(REPORTS_PATH + '/' + taskId + '_report.json');
               const reportRes = await ghGetJson(reportUrl);
               
               let finalMsg;
@@ -2672,7 +2672,7 @@ bot.on('text', async (ctx) => {
         created_at: new Date().toISOString()
       };
       
-      const url = `${GITHUB_API}/${SCHEDULES_PATH}/sched_${Date.now()}.json`;
+      const url = getStorageUrl(SCHEDULES_PATH + '/sched_' + Date.now() + '.json');
       await ghPutJson(url, {
         message: 'Schedule created',
         content: Buffer.from(JSON.stringify(scheduleData, null, 2)).toString('base64'),
@@ -2777,7 +2777,7 @@ app.post('/report/:taskId', async (req, res) => {
   
   try {
     // Save report to GitHub
-    const reportUrl = `${GITHUB_API}/${REPORTS_PATH}/${taskId}_report.json`;
+    const reportUrl = getStorageUrl(REPORTS_PATH + '/' + taskId + '_report.json');
     const reportData = {
       task_id: taskId,
       status,
@@ -2798,7 +2798,7 @@ app.post('/report/:taskId', async (req, res) => {
     await ghPutJson(reportUrl, payload);
     
     // Notify Telegram if chat_id exists
-    const taskUrl = `${GITHUB_API}/${TASKS_PATH}/${taskId}.json`;
+    const taskUrl = getStorageUrl(TASKS_PATH + '/' + taskId + '.json');
     const taskRes = await ghGetJson(taskUrl);
     if (taskRes.ok && taskRes.json?.content) {
       const task = JSON.parse(Buffer.from(taskRes.json.content, 'base64').toString());
@@ -2825,7 +2825,7 @@ const schedules = new Map(); // In-memory cache of active schedules
 
 async function loadSchedules() {
   try {
-    const url = `${GITHUB_API}/${SCHEDULES_PATH}`;
+    const url = getStorageUrl(SCHEDULES_PATH);
     const res = await ghGetJson(url);
     if (res.ok && Array.isArray(res.json)) {
       res.json.filter(f => f.type === 'file' && f.name.endsWith('.json')).forEach(f => {
@@ -2862,7 +2862,7 @@ function startScheduler() {
   
   setInterval(async () => {
     try {
-      const url = `${GITHUB_API}/${SCHEDULES_PATH}`;
+      const url = getStorageUrl(SCHEDULES_PATH);
       const res = await ghGetJson(url);
       
       if (!res.ok || !Array.isArray(res.json)) return;
